@@ -353,6 +353,65 @@
             color: white;
         }
 
+        /* Video Modal Lightbox */
+        .video-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-modal.active {
+            display: flex;
+        }
+
+        .video-modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .video-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: var(--secondary-color);
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 3001;
+            line-height: 1;
+        }
+
+        .video-modal-close:hover {
+            color: var(--accent-color);
+        }
+
+        .video-modal-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            background: var(--primary-color);
+        }
+
+        .video-modal-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
         /* Contact Section */
         .contact-content {
             display: grid;
@@ -591,12 +650,25 @@
             <div class="portfolio-project">
                 <h4 class="portfolio-project-title">Rebecca and Justin Partain Wedding - Highlight Film (11/15/2025)</h4>
                 <div class="portfolio-grid">
-                    <a href="https://www.youtube.com/watch?v=9IcJ9DG8HNA" target="_blank" class="youtube-thumbnail" style="text-decoration: none; display: block;">
+                    <div class="youtube-thumbnail" onclick="openVideoModal('9IcJ9DG8HNA', 'rebecca-justin-modal')">
                         <img src="https://img.youtube.com/vi/9IcJ9DG8HNA/maxresdefault.jpg" alt="Rebecca and Justin Partain Wedding - Highlight Film">
                         <div class="youtube-play-overlay">
                             <div class="youtube-play-button">▶</div>
                         </div>
-                    </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sarah and Hardy Wedding Project -->
+            <div class="portfolio-project">
+                <h4 class="portfolio-project-title">Sarah and Hardy Wedding - Highlight Film</h4>
+                <div class="portfolio-grid">
+                    <div class="youtube-thumbnail" onclick="openVideoModal('g3vsqplkVew', 'sarah-hardy-modal')">
+                        <img src="https://img.youtube.com/vi/g3vsqplkVew/maxresdefault.jpg" alt="Sarah and Hardy Wedding - Highlight Film">
+                        <div class="youtube-play-overlay">
+                            <div class="youtube-play-button">▶</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -653,6 +725,23 @@
         </div>
     </footer>
 
+    <!-- Video Modal -->
+    <div id="video-modal" class="video-modal">
+        <div class="video-modal-content">
+            <span class="video-modal-close" onclick="closeVideoModal()">&times;</span>
+            <div class="video-modal-wrapper">
+                <iframe id="video-modal-iframe" 
+                        src="" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Mobile menu toggle
         const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
@@ -681,6 +770,57 @@
                 nav.style.background = 'rgba(26, 26, 26, 0.98)';
             } else {
                 nav.style.background = 'rgba(26, 26, 26, 0.95)';
+            }
+        });
+
+        // Video Modal Functions
+        function openVideoModal(videoId, modalId) {
+            const modal = document.getElementById('video-modal');
+            const iframe = document.getElementById('video-modal-iframe');
+            
+            // Use different embed URLs based on video ID
+            if (videoId === '9IcJ9DG8HNA') {
+                // Rebecca and Justin - use the specific embed code provided
+                iframe.src = 'https://www.youtube.com/embed/9IcJ9DG8HNA?si=7aJWe75lhwF9XbGL&autoplay=1';
+            } else {
+                // Other videos - use standard embed
+                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            }
+            
+            // Show the modal
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('video-modal');
+            const iframe = document.getElementById('video-modal-iframe');
+            
+            // Hide the modal
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            // Stop the video by clearing the iframe source
+            iframe.src = '';
+        }
+
+        // Close modal when clicking outside the video
+        const videoModal = document.getElementById('video-modal');
+        if (videoModal) {
+            videoModal.addEventListener('click', (e) => {
+                if (e.target === videoModal) {
+                    closeVideoModal();
+                }
+            });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('video-modal');
+                if (modal && modal.classList.contains('active')) {
+                    closeVideoModal();
+                }
             }
         });
     </script>
