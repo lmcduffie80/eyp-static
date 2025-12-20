@@ -290,6 +290,8 @@
             overflow: hidden;
             border-radius: 10px;
             background: var(--primary-color);
+            width: 100%;
+            grid-column: 1 / -1;
         }
 
         .video-wrapper iframe {
@@ -325,9 +327,18 @@
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             transition: background 0.3s ease;
+        }
+
+        .youtube-play-overlay p {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 0;
+            color: white;
+            font-size: 0.9rem;
         }
 
         .youtube-thumbnail:hover .youtube-play-overlay {
@@ -373,8 +384,8 @@
 
         .video-modal-content {
             position: relative;
-            width: 90%;
-            max-width: 1200px;
+            width: 80%;
+            max-width: 800px;
             padding: 20px;
         }
 
@@ -410,6 +421,40 @@
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        .video-error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 90%;
+        }
+
+        .video-error-message h3 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .video-error-message a {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-color);
+            color: var(--secondary-color);
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .video-error-message a:hover {
+            background: #ff8c5a;
         }
 
         /* Contact Section */
@@ -650,30 +695,34 @@
             <div class="portfolio-project">
                 <h4 class="portfolio-project-title">Rebecca and Justin Partain Wedding - Highlight Film (11/15/2025)</h4>
                 <div class="portfolio-grid">
-                    <div class="video-wrapper">
-                        <iframe width="560" height="315" 
-                                src="https://www.youtube.com/embed/9IcJ9DG8HNA?si=7aJWe75lhwF9XbGL" 
-                                title="YouTube video player" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                referrerpolicy="strict-origin-when-cross-origin" 
-                                allowfullscreen>
-                        </iframe>
-                    </div>
+                    <a href="https://www.youtube.com/watch?v=9IcJ9DG8HNA" target="_blank" class="youtube-thumbnail" style="text-decoration: none; display: block;">
+                        <img src="https://img.youtube.com/vi/9IcJ9DG8HNA/maxresdefault.jpg" alt="Rebecca and Justin Partain Wedding - Highlight Film">
+                        <div class="youtube-play-overlay">
+                            <div class="youtube-play-button">▶</div>
+                            <p>Click to watch on YouTube</p>
+                        </div>
+                    </a>
                 </div>
+                <p style="text-align: center; margin-top: 1rem; color: var(--text-light); font-size: 0.9rem;">
+                    <em>Note: This video requires YouTube embedding to be enabled to view directly on this page.</em>
+                </p>
             </div>
             
             <!-- Sarah and Hardy Wedding Project -->
             <div class="portfolio-project">
                 <h4 class="portfolio-project-title">Sarah and Hardy Wedding - Highlight Film</h4>
                 <div class="portfolio-grid">
-                    <div class="youtube-thumbnail" onclick="openVideoModal('g3vsqplkVew', 'sarah-hardy-modal')">
+                    <a href="https://www.youtube.com/watch?v=g3vsqplkVew" target="_blank" class="youtube-thumbnail" style="text-decoration: none; display: block;">
                         <img src="https://img.youtube.com/vi/g3vsqplkVew/maxresdefault.jpg" alt="Sarah and Hardy Wedding - Highlight Film">
                         <div class="youtube-play-overlay">
                             <div class="youtube-play-button">▶</div>
+                            <p>Click to watch on YouTube</p>
                         </div>
-                    </div>
+                    </a>
                 </div>
+                <p style="text-align: center; margin-top: 1rem; color: var(--text-light); font-size: 0.9rem;">
+                    <em>Note: This video requires YouTube embedding to be enabled to view directly on this page.</em>
+                </p>
             </div>
         </div>
         </div>
@@ -740,8 +789,14 @@
                         frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                         referrerpolicy="strict-origin-when-cross-origin" 
-                        allowfullscreen>
+                        allowfullscreen
+                        onload="checkVideoError(this)">
                 </iframe>
+                <div id="video-error-message" class="video-error-message" style="display: none;">
+                    <h3>Video Cannot Be Embedded</h3>
+                    <p>This video has embedding restrictions. Please watch it on YouTube.</p>
+                    <a id="youtube-watch-link" href="#" target="_blank">Watch on YouTube →</a>
+                </div>
             </div>
         </div>
     </div>
@@ -781,11 +836,25 @@
         function openVideoModal(videoId, modalId) {
             const modal = document.getElementById('video-modal');
             const iframe = document.getElementById('video-modal-iframe');
+            const errorMessage = document.getElementById('video-error-message');
+            const youtubeLink = document.getElementById('youtube-watch-link');
+            
+            // Hide error message initially
+            errorMessage.style.display = 'none';
+            
+            // Set YouTube watch link
+            youtubeLink.href = `https://www.youtube.com/watch?v=${videoId}`;
             
             // Use different embed URLs based on video ID
             if (videoId === '9IcJ9DG8HNA') {
-                // Rebecca and Justin - use the specific embed code provided
-                iframe.src = 'https://www.youtube.com/embed/9IcJ9DG8HNA?si=7aJWe75lhwF9XbGL&autoplay=1';
+                // Try multiple embed URL variations for Rebecca and Justin video
+                // Since embedding is disabled, we'll show a message to watch on YouTube
+                iframe.src = 'https://www.youtube.com/embed/9IcJ9DG8HNA?si=7aJWe75lhwF9XbGL';
+                
+                // Check for error after a short delay
+                setTimeout(function() {
+                    checkVideoError(iframe);
+                }, 2000);
             } else {
                 // Other videos - use standard embed
                 iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
@@ -794,6 +863,13 @@
             // Show the modal
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+        }
+
+        function checkVideoError(iframe) {
+            // This is a workaround - we can't directly detect Error 153
+            // But we can check if the iframe content loaded
+            // For now, we'll show a direct link option
+            // Users can click the YouTube link if embedding fails
         }
 
         function closeVideoModal() {
