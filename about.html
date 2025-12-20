@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Externally Yours Productions, LLC - Professional video and film production services">
-    <title>Externally Yours Productions, LLC</title>
+    <meta name="description" content="About Us - Externally Yours Productions, LLC - Professional photography, videography, and DJ entertainment services">
+    <title>About Us - Externally Yours Productions, LLC</title>
     <style>
         * {
             margin: 0;
@@ -82,7 +82,8 @@
             transition: color 0.3s ease;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover,
+        .nav-links a.active {
             color: var(--accent-color);
         }
 
@@ -97,7 +98,7 @@
 
         /* Hero Section */
         .hero {
-            height: 100vh;
+            height: 60vh;
             background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
                         url('Grace and Dillon Wedding/7L8A5712.jpg') center/cover;
             display: flex;
@@ -118,23 +119,6 @@
             font-size: 1.5rem;
             margin-bottom: 2rem;
             animation: fadeInUp 1s ease 0.2s both;
-        }
-
-        .cta-button {
-            display: inline-block;
-            padding: 1rem 2.5rem;
-            background: var(--accent-color);
-            color: var(--secondary-color);
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: fadeInUp 1s ease 0.4s both;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
         }
 
         /* Sections */
@@ -165,12 +149,17 @@
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
             align-items: center;
+            margin-bottom: 3rem;
         }
 
         .about-text {
             font-size: 1.1rem;
             line-height: 1.8;
             color: var(--text-light);
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
         }
 
         .about-image {
@@ -181,187 +170,50 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        /* Services Section */
-        .services-grid {
+        /* Values/Mission Section */
+        .values-section {
+            background: var(--secondary-color);
+        }
+
+        .values-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
-        .service-card {
-            background: var(--secondary-color);
+        .value-card {
+            background: var(--bg-light);
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .service-card:hover {
+        .value-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
 
-        .service-card h3 {
+        .value-card h3 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
             color: var(--primary-color);
         }
 
-        .service-card p {
+        .value-card p {
             color: var(--text-light);
         }
 
-        .service-icon {
+        .value-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
 
-        /* Portfolio Section */
-        .portfolio {
+        /* Contact Section */
+        .contact-section {
             background: var(--bg-light);
         }
 
-        .portfolio-category {
-            margin-bottom: 4rem;
-        }
-
-        .portfolio-category:last-child {
-            margin-bottom: 0;
-        }
-
-        .portfolio-category-title {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .portfolio-project {
-            margin-bottom: 3rem;
-        }
-
-        .portfolio-project-title {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .portfolio-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-            aspect-ratio: 16/9;
-            background: var(--primary-color);
-            cursor: pointer;
-        }
-
-        .portfolio-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .portfolio-item:hover img {
-            transform: scale(1.1);
-        }
-
-        .portfolio-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(26, 26, 26, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .portfolio-item:hover .portfolio-overlay {
-            opacity: 1;
-        }
-
-        .portfolio-overlay h3 {
-            color: var(--secondary-color);
-            font-size: 1.5rem;
-        }
-
-        /* Gallery Modal */
-        .gallery-modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            overflow: auto;
-        }
-
-        .gallery-modal.active {
-            display: block;
-        }
-
-        .gallery-modal-content {
-            position: relative;
-            margin: 2% auto;
-            padding: 20px;
-            max-width: 1400px;
-        }
-
-        .gallery-close {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: var(--secondary-color);
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 2001;
-        }
-
-        .gallery-close:hover {
-            color: var(--accent-color);
-        }
-
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 50px;
-        }
-
-        .gallery-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-            aspect-ratio: 16/9;
-            background: var(--primary-color);
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .gallery-item:hover img {
-            transform: scale(1.05);
-        }
-
-        /* Contact Section */
         .contact-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -501,8 +353,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .services-grid,
-            .portfolio-grid {
+            .values-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -510,16 +361,6 @@
                 flex-direction: column;
                 text-align: center;
             }
-        }
-
-        /* Placeholder for images - replace with your actual images */
-        .placeholder-image {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
         }
     </style>
 </head>
@@ -531,12 +372,12 @@
                 <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
             </a>
             <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="about.html">About</a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html" class="active">About</a></li>
                 <li><a href="photography.html">Photography</a></li>
                 <li><a href="videography.html">Videography</a></li>
                 <li><a href="dj-entertainment.html">DJ Entertainment</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
             </ul>
             <button class="mobile-menu-toggle">☰</button>
         </div>
@@ -545,63 +386,58 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
-            <h1>Externally Yours Productions, LLC</h1>
-            <p>Creating compelling visual stories and DJ entertainment that captivate audiences</p>
-            <a href="#contact" class="cta-button">Get In Touch</a>
+            <h1>About Us</h1>
+            <p>Externally Yours Productions, LLC</p>
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="services">
+    <!-- About Section -->
+    <section id="about" class="about">
         <div class="container">
-            <h2 class="section-title">Our Services</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">🎥</div>
-                    <h3>Videography</h3>
-                    <p>Professional videography services for events, weddings, corporate productions, and special occasions. We capture your moments with cinematic quality and creative storytelling.</p>
+            <h2 class="section-title">Our Story</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Welcome to Externally Yours Productions, LLC, where creativity meets excellence and every moment is captured with passion and precision. We are a full-service production company specializing in photography, videography, and DJ entertainment services that bring your most important events to life.</p>
+                    <p>With years of experience in the industry, we understand that every celebration, whether it's a wedding, corporate event, or special occasion, deserves to be captured with artistic vision and technical excellence. Our team is dedicated to creating compelling visual stories and unforgettable entertainment experiences that exceed your expectations.</p>
+                    <p>From intimate wedding ceremonies to grand celebrations, we combine professional photography that preserves your precious moments, cinematic videography that tells your story with emotion and artistry, and high-energy DJ entertainment that keeps the party vibrant and unforgettable. Our commitment to quality, attention to detail, and personalized approach ensures that every project we undertake reflects your unique vision and style.</p>
+                    <p>At Externally Yours Productions, LLC, we don't just document events—we create timeless memories. Let us be part of your special moments and help you relive them for years to come.</p>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">📸</div>
-                    <h3>Photography</h3>
-                    <p>High-quality photography services including wedding photography, events, portraits, products, and commercial shoots. We capture the moments that matter with artistic vision and technical excellence.</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🎧</div>
-                    <h3>DJ Entertainment</h3>
-                    <p>High-energy, professional DJ services for weddings, parties, corporate events, and celebrations. Our DJs bring positive energy and vibrant vibes to your party with professional equipment and seamless mixing.</p>
-                </div>
+                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Externally Yours Productions team" class="about-image">
             </div>
         </div>
     </section>
 
-    <!-- Portfolio Section -->
-    <section id="portfolio" class="portfolio">
+    <!-- Values Section -->
+    <section class="values-section">
         <div class="container">
-            <h2 class="section-title">Our Work</h2>
-            
-            <!-- Photography Category -->
-            <div class="portfolio-category">
-                <h3 class="portfolio-category-title">Photography</h3>
-                
-                <!-- Grace and Dillon Wedding Project -->
-                <div class="portfolio-project">
-                    <h4 class="portfolio-project-title">Grace and Dillon Wedding</h4>
-                    <div class="portfolio-grid">
-                        <div class="portfolio-item" onclick="openGallery('grace-dillon-gallery')">
-                            <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
-                            <div class="portfolio-overlay">
-                                <h3>View Gallery (7 photos)</h3>
-                            </div>
-                        </div>
-                    </div>
+            <h2 class="section-title">What We Stand For</h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">🎯</div>
+                    <h3>Excellence</h3>
+                    <p>We strive for excellence in every project, ensuring the highest quality results that exceed our clients' expectations.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">💡</div>
+                    <h3>Creativity</h3>
+                    <p>Our creative approach brings fresh perspectives and innovative solutions to every project we undertake.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">🤝</div>
+                    <h3>Partnership</h3>
+                    <p>We work closely with our clients as partners, ensuring their vision is brought to life with care and attention.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">⭐</div>
+                    <h3>Quality</h3>
+                    <p>Quality is at the heart of everything we do, from the equipment we use to the final delivery of your project.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Contact Section -->
-    <section id="contact">
+    <section id="contact" class="contact-section">
         <div class="container">
             <h2 class="section-title">Get In Touch</h2>
             <div class="contact-content">
@@ -635,37 +471,6 @@
         </div>
     </section>
 
-    <!-- Gallery Modal -->
-    <div id="grace-dillon-gallery" class="gallery-modal">
-        <span class="gallery-close" onclick="closeGallery('grace-dillon-gallery')">&times;</span>
-        <div class="gallery-modal-content">
-            <h2 style="color: white; text-align: center; margin-top: 20px;">Grace and Dillon Wedding</h2>
-            <div class="gallery-grid">
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding">
-                </div>
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding">
-                </div>
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
-                </div>
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding">
-                </div>
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding">
-                </div>
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding">
-                </div>
-                <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding">
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Footer -->
     <footer>
         <div class="container">
@@ -682,21 +487,7 @@
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Mobile menu toggle (basic implementation)
+        // Mobile menu toggle
         const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
         const navLinks = document.querySelector('.nav-links');
         
@@ -706,7 +497,7 @@
             });
         }
 
-        // Form submission (basic implementation - you'll need to connect to a backend)
+        // Form submission
         const contactForm = document.querySelector('.contact-form');
         if (contactForm) {
             contactForm.addEventListener('submit', (e) => {
@@ -725,42 +516,7 @@
                 nav.style.background = 'rgba(26, 26, 26, 0.95)';
             }
         });
-
-        // Gallery modal functions
-        function openGallery(galleryId) {
-            const modal = document.getElementById(galleryId);
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
-            }
-        }
-
-        function closeGallery(galleryId) {
-            const modal = document.getElementById(galleryId);
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = ''; // Restore scrolling
-            }
-        }
-
-        // Close gallery when clicking outside the content
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('gallery-modal')) {
-                e.target.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
-
-        // Close gallery with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const activeGallery = document.querySelector('.gallery-modal.active');
-                if (activeGallery) {
-                    activeGallery.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            }
-        });
     </script>
 </body>
 </html>
+

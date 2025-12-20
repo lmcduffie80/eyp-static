@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Externally Yours Productions, LLC - Professional video and film production services">
-    <title>Externally Yours Productions, LLC</title>
+    <meta name="description" content="Photography Services - Externally Yours Productions, LLC - Professional wedding, event, and commercial photography">
+    <title>Photography - Externally Yours Productions, LLC</title>
     <style>
         * {
             margin: 0;
@@ -82,7 +82,8 @@
             transition: color 0.3s ease;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover,
+        .nav-links a.active {
             color: var(--accent-color);
         }
 
@@ -97,7 +98,7 @@
 
         /* Hero Section */
         .hero {
-            height: 100vh;
+            height: 80vh;
             background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
                         url('Grace and Dillon Wedding/7L8A5712.jpg') center/cover;
             display: flex;
@@ -219,32 +220,6 @@
         /* Portfolio Section */
         .portfolio {
             background: var(--bg-light);
-        }
-
-        .portfolio-category {
-            margin-bottom: 4rem;
-        }
-
-        .portfolio-category:last-child {
-            margin-bottom: 0;
-        }
-
-        .portfolio-category-title {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .portfolio-project {
-            margin-bottom: 3rem;
-        }
-
-        .portfolio-project-title {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-dark);
-            font-weight: 500;
         }
 
         .portfolio-grid {
@@ -511,16 +486,6 @@
                 text-align: center;
             }
         }
-
-        /* Placeholder for images - replace with your actual images */
-        .placeholder-image {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-        }
     </style>
 </head>
 <body>
@@ -531,12 +496,12 @@
                 <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
             </a>
             <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
+                <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About</a></li>
-                <li><a href="photography.html">Photography</a></li>
+                <li><a href="photography.html" class="active">Photography</a></li>
                 <li><a href="videography.html">Videography</a></li>
                 <li><a href="dj-entertainment.html">DJ Entertainment</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
             </ul>
             <button class="mobile-menu-toggle">☰</button>
         </div>
@@ -545,31 +510,56 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
-            <h1>Externally Yours Productions, LLC</h1>
-            <p>Creating compelling visual stories and DJ entertainment that captivate audiences</p>
-            <a href="#contact" class="cta-button">Get In Touch</a>
+            <h1>Photography</h1>
+            <p>Capturing moments that matter with artistic vision and technical excellence</p>
+            <a href="#contact" class="cta-button">Book Your Session</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">Our Photography Services</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>At Externally Yours Productions, LLC, we specialize in high-quality photography services that capture the essence of your most important moments. From intimate wedding ceremonies to grand corporate events, we bring an artistic vision and technical excellence to every shoot.</p>
+                    <p>Our photography services include wedding photography, event photography, portrait sessions, product photography, and commercial shoots. We work closely with our clients to understand their vision and deliver images that exceed expectations.</p>
+                    <p>With attention to detail and a passion for storytelling through imagery, we ensure that every photo tells a story and preserves your memories for a lifetime.</p>
+                </div>
+                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Photography services" class="about-image">
+            </div>
         </div>
     </section>
 
     <!-- Services Section -->
     <section id="services">
         <div class="container">
-            <h2 class="section-title">Our Services</h2>
+            <h2 class="section-title">What We Offer</h2>
             <div class="services-grid">
                 <div class="service-card">
-                    <div class="service-icon">🎥</div>
-                    <h3>Videography</h3>
-                    <p>Professional videography services for events, weddings, corporate productions, and special occasions. We capture your moments with cinematic quality and creative storytelling.</p>
+                    <div class="service-icon">💍</div>
+                    <h3>Wedding Photography</h3>
+                    <p>Comprehensive wedding photography services to capture every precious moment of your special day, from the ceremony to the reception.</p>
                 </div>
                 <div class="service-card">
-                    <div class="service-icon">📸</div>
-                    <h3>Photography</h3>
-                    <p>High-quality photography services including wedding photography, events, portraits, products, and commercial shoots. We capture the moments that matter with artistic vision and technical excellence.</p>
+                    <div class="service-icon">🎉</div>
+                    <h3>Event Photography</h3>
+                    <p>Professional event photography for corporate gatherings, parties, celebrations, and special occasions.</p>
                 </div>
                 <div class="service-card">
-                    <div class="service-icon">🎧</div>
-                    <h3>DJ Entertainment</h3>
-                    <p>High-energy, professional DJ services for weddings, parties, corporate events, and celebrations. Our DJs bring positive energy and vibrant vibes to your party with professional equipment and seamless mixing.</p>
+                    <div class="service-icon">👤</div>
+                    <h3>Portrait Photography</h3>
+                    <p>Professional portrait sessions for individuals, families, and groups. We create stunning portraits that capture personality and emotion.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">📦</div>
+                    <h3>Product Photography</h3>
+                    <p>High-quality product photography for e-commerce, catalogs, and marketing materials that showcase your products in the best light.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🏢</div>
+                    <h3>Commercial Photography</h3>
+                    <p>Professional commercial photography services for businesses, brands, and marketing campaigns.</p>
                 </div>
             </div>
         </div>
@@ -578,24 +568,15 @@
     <!-- Portfolio Section -->
     <section id="portfolio" class="portfolio">
         <div class="container">
-            <h2 class="section-title">Our Work</h2>
-            
-            <!-- Photography Category -->
-            <div class="portfolio-category">
-                <h3 class="portfolio-category-title">Photography</h3>
-                
-                <!-- Grace and Dillon Wedding Project -->
-                <div class="portfolio-project">
-                    <h4 class="portfolio-project-title">Grace and Dillon Wedding</h4>
-                    <div class="portfolio-grid">
-                        <div class="portfolio-item" onclick="openGallery('grace-dillon-gallery')">
-                            <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
-                            <div class="portfolio-overlay">
-                                <h3>View Gallery (7 photos)</h3>
-                            </div>
-                        </div>
+            <h2 class="section-title">Our Photography Work</h2>
+            <div class="portfolio-grid">
+                <div class="portfolio-item" onclick="openGallery('grace-dillon-gallery')">
+                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
+                    <div class="portfolio-overlay">
+                        <h3>Grace and Dillon Wedding</h3>
                     </div>
                 </div>
+                <!-- Add more photography projects here -->
             </div>
         </div>
     </section>
@@ -606,8 +587,8 @@
             <h2 class="section-title">Get In Touch</h2>
             <div class="contact-content">
                 <div class="contact-info">
-                    <h3>Let's Work Together</h3>
-                    <p>Have a project in mind? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+                    <h3>Let's Capture Your Moments</h3>
+                    <p>Ready to book a photography session? Contact us to discuss your project and get a quote.</p>
                     <p><strong>Email:</strong> info@externallyyoursproductions.com</p>
                     <p><strong>Phone:</strong> (555) 123-4567</p>
                     <p><strong>Address:</strong> Your Address Here, City, State ZIP</p>
@@ -682,21 +663,7 @@
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Mobile menu toggle (basic implementation)
+        // Mobile menu toggle
         const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
         const navLinks = document.querySelector('.nav-links');
         
@@ -706,7 +673,7 @@
             });
         }
 
-        // Form submission (basic implementation - you'll need to connect to a backend)
+        // Form submission
         const contactForm = document.querySelector('.contact-form');
         if (contactForm) {
             contactForm.addEventListener('submit', (e) => {
@@ -731,7 +698,7 @@
             const modal = document.getElementById(galleryId);
             if (modal) {
                 modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
             }
         }
 
@@ -739,7 +706,7 @@
             const modal = document.getElementById(galleryId);
             if (modal) {
                 modal.classList.remove('active');
-                document.body.style.overflow = ''; // Restore scrolling
+                document.body.style.overflow = '';
             }
         }
 
@@ -764,3 +731,4 @@
     </script>
 </body>
 </html>
+
