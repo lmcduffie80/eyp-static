@@ -323,6 +323,7 @@
             border-radius: 10px;
             aspect-ratio: 16/9;
             background: var(--primary-color);
+            cursor: pointer;
         }
 
         .gallery-item img {
@@ -334,6 +335,101 @@
 
         .gallery-item:hover img {
             transform: scale(1.05);
+        }
+
+        /* Image Lightbox */
+        .image-lightbox {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: var(--secondary-color);
+            font-size: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 3001;
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+
+        .lightbox-close:hover {
+            color: var(--accent-color);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--secondary-color);
+            border: none;
+            font-size: 40px;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease, transform 0.3s ease;
+            z-index: 3001;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-prev {
+            left: 30px;
+        }
+
+        .lightbox-next {
+            right: 30px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--secondary-color);
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 3001;
         }
 
         /* Contact Section */
@@ -576,7 +672,30 @@
                         <h3>Grace and Dillon Wedding</h3>
                     </div>
                 </div>
-                <!-- Add more photography projects here -->
+                <div class="portfolio-item" onclick="openGallery('yazmine-josh-gallery')">
+                    <img src="Yazmine and Josh Wedding/IMG_3957.jpg" alt="Yazmine and Josh Wedding">
+                    <div class="portfolio-overlay">
+                        <h3>Yazmine and Josh Wedding</h3>
+                    </div>
+                </div>
+                <div class="portfolio-item" onclick="openGallery('prom-2025-gallery')">
+                    <img src="Prom 2025/7L8A9549.jpg" alt="Prom 2025">
+                    <div class="portfolio-overlay">
+                        <h3>Prom 2025</h3>
+                    </div>
+                </div>
+                <div class="portfolio-item" onclick="openGallery('amy-cody-gallery')">
+                    <img src="Amy and Cody Hardy Wedding/E72A0908.jpg" alt="Amy and Cody Hardy Wedding">
+                    <div class="portfolio-overlay">
+                        <h3>Amy and Cody Hardy Wedding</h3>
+                    </div>
+                </div>
+                <div class="portfolio-item" onclick="openGallery('melissa-jeremy-gallery')">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0570.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <div class="portfolio-overlay">
+                        <h3 style="text-align: center;">Melissa and Jeremy Engagement Session</h3>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -645,6 +764,195 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Yazmine and Josh Wedding Gallery Modal -->
+    <div id="yazmine-josh-gallery" class="gallery-modal">
+        <span class="gallery-close" onclick="closeGallery('yazmine-josh-gallery')">&times;</span>
+        <div class="gallery-modal-content">
+            <h2 style="color: white; text-align: center; margin-top: 20px;">Yazmine and Josh Wedding</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_3957.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4058.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4116.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4133.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4324.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Yazmine and Josh Wedding/IMG_4385.jpg" alt="Yazmine and Josh Wedding">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prom 2025 Gallery Modal -->
+    <div id="prom-2025-gallery" class="gallery-modal">
+        <span class="gallery-close" onclick="closeGallery('prom-2025-gallery')">&times;</span>
+        <div class="gallery-modal-content">
+            <h2 style="color: white; text-align: center; margin-top: 20px;">Prom 2025</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9549.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9551.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9552.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9553.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9562.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9598.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9613.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9649.jpg" alt="Prom 2025">
+                </div>
+                <div class="gallery-item">
+                    <img src="Prom 2025/7L8A9661.jpg" alt="Prom 2025">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amy and Cody Hardy Wedding Gallery Modal -->
+    <div id="amy-cody-gallery" class="gallery-modal">
+        <span class="gallery-close" onclick="closeGallery('amy-cody-gallery')">&times;</span>
+        <div class="gallery-modal-content">
+            <h2 style="color: white; text-align: center; margin-top: 20px;">Amy and Cody Hardy Wedding</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0908.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0914.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0917.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0919.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0931.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0956.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0963.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0970.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0975.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0983.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A0984.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A1000.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A1008.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A1102.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A1126.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+                <div class="gallery-item">
+                    <img src="Amy and Cody Hardy Wedding/E72A1180.jpg" alt="Amy and Cody Hardy Wedding">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Melissa and Jeremy Engagement Session Gallery Modal -->
+    <div id="melissa-jeremy-gallery" class="gallery-modal">
+        <span class="gallery-close" onclick="closeGallery('melissa-jeremy-gallery')">&times;</span>
+        <div class="gallery-modal-content">
+            <h2 style="color: white; text-align: center; margin-top: 20px;">Melissa and Jeremy Engagement Session</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0570.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0593.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0595.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0635.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0659.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0700.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0772.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0776.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0781.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0815.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/7L8A0861.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/IMG_4618.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+                <div class="gallery-item">
+                    <img src="Melissa and Jeremy Engagement Session/IMG_4635.jpg" alt="Melissa and Jeremy Engagement Session">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div id="image-lightbox" class="image-lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <button class="lightbox-nav lightbox-prev" onclick="prevImage()">&#8249;</button>
+        <div class="lightbox-content">
+            <img class="lightbox-image" src="" alt="Gallery image">
+            <div class="lightbox-counter"></div>
+        </div>
+        <button class="lightbox-nav lightbox-next" onclick="nextImage()">&#8250;</button>
     </div>
 
     <!-- Footer -->
@@ -725,6 +1033,98 @@
                 if (activeGallery) {
                     activeGallery.classList.remove('active');
                     document.body.style.overflow = '';
+                }
+            }
+        });
+
+        // Image Lightbox functionality
+        let currentImageIndex = 0;
+        let currentImages = [];
+
+        function openLightbox(images, index) {
+            currentImages = images;
+            currentImageIndex = index;
+            updateLightboxImage();
+            document.getElementById('image-lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('image-lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function updateLightboxImage() {
+            if (currentImages.length > 0) {
+                const img = document.querySelector('.lightbox-image');
+                const counter = document.querySelector('.lightbox-counter');
+                img.src = currentImages[currentImageIndex].src;
+                img.alt = currentImages[currentImageIndex].alt || 'Gallery image';
+                counter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+                
+                // Show/hide navigation arrows
+                document.querySelector('.lightbox-prev').style.display = currentImageIndex > 0 ? 'flex' : 'none';
+                document.querySelector('.lightbox-next').style.display = currentImageIndex < currentImages.length - 1 ? 'flex' : 'none';
+            }
+        }
+
+        function nextImage() {
+            if (currentImageIndex < currentImages.length - 1) {
+                currentImageIndex++;
+                updateLightboxImage();
+            }
+        }
+
+        function prevImage() {
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                updateLightboxImage();
+            }
+        }
+
+        // Make gallery items clickable to open in lightbox
+        document.querySelectorAll('.gallery-item').forEach((item, index) => {
+            item.addEventListener('click', function(e) {
+                // Get all images in the same gallery
+                const gallery = this.closest('.gallery-grid');
+                const allItems = Array.from(gallery.querySelectorAll('.gallery-item img'));
+                const currentImg = this.querySelector('img');
+                const currentIndex = allItems.indexOf(currentImg);
+                
+                openLightbox(allItems, currentIndex);
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('image-lightbox');
+            if (lightbox && lightbox.classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage();
+                }
+            }
+        });
+
+        // Open gallery from URL hash (when linked from home page)
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const galleryId = hash.substring(1); // Remove the # symbol
+                const gallery = document.getElementById(galleryId);
+                if (gallery) {
+                    // Scroll to portfolio section first
+                    const portfolioSection = document.getElementById('portfolio');
+                    if (portfolioSection) {
+                        portfolioSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    // Open the gallery after a short delay
+                    setTimeout(() => {
+                        openGallery(galleryId);
+                    }, 500);
                 }
             }
         });
