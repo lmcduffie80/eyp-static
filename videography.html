@@ -431,7 +431,9 @@
             overflow: hidden;
             border-radius: 10px;
             background: var(--primary-color);
-            width: 100%;
+            width: 50%;
+            max-width: 560px;
+            margin: 0 auto;
             grid-column: 1 / -1;
         }
 
@@ -596,6 +598,60 @@
 
         .video-error-message a:hover {
             background: #ff8c5a;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            background: var(--secondary-color);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .testimonial-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .testimonial-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-light);
+            font-style: italic;
+            margin: 0;
+        }
+
+        .testimonial-author {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
+        }
+
+        .testimonial-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0 0 0.5rem 0;
+        }
+
+        .testimonial-wedding {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin: 0;
         }
 
         /* Contact Section */
@@ -882,6 +938,159 @@
     <section id="portfolio" class="portfolio">
         <div class="container">
             <h2 class="section-title">Our Videography Work</h2>
+            
+            <div class="portfolio-project">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 class="portfolio-project-title" style="margin-bottom: 0.5rem; text-align: center;">Rebecca and Justin Wedding - Highlight Film</h3>
+                    <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 2rem;">11/15/25</p>
+                </div>
+                <div style="width: 50%; max-width: 400px; margin: 0 auto 1.5rem auto;">
+                    <a href="https://www.youtube.com/watch?v=9IcJ9DG8HNA" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;">
+                        <div class="youtube-thumbnail">
+                            <img src="https://img.youtube.com/vi/9IcJ9DG8HNA/maxresdefault.jpg" alt="Rebecca and Justin Wedding - Highlight Film">
+                            <div class="youtube-play-overlay">
+                                <div class="youtube-play-button">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#1a1a1a">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>
+                                <p>Click to watch on YouTube</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <p style="color: var(--text-light); text-align: center; font-style: italic; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 0 1rem;">Rebecca and Justin exchanged vows beneath the swaying pines at the PeachBarn at TimberMill Acres in Tifton, Georgia.</p>
+            </div>
+            
+            <div class="portfolio-project">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 class="portfolio-project-title" style="margin-bottom: 0.5rem; text-align: center;">Madison and Beau Nix Wedding - Highlight Film</h3>
+                    <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 2rem;">11/1/25</p>
+                </div>
+                <div style="width: 50%; max-width: 400px; margin: 0 auto 1.5rem auto;">
+                    <a href="https://www.youtube.com/watch?v=5fzv0-C6EsA" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;">
+                        <div class="youtube-thumbnail">
+                            <img src="https://img.youtube.com/vi/5fzv0-C6EsA/hqdefault.jpg" alt="Madison and Beau Nix Wedding - Highlight Film" onerror="this.src='https://img.youtube.com/vi/5fzv0-C6EsA/maxresdefault.jpg'; this.onerror=null;">
+                            <div class="youtube-play-overlay">
+                                <div class="youtube-play-button">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#1a1a1a">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>
+                                <p>Click to watch on YouTube</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <p style="color: var(--text-light); text-align: center; font-style: italic; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 0 1rem;">From the moment Madison stepped into the light, and Beau saw his bride, the world around them seemed to slow. Their day wasn't just a wedding—it was a celebration of two hearts choosing each other again and again. Surrounded by family, friends, and the warmth of South Georgia, they began their greatest adventure as husband and wife. Here's to a lifetime of love, laughter, and the beautiful story they'll continue to write—side by side.</p>
+            </div>
+            
+            <div class="portfolio-project">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 class="portfolio-project-title" style="margin-bottom: 0.5rem; text-align: center;">Emma and John Donaldson Wedding - Highlight Film</h3>
+                    <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 2rem;">10/04/2025</p>
+                </div>
+                <div style="width: 50%; max-width: 400px; margin: 0 auto 1.5rem auto;">
+                    <a href="https://www.youtube.com/watch?v=mX7QiLhkA30" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;">
+                        <div class="youtube-thumbnail">
+                            <img src="https://img.youtube.com/vi/mX7QiLhkA30/hqdefault.jpg" alt="Emma and John Donaldson Wedding - Highlight Film">
+                            <div class="youtube-play-overlay">
+                                <div class="youtube-play-button">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#1a1a1a">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>
+                                <p>Click to watch on YouTube</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <p style="color: var(--text-light); text-align: center; font-style: italic; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 0 1rem;">Beneath the warm South Georgia sun at Highgrove Farms in Valdosta, we had the joy of capturing Emma and Sam's beautiful wedding day. Congratulations to the happy couple — wishing you a lifetime of love and happiness!</p>
+            </div>
+            
+            <div class="portfolio-project">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 class="portfolio-project-title" style="margin-bottom: 0.5rem; text-align: center;">Marylen and Christian Wedding - Highlight Film</h3>
+                    <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 2rem;">8/2/2025</p>
+                </div>
+                <div style="width: 50%; max-width: 400px; margin: 0 auto 1.5rem auto;">
+                    <a href="https://www.youtube.com/watch?v=4ZCkkC1B4Mw" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;">
+                        <div class="youtube-thumbnail">
+                            <img src="https://img.youtube.com/vi/4ZCkkC1B4Mw/hqdefault.jpg" alt="Marylen and Christian Wedding - Highlight Film">
+                            <div class="youtube-play-overlay">
+                                <div class="youtube-play-button">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#1a1a1a">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>
+                                <p>Click to watch on YouTube</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <p style="color: var(--text-light); text-align: center; font-style: italic; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 0 1rem;">On August 2, 2025, at Cypress Pond Farms in Doerun, Georgia, Marylen and Christian Knights joined in holy matrimony, exchanging vows that mark not just a moment—but the beginning of a lifetime together.</p>
+            </div>
+            
+            <div class="portfolio-project">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 class="portfolio-project-title" style="margin-bottom: 0.5rem; text-align: center;">Yazmine and Josh Olson Wedding - Highlight Film</h3>
+                    <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 2rem;">5/10/2025</p>
+                </div>
+                <div style="width: 50%; max-width: 400px; margin: 0 auto 1.5rem auto;">
+                    <a href="https://www.youtube.com/watch?v=Qqt1_OWI4gY" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;">
+                        <div class="youtube-thumbnail">
+                            <img src="https://img.youtube.com/vi/Qqt1_OWI4gY/hqdefault.jpg" alt="Yazmine and Josh Olson Wedding - Highlight Film">
+                            <div class="youtube-play-overlay">
+                                <div class="youtube-play-button">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#1a1a1a">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>
+                                <p>Click to watch on YouTube</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <p style="color: var(--text-light); text-align: center; font-style: italic; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 0 1rem;">Beneath the warm Middle Georgia sun in Fort Valley, Yazmine and Josh celebrated a stunning wedding day. Their love radiated with passion and strength, shining through every moment. One of the most touching highlights was their emotional exchange of private vows—a beautiful reminder of the deep bond they share.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <h2 class="section-title">Client Testimonials</h2>
+            <div class="testimonials-grid">
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"Externally Yours Productions captured our wedding day perfectly! The highlight film brought tears to our eyes and allowed us to relive every beautiful moment. Their attention to detail and creative storytelling made our special day even more memorable. We couldn't be happier with the final product!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <p class="testimonial-wedding">November 15, 2025</p>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"Working with Externally Yours Productions was an absolute dream! They were professional, creative, and made us feel so comfortable throughout the entire process. Our wedding video exceeded all expectations and perfectly captured the love and joy of our celebration. Highly recommend!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <p class="testimonial-wedding">November 1, 2025</p>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"The team at Externally Yours Productions went above and beyond to create a stunning video of our wedding day. From the cinematic shots to the emotional moments, they captured everything beautifully. Our families and friends are still talking about how amazing the highlight film is. Thank you for preserving our memories so perfectly!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <p class="testimonial-wedding">August 2, 2025</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -941,7 +1150,7 @@
                 <div id="video-error-message" class="video-error-message" style="display: none;">
                     <h3>Video Cannot Be Embedded</h3>
                     <p>This video has embedding restrictions. Please watch it on YouTube.</p>
-                    <a id="youtube-watch-link" href="#" target="_blank">Watch on YouTube →</a>
+                    <a id="youtube-watch-link" href="#" target="_blank" rel="noopener noreferrer">Watch on YouTube →</a>
                 </div>
             </div>
         </div>
