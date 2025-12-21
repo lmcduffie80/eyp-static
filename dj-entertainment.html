@@ -279,6 +279,99 @@
             margin-bottom: 1rem;
         }
 
+        .packages-section {
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .packages-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .package-card {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+            flex: 1;
+            min-width: 280px;
+            max-width: 350px;
+        }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent-color);
+        }
+
+        .package-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .package-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .package-features {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .package-features li {
+            padding: 0.5rem 0;
+            color: var(--text-dark);
+            border-bottom: 1px solid #f0f0f0;
+            line-height: 1.6;
+        }
+
+        .package-features li:last-child {
+            border-bottom: none;
+        }
+
+        .package-features li:before {
+            content: "✓ ";
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .package-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .package-button:hover {
+            background: var(--accent-color);
+        }
+
+        .package-note {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
         /* Contact Section */
         .contact-content {
             display: grid;
@@ -432,6 +525,15 @@
                 grid-template-columns: 1fr;
             }
 
+            .packages-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .package-card {
+                max-width: 100%;
+            }
+
             .footer-content {
                 flex-direction: column;
                 text-align: center;
@@ -489,20 +591,152 @@
         <div class="container">
             <h2 class="section-title">What We Offer</h2>
             <div class="services-grid">
-                <div class="service-card">
+                <div class="service-card" style="grid-column: 1 / -1;">
                     <div class="service-icon">💍</div>
                     <h3>Wedding DJ Services</h3>
                     <p>Professional wedding DJ services that keep your reception celebration going with the perfect mix of music for all ages and tastes.</p>
+                    <div class="packages-section">
+                        <h3 style="margin-top: 0; color: var(--primary-color);">Wedding DJ Packages</h3>
+                        <div class="packages-grid">
+                            <!-- Package 1 - Ceremony Package (Only) -->
+                            <div class="package-card">
+                                <h4>Ceremony Package (Only)</h4>
+                                <div class="package-price">$750.00</div>
+                                <ul class="package-features">
+                                    <li>2 hours of coverage</li>
+                                    <li>Two speakers</li>
+                                    <li>Sound board</li>
+                                    <li>Wedding ceremony playlist</li>
+                                    <li>Sound system and microphone for officiant/minister</li>
+                                    <li>DJ setup and pack-out services</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 2 - Ceremony and Reception Package -->
+                            <div class="package-card">
+                                <h4>Ceremony and Reception Package</h4>
+                                <div class="package-price">$1,200.00</div>
+                                <ul class="package-features">
+                                    <li>8 hours of coverage</li>
+                                    <li>DJ setup and breakdown</li>
+                                    <li>Ceremony top boxes</li>
+                                    <li>Two subs</li>
+                                    <li>Two top boxes for main DJ setup</li>
+                                    <li>Sound and microphone for officiant/minister</li>
+                                    <li>Announcements for Bridal Party Entrance</li>
+                                    <li>First Dances announcements</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 3 - Ceremony, Reception, and Lights Package -->
+                            <div class="package-card">
+                                <h4>Ceremony, Reception, and Lights Package</h4>
+                                <div class="package-price">$1,400.00</div>
+                                <ul class="package-features">
+                                    <li>8 hours of coverage</li>
+                                    <li>DJ setup and breakdown</li>
+                                    <li>Ceremony top boxes</li>
+                                    <li>Two subs</li>
+                                    <li>Two top boxes for main DJ setup</li>
+                                    <li>Sound and microphone for officiant/minister</li>
+                                    <li>Announcements for Bridal Party Entrance</li>
+                                    <li>First Dances announcements</li>
+                                    <li>Full production lighting for dance floor</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 4 - Reception Package without lights -->
+                            <div class="package-card">
+                                <h4>Reception Package (without lights)</h4>
+                                <div class="package-price">$900.00</div>
+                                <ul class="package-features">
+                                    <li>MC for all formalities</li>
+                                    <li>Exceptional Reception Dinner playlist</li>
+                                    <li>Selection of more than 2,000 songs</li>
+                                    <li>Keep the dance floor full of energy</li>
+                                </ul>
+                                <p class="package-note">Plus $150 fuel surcharge beyond 100 miles round trip of Tifton, GA</p>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 5 - Reception Package with lights -->
+                            <div class="package-card">
+                                <h4>Reception Package (with lights)</h4>
+                                <div class="package-price">$1,050.00</div>
+                                <ul class="package-features">
+                                    <li>MC for all formalities</li>
+                                    <li>Exceptional Reception Dinner playlist</li>
+                                    <li>Selection of more than 2,000 songs</li>
+                                    <li>Keep the dance floor full of energy</li>
+                                    <li>Full production lighting</li>
+                                </ul>
+                                <p class="package-note">Plus $150 fuel surcharge beyond 100 miles round trip of Tifton, GA</p>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">🎉</div>
                     <h3>Party DJ Services</h3>
                     <p>High-energy DJ entertainment for birthdays, anniversaries, graduations, and any celebration that needs great music.</p>
                 </div>
-                <div class="service-card">
+                <div class="service-card" style="grid-column: 1 / -1;">
                     <div class="service-icon">🏢</div>
                     <h3>Corporate Events</h3>
                     <p>Professional DJ services for corporate events, company parties, and business celebrations that need polished entertainment.</p>
+                    <div class="packages-section">
+                        <h3 style="margin-top: 0; color: var(--primary-color);">Business Parties Package</h3>
+                        <p style="color: var(--text-light); margin-bottom: 2rem;">When it's time to let loose and entertain your guests at corporate events, choose our Business Parties Package. This comprehensive package offers dynamic lights, a skilled DJ, and engaging entertainment for your entire audience.</p>
+                        <div class="packages-grid">
+                            <!-- Business Parties Package - Weeknight without lights -->
+                            <div class="package-card">
+                                <h4>Business Parties Package - Weeknight</h4>
+                                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem; font-style: italic;">Sunday - Wednesday (Without Lights)</p>
+                                <div class="package-price">$850.00</div>
+                                <ul class="package-features">
+                                    <li>Skilled DJ</li>
+                                    <li>Engaging entertainment for your entire audience</li>
+                                    <li>Professional sound system</li>
+                                </ul>
+                                <p class="package-note">A fuel surcharge of $100-$300 will be applied if beyond 100 miles from Tifton, GA (pending if overnight stay is required)</p>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Business Parties Package - Weeknight with lights -->
+                            <div class="package-card">
+                                <h4>Business Parties Package - Weeknight</h4>
+                                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem; font-style: italic;">Sunday - Wednesday (With Lights)</p>
+                                <div class="package-price">$1,000.00</div>
+                                <ul class="package-features">
+                                    <li>Skilled DJ</li>
+                                    <li>Engaging entertainment for your entire audience</li>
+                                    <li>Professional sound system</li>
+                                    <li>Dynamic lighting</li>
+                                </ul>
+                                <p class="package-note">A fuel surcharge of $100-$300 will be applied if beyond 100 miles from Tifton, GA (pending if overnight stay is required)</p>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Business Parties Package - Weekend -->
+                            <div class="package-card">
+                                <h4>Business Parties Package - Weekend</h4>
+                                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem; font-style: italic;">Thursday - Saturday</p>
+                                <div class="package-price">$1,400.00</div>
+                                <ul class="package-features">
+                                    <li>Skilled DJ</li>
+                                    <li>Engaging entertainment for your entire audience</li>
+                                    <li>Professional sound system</li>
+                                    <li>Full dance floor lighting included</li>
+                                </ul>
+                                <p class="package-note">A fuel surcharge of $100-$300 will be applied if beyond 100 miles from Tifton, GA (pending if overnight stay is required)</p>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">🎵</div>

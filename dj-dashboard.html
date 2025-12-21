@@ -459,6 +459,107 @@
             margin-bottom: 1rem;
         }
 
+        /* Account Info Section */
+        .account-section {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .account-header h2 {
+            color: var(--primary-color);
+        }
+
+        .account-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group input:disabled {
+            background: var(--bg-light);
+            cursor: not-allowed;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: var(--secondary-color);
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+            color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .save-success {
+            grid-column: 1 / -1;
+            padding: 1rem;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 5px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .save-success.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .account-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 1rem;
@@ -487,8 +588,9 @@
         </h1>
         <div class="header-actions">
             <div style="text-align: right; margin-right: 1rem;">
-                <div style="font-size: 0.85rem; color: #999; margin-bottom: 0.25rem;">Logged in as</div>
-                <div id="user-name" style="font-weight: bold; font-size: 1.1rem; color: var(--secondary-color);">DJ User</div>
+                <div id="welcome-message" style="font-size: 1rem; color: var(--secondary-color); margin-bottom: 0.25rem;">Welcome,</div>
+                <div id="user-name" style="font-weight: bold; font-size: 1.2rem; color: var(--secondary-color);">DJ User</div>
+                <div id="user-email" style="font-size: 0.75rem; color: #ccc; margin-top: 0.25rem;"></div>
             </div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
@@ -544,6 +646,38 @@
                 <!-- Bookings will be populated here -->
             </div>
         </div>
+
+        <!-- Account Info Section -->
+        <div class="account-section">
+            <div class="account-header">
+                <h2>Account Information</h2>
+            </div>
+            <form id="account-form" class="account-form">
+                <div class="form-group">
+                    <label for="account-username">Username</label>
+                    <input type="text" id="account-username" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="account-name">Full Name</label>
+                    <input type="text" id="account-name" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="account-email">Email Address *</label>
+                    <input type="email" id="account-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="account-phone">Phone Number</label>
+                    <input type="tel" id="account-phone" placeholder="(555) 555-5555">
+                </div>
+                <div class="save-success" id="save-success">
+                    Your account information has been updated successfully!
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelAccountEdit()">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -574,36 +708,115 @@
                 // Display full name or username
                 displayName = currentDJ.fullName || currentDJ.name || currentDJ.username;
                 
-                // Update welcome message
+                // Update header welcome message and name
+                document.getElementById('welcome-message').textContent = 'Welcome,';
+                document.getElementById('user-name').textContent = displayName;
+                
+                // Show email if available
+                const emailDiv = document.getElementById('user-email');
+                if (currentDJ.email && emailDiv) {
+                    emailDiv.textContent = currentDJ.email;
+                } else if (emailDiv) {
+                    emailDiv.textContent = '';
+                }
+                
+                // Update calendar welcome message
                 const welcomeMsg = document.getElementById('dj-welcome-message');
                 if (welcomeMsg) {
                     welcomeMsg.textContent = `Welcome back, ${displayName}!`;
                 }
-                
-                // Optionally show email below name in header
-                const userInfoDiv = document.getElementById('user-name').parentElement;
-                if (currentDJ.email) {
-                    let emailDiv = userInfoDiv.querySelector('.user-email');
-                    if (!emailDiv) {
-                        emailDiv = document.createElement('div');
-                        emailDiv.className = 'user-email';
-                        emailDiv.style.fontSize = '0.75rem';
-                        emailDiv.style.color = '#ccc';
-                        emailDiv.style.marginTop = '0.25rem';
-                        userInfoDiv.appendChild(emailDiv);
-                    }
-                    emailDiv.textContent = currentDJ.email;
-                }
             } else {
-                // Update welcome message with username
+                // Update header with username
+                document.getElementById('welcome-message').textContent = 'Welcome,';
+                document.getElementById('user-name').textContent = currentUsername;
+                const emailDiv = document.getElementById('user-email');
+                if (emailDiv) {
+                    emailDiv.textContent = '';
+                }
+                
+                // Update calendar welcome message
                 const welcomeMsg = document.getElementById('dj-welcome-message');
                 if (welcomeMsg) {
                     welcomeMsg.textContent = `Welcome back, ${currentUsername}!`;
                 }
             }
             
-            // Update header name
-            document.getElementById('user-name').textContent = displayName;
+            // Load account info into form
+            loadAccountInfo();
+        }
+        
+        // Load account information into the form
+        function loadAccountInfo() {
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            
+            if (currentDJ) {
+                document.getElementById('account-username').value = currentDJ.username || '';
+                document.getElementById('account-name').value = currentDJ.fullName || currentDJ.name || '';
+                document.getElementById('account-email').value = currentDJ.email || '';
+                document.getElementById('account-phone').value = currentDJ.phone || '';
+            } else {
+                // If user not found in dj_users, try to get from dj_user
+                document.getElementById('account-username').value = currentUsername || '';
+                document.getElementById('account-name').value = '';
+                document.getElementById('account-email').value = '';
+                document.getElementById('account-phone').value = '';
+            }
+        }
+        
+        // Handle account form submission
+        document.getElementById('account-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJIndex = allDJs.findIndex(dj => dj.username === currentUsername);
+            
+            const email = document.getElementById('account-email').value.trim();
+            const phone = document.getElementById('account-phone').value.trim();
+            
+            if (!email) {
+                alert('Email address is required');
+                return;
+            }
+            
+            // Update user info
+            if (currentDJIndex !== -1) {
+                // Update existing user
+                allDJs[currentDJIndex].email = email;
+                allDJs[currentDJIndex].phone = phone;
+            } else {
+                // Create new user entry if doesn't exist
+                const newUser = {
+                    username: currentUsername,
+                    email: email,
+                    phone: phone,
+                    name: document.getElementById('account-name').value.trim()
+                };
+                allDJs.push(newUser);
+            }
+            
+            // Save updated users list
+            localStorage.setItem('dj_users', JSON.stringify(allDJs));
+            
+            // Show success message
+            const successMsg = document.getElementById('save-success');
+            successMsg.classList.add('show');
+            
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                successMsg.classList.remove('show');
+            }, 3000);
+            
+            // Reload user info to update header
+            loadDJUserInfo();
+        });
+        
+        // Cancel account edit (reload original values)
+        function cancelAccountEdit() {
+            loadAccountInfo();
+            document.getElementById('save-success').classList.remove('show');
         }
         
         // Load user info on page load
