@@ -231,12 +231,17 @@
             color: var(--text-light);
         }
 
-        .about-image {
+        .about-image,
+        .about-video {
             width: 100%;
             height: 400px;
             object-fit: cover;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .about-video {
+            background: var(--primary-color);
         }
 
         /* Services Section */
@@ -472,7 +477,9 @@
                     <p>We use professional equipment and seamless mixing techniques to ensure your event has the perfect soundtrack. Whether you're celebrating a wedding, hosting a corporate event, or throwing a party, our DJs create an atmosphere that gets everyone moving.</p>
                     <p>From the first song to the last, we work closely with you to understand your musical preferences and event style, ensuring every moment is perfectly timed and the energy stays high throughout your celebration.</p>
                 </div>
-                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="DJ Entertainment services" class="about-image">
+                <video src="DJ Entertainment/IMG_3072.mov" class="about-video" autoplay muted loop playsinline>
+                    Your browser does not support the video tag.
+                </video>
             </div>
         </div>
     </section>
