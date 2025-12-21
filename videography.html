@@ -761,12 +761,11 @@
                 <h4 class="portfolio-project-title">Rebecca and Justin Partain Wedding - Highlight Film (11/15/2025)</h4>
                 <div class="portfolio-grid">
                     <div class="video-wrapper">
-                        <iframe width="560" height="315" 
-                                src="https://www.youtube.com/embed/9IcJ9DG8HNA?si=Ou8xweb_rVcHOr3m" 
-                                title="YouTube video player" 
+                        <iframe 
+                                src="https://www.youtube-nocookie.com/embed/9IcJ9DG8HNA" 
+                                title="Rebecca and Justin Partain Wedding - Highlight Film" 
                                 frameborder="0" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                referrerpolicy="strict-origin-when-cross-origin" 
                                 allowfullscreen>
                         </iframe>
                     </div>
@@ -915,13 +914,13 @@
             const modal = document.getElementById('video-modal');
             const iframe = document.getElementById('video-modal-iframe');
             
-            // Use embed URL with referrerpolicy for all videos
+            // Use youtube-nocookie.com for better embedding compatibility
             if (videoId === '9IcJ9DG8HNA') {
-                // Rebecca and Justin video with exact embed code from YouTube
-                iframe.src = 'https://www.youtube.com/embed/9IcJ9DG8HNA?si=Ou8xweb_rVcHOr3m&autoplay=1';
+                // Rebecca and Justin video
+                iframe.src = 'https://www.youtube-nocookie.com/embed/9IcJ9DG8HNA?autoplay=1';
             } else {
                 // Other videos - use standard embed
-                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
             }
             
             // Show the modal
