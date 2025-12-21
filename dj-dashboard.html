@@ -60,6 +60,106 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+            position: relative;
+        }
+
+        .user-profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+        }
+
+        .profile-icon:hover {
+            border-color: var(--secondary-color);
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--secondary-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            min-width: 250px;
+            padding: 0.5rem 0;
+            z-index: 1000;
+            display: none;
+            animation: slideDown 0.2s ease;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+        }
+
+        .profile-dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .profile-dropdown-name {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-dropdown-email {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .profile-dropdown-menu {
+            list-style: none;
+            padding: 0.5rem 0;
+        }
+
+        .profile-dropdown-menu li {
+            padding: 0;
+        }
+
+        .profile-dropdown-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: background 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .profile-dropdown-menu a:hover {
+            background: var(--bg-light);
+        }
+
+        .profile-dropdown-menu .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 0.5rem 0;
         }
 
         .logout-btn {
@@ -75,6 +175,17 @@
 
         .logout-btn:hover {
             background: #e55a2b;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Main Container */
@@ -592,7 +703,22 @@
                 <div id="user-name" style="font-weight: bold; font-size: 1.2rem; color: var(--secondary-color);">DJ User</div>
                 <div id="user-email" style="font-size: 0.75rem; color: #ccc; margin-top: 0.25rem;"></div>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div class="user-profile-menu">
+                <div class="profile-icon" id="profile-icon" onclick="toggleProfileDropdown()">
+                    <span id="profile-initials">DJ</span>
+                </div>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <div class="profile-dropdown-header">
+                        <div class="profile-dropdown-name" id="dropdown-name">DJ User</div>
+                        <div class="profile-dropdown-email" id="dropdown-email"></div>
+                    </div>
+                    <ul class="profile-dropdown-menu">
+                        <li><a href="#" onclick="scrollToAccountSection(); return false;">Account Settings</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -720,6 +846,13 @@
                     emailDiv.textContent = '';
                 }
                 
+                // Update dropdown menu
+                document.getElementById('dropdown-name').textContent = displayName;
+                document.getElementById('dropdown-email').textContent = currentDJ.email || '';
+                
+                // Update profile icon with initials
+                updateProfileIcon(displayName);
+                
                 // Update calendar welcome message
                 const welcomeMsg = document.getElementById('dj-welcome-message');
                 if (welcomeMsg) {
@@ -734,6 +867,13 @@
                     emailDiv.textContent = '';
                 }
                 
+                // Update dropdown menu
+                document.getElementById('dropdown-name').textContent = currentUsername;
+                document.getElementById('dropdown-email').textContent = '';
+                
+                // Update profile icon with initials
+                updateProfileIcon(currentUsername);
+                
                 // Update calendar welcome message
                 const welcomeMsg = document.getElementById('dj-welcome-message');
                 if (welcomeMsg) {
@@ -743,6 +883,38 @@
             
             // Load account info into form
             loadAccountInfo();
+        }
+        
+        // Update profile icon with user initials
+        function updateProfileIcon(name) {
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('profile-initials').textContent = initials || 'DJ';
+        }
+        
+        // Toggle profile dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profile-dropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // Close profile dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileMenu = document.querySelector('.user-profile-menu');
+            const dropdown = document.getElementById('profile-dropdown');
+            
+            if (profileMenu && !profileMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        
+        // Scroll to account section
+        function scrollToAccountSection() {
+            const accountSection = document.querySelector('.account-section');
+            if (accountSection) {
+                accountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close dropdown
+                document.getElementById('profile-dropdown').classList.remove('show');
+            }
         }
         
         // Load account information into the form
@@ -809,7 +981,7 @@
                 successMsg.classList.remove('show');
             }, 3000);
             
-            // Reload user info to update header
+            // Reload user info to update header and dropdown
             loadDJUserInfo();
         });
         
