@@ -713,7 +713,7 @@
                         <div class="profile-dropdown-email" id="dropdown-email"></div>
                     </div>
                     <ul class="profile-dropdown-menu">
-                        <li><a href="#" onclick="scrollToAccountSection(); return false;">Account Settings</a></li>
+                        <li><a href="#" onclick="scrollToAccountSection(event); return false;">Account Settings</a></li>
                         <li class="divider"></li>
                         <li><a href="#" onclick="logout(); return false;">Logout</a></li>
                     </ul>
@@ -785,7 +785,7 @@
                 </div>
                 <div class="form-group">
                     <label for="account-name">Full Name</label>
-                    <input type="text" id="account-name" disabled>
+                    <input type="text" id="account-name" placeholder="Enter your full name">
                 </div>
                 <div class="form-group">
                     <label for="account-email">Email Address *</label>
@@ -908,13 +908,24 @@
         });
         
         // Scroll to account section
-        function scrollToAccountSection() {
+        function scrollToAccountSection(event) {
+            if (event) {
+                event.preventDefault();
+            }
             const accountSection = document.querySelector('.account-section');
             if (accountSection) {
-                accountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                // Close dropdown
+                // Close dropdown first
                 document.getElementById('profile-dropdown').classList.remove('show');
+                // Small delay to allow dropdown to close smoothly
+                setTimeout(() => {
+                    accountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Focus on the name field for better UX
+                    setTimeout(() => {
+                        document.getElementById('account-name').focus();
+                    }, 500);
+                }, 100);
             }
+            return false;
         }
         
         // Load account information into the form
@@ -947,6 +958,7 @@
             
             const email = document.getElementById('account-email').value.trim();
             const phone = document.getElementById('account-phone').value.trim();
+            const name = document.getElementById('account-name').value.trim();
             
             if (!email) {
                 alert('Email address is required');
@@ -958,13 +970,18 @@
                 // Update existing user
                 allDJs[currentDJIndex].email = email;
                 allDJs[currentDJIndex].phone = phone;
+                if (name) {
+                    allDJs[currentDJIndex].fullName = name;
+                    allDJs[currentDJIndex].name = name;
+                }
             } else {
                 // Create new user entry if doesn't exist
                 const newUser = {
                     username: currentUsername,
                     email: email,
                     phone: phone,
-                    name: document.getElementById('account-name').value.trim()
+                    name: name || '',
+                    fullName: name || ''
                 };
                 allDJs.push(newUser);
             }
