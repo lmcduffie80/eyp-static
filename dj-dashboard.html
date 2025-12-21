@@ -596,6 +596,119 @@
             gap: 1.5rem;
         }
 
+        /* Reviews Section */
+        .reviews-section {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .reviews-header h2 {
+            color: var(--primary-color);
+        }
+
+        .reviews-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .rating-display {
+            text-align: center;
+        }
+
+        .rating-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            line-height: 1;
+        }
+
+        .rating-stars {
+            font-size: 1.2rem;
+            color: var(--warning-color);
+            margin-top: 0.5rem;
+        }
+
+        .total-reviews {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .reviews-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .review-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background: var(--bg-light);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .review-client {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .review-event {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .review-date {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .review-rating {
+            color: var(--warning-color);
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+        }
+
+        .review-text {
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin-top: 0.75rem;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .no-reviews-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -803,6 +916,23 @@
                     <button type="button" class="btn btn-secondary" onclick="cancelAccountEdit()">Cancel</button>
                 </div>
             </form>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+            <div class="reviews-header">
+                <h2>Customer Reviews</h2>
+                <div class="reviews-stats" id="reviews-stats">
+                    <div class="rating-display">
+                        <div class="rating-number" id="average-rating">0.0</div>
+                        <div class="rating-stars" id="rating-stars">★★★★★</div>
+                        <div class="total-reviews" id="total-reviews">0 Reviews</div>
+                    </div>
+                </div>
+            </div>
+            <div id="reviews-container" class="reviews-list">
+                <!-- Reviews will be populated here -->
+            </div>
         </div>
     </div>
 
@@ -1336,10 +1466,118 @@
             }
         }
 
+        // Load reviews for current DJ
+        function loadReviews() {
+            const currentUsername = localStorage.getItem('dj_user');
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const djReviews = allReviews.filter(review => review.djUsername === currentUsername);
+            
+            displayReviews(djReviews);
+            updateReviewStats(djReviews);
+        }
+        
+        // Display reviews
+        function displayReviews(reviews) {
+            const container = document.getElementById('reviews-container');
+            
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                    <div class="no-reviews">
+                        <div class="no-reviews-icon">⭐</div>
+                        <p>No reviews yet. Your customer reviews will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort reviews by date (newest first)
+            reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = reviews.map(review => {
+                const reviewDate = new Date(review.date);
+                const formattedDate = reviewDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                // Generate star rating display
+                const fullStars = '★'.repeat(Math.floor(review.rating));
+                const emptyStars = '☆'.repeat(5 - Math.floor(review.rating));
+                const stars = fullStars + emptyStars;
+                
+                return `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div>
+                                <div class="review-client">${review.clientName || 'Anonymous'}</div>
+                                ${review.eventName ? `<div class="review-event">${review.eventName}</div>` : ''}
+                            </div>
+                            <div class="review-date">${formattedDate}</div>
+                        </div>
+                        <div class="review-rating">${stars}</div>
+                        <div class="review-text">${review.comment || 'No comment provided.'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Update review statistics
+        function updateReviewStats(reviews) {
+            if (reviews.length === 0) {
+                document.getElementById('average-rating').textContent = '0.0';
+                document.getElementById('rating-stars').textContent = '★★★★★';
+                document.getElementById('total-reviews').textContent = '0 Reviews';
+                return;
+            }
+            
+            // Calculate average rating
+            const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+            const averageRating = (totalRating / reviews.length).toFixed(1);
+            
+            // Update average rating display
+            document.getElementById('average-rating').textContent = averageRating;
+            
+            // Update star display (show average as filled stars)
+            const avgStars = Math.round(averageRating);
+            const fullStars = '★'.repeat(avgStars);
+            const emptyStars = '☆'.repeat(5 - avgStars);
+            document.getElementById('rating-stars').textContent = fullStars + emptyStars;
+            
+            // Update total reviews count
+            const reviewCount = reviews.length;
+            document.getElementById('total-reviews').textContent = `${reviewCount} ${reviewCount === 1 ? 'Review' : 'Reviews'}`;
+        }
+        
+        // Helper function to add a review (can be called from admin dashboard or API)
+        // Example usage: addReview('djusername', { clientName: 'John Doe', rating: 5, comment: 'Great service!', eventName: 'Wedding', date: '2025-01-15' })
+        function addReview(djUsername, reviewData) {
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const newReview = {
+                id: Date.now().toString(),
+                djUsername: djUsername,
+                clientName: reviewData.clientName || 'Anonymous',
+                rating: reviewData.rating || 5,
+                comment: reviewData.comment || '',
+                eventName: reviewData.eventName || '',
+                date: reviewData.date || new Date().toISOString().split('T')[0],
+                createdAt: new Date().toISOString()
+            };
+            allReviews.push(newReview);
+            localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
+            
+            // Reload reviews if current user
+            const currentUsername = localStorage.getItem('dj_user');
+            if (currentUsername === djUsername) {
+                loadReviews();
+            }
+        }
+
         // Initialize - Load both calendar and bookings on page load
         generateCalendar();
         displayBlockedDates();
         loadBookings();
+        loadReviews();
     </script>
 </body>
 </html>
