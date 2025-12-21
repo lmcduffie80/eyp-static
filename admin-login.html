@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Portal Login - Externally Yours Productions, LLC">
+    <title>Admin Portal Login - Externally Yours Productions, LLC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1a1a1a;
+            --secondary-color: #ffffff;
+            --accent-color: #ff6b35;
+            --text-dark: #333;
+            --text-light: #666;
+            --bg-light: #f8f8f8;
+            --error-color: #dc3545;
+            --success-color: #28a745;
+            --admin-color: #6c5ce7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-container {
+            background: var(--secondary-color);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header img {
+            height: 80px;
+            width: auto;
+            max-width: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .login-header h1 {
+            color: var(--admin-color);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: var(--admin-color);
+            color: var(--secondary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--admin-color);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--admin-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .login-button:hover {
+            background: #5a4fcf;
+            transform: translateY(-2px);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: var(--error-color);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid var(--error-color);
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .back-link a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link a:hover {
+            color: var(--admin-color);
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 2rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
+            <h1>Admin Portal</h1>
+            <span class="admin-badge">Administrator Access</span>
+            <p>Sign in to access the administrative dashboard</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Admin Username</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="login-button">Sign In</button>
+        </form>
+
+        <div class="back-link">
+            <a href="index.html">← Back to Website</a>
+        </div>
+    </div>
+
+    <script>
+        // Admin login form handling
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+
+            // Clear previous errors
+            errorMessage.classList.remove('show');
+            errorMessage.textContent = '';
+
+            // Basic validation
+            if (!username || !password) {
+                errorMessage.textContent = 'Please enter both username and password.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // TODO: Replace with actual admin authentication API call
+            // For development: check against localStorage
+            const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+            
+            // Initialize super user if doesn't exist
+            if (adminUsers.length === 0) {
+                adminUsers.push({
+                    username: 'admin',
+                    password: 'admin123', // In production, this should be hashed
+                    email: 'admin@externallyyoursproductions.com',
+                    isSuperUser: true,
+                    createdAt: new Date().toISOString()
+                });
+                localStorage.setItem('admin_users', JSON.stringify(adminUsers));
+            }
+
+            const admin = adminUsers.find(u => u.username === username && u.password === password);
+
+            if (admin) {
+                // Store admin authentication token
+                localStorage.setItem('admin_token', 'admin_token_' + Date.now());
+                localStorage.setItem('admin_user', admin.username);
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                // Try API call if localStorage fails
+                fetch('/api/admin-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        localStorage.setItem('admin_token', data.token);
+                        localStorage.setItem('admin_user', data.user);
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        errorMessage.textContent = data.message || 'Invalid username or password.';
+                        errorMessage.classList.add('show');
+                    }
+                })
+                .catch(error => {
+                    errorMessage.textContent = 'Invalid username or password.';
+                    errorMessage.classList.add('show');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

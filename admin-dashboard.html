@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Dashboard - Externally Yours Productions, LLC">
+    <title>Admin Dashboard - Externally Yours Productions, LLC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1a1a1a;
+            --secondary-color: #ffffff;
+            --accent-color: #ff6b35;
+            --admin-color: #6c5ce7;
+            --text-dark: #333;
+            --text-light: #666;
+            --bg-light: #f8f8f8;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--bg-light);
+        }
+
+        /* Header */
+        .dashboard-header {
+            background: var(--admin-color);
+            color: var(--secondary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dashboard-header img {
+            height: 50px;
+            width: auto;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            background: var(--secondary-color);
+            color: var(--admin-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* Main Container */
+        .dashboard-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--admin-color);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-button {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--admin-color);
+            border-bottom-color: var(--admin-color);
+        }
+
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        /* DJ List */
+        .dj-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .dj-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dj-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--admin-color);
+        }
+
+        .dj-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .dj-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .dj-stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .dj-stats span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Bookings Table */
+        .bookings-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .bookings-table th,
+        .bookings-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .bookings-table th {
+            background: var(--bg-light);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .bookings-table tr:hover {
+            background: var(--bg-light);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .badge-upcoming {
+            background: var(--success-color);
+            color: var(--secondary-color);
+        }
+
+        .badge-past {
+            background: var(--text-light);
+            color: var(--secondary-color);
+        }
+
+        .badge-blocked {
+            background: var(--warning-color);
+            color: var(--primary-color);
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select,
+        .filter-controls input {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .filter-controls select:focus,
+        .filter-controls input:focus {
+            outline: none;
+            border-color: var(--admin-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .bookings-table {
+                font-size: 0.85rem;
+            }
+
+            .bookings-table th,
+            .bookings-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h1>
+            <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
+            Admin Dashboard
+        </h1>
+        <div class="header-actions">
+            <div style="text-align: right; margin-right: 1rem;">
+                <div style="font-size: 0.85rem; opacity: 0.9;">Administrator</div>
+                <div id="admin-name" style="font-weight: bold; font-size: 1.1rem;">Admin</div>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total DJs</h3>
+                <div class="stat-value" id="total-djs">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Bookings</h3>
+                <div class="stat-value" id="active-bookings">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Blocked Dates</h3>
+                <div class="stat-value" id="total-blocked">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Upcoming Events</h3>
+                <div class="stat-value" id="upcoming-events">0</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('djs')">All DJs</button>
+            <button class="tab-button" onclick="switchTab('bookings')">All Bookings</button>
+            <button class="tab-button" onclick="switchTab('calendar')">Master Calendar</button>
+            <button class="tab-button" onclick="switchTab('users')">User Management</button>
+        </div>
+
+        <!-- DJs Tab -->
+        <div id="djs-tab" class="tab-content active">
+            <div class="section-card">
+                <h2>All DJs Overview</h2>
+                <div id="djs-container" class="dj-list">
+                    <!-- DJs will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Tab -->
+        <div id="bookings-tab" class="tab-content">
+            <div class="section-card">
+                <h2>All Bookings</h2>
+                <div class="filter-controls">
+                    <select id="booking-filter-dj" onchange="filterAllBookings()">
+                        <option value="">All DJs</option>
+                    </select>
+                    <select id="booking-filter-status" onchange="filterAllBookings()">
+                        <option value="all">All Status</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="past">Past</option>
+                    </select>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="bookings-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>DJ</th>
+                                <th>Client</th>
+                                <th>Event Type</th>
+                                <th>Time</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-bookings-container">
+                            <!-- Bookings will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div id="calendar-tab" class="tab-content">
+            <div class="section-card">
+                <h2>Master Calendar - All Blocked Dates & Bookings</h2>
+                <div class="filter-controls">
+                    <select id="calendar-filter-dj" onchange="generateMasterCalendar()">
+                        <option value="">All DJs</option>
+                    </select>
+                </div>
+                <div id="master-calendar-container">
+                    <!-- Master calendar will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management Tab -->
+        <div id="users-tab" class="tab-content">
+            <div class="section-card">
+                <h2>User Management</h2>
+                
+                <!-- Create User Form -->
+                <div style="background: var(--bg-light); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Create New User</h3>
+                    <form id="create-user-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
+                            <input type="text" id="new-username" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                            <input type="email" id="new-email" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
+                            <input type="password" id="new-password" required minlength="8" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">User Type</label>
+                            <select id="new-user-type" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                                <option value="dj">DJ</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button type="submit" style="padding: 0.75rem 2rem; background: var(--admin-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%;">
+                                Create User
+                            </button>
+                        </div>
+                    </form>
+                    <div id="create-user-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 5px; display: none;"></div>
+                </div>
+
+                <!-- Users List -->
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: var(--primary-color);">All Users</h3>
+                    <div style="display: grid; gap: 1rem;">
+                        <div id="users-list-container">
+                            <!-- Users will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check admin authentication
+        if (!localStorage.getItem('admin_token')) {
+            window.location.href = 'admin-login.html';
+        }
+
+        // Initialize super user if doesn't exist
+        function initializeSuperUser() {
+            const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+            const hasSuperUser = adminUsers.some(u => u.isSuperUser === true);
+            
+            if (!hasSuperUser) {
+                // Create default super user
+                const superUser = {
+                    username: 'admin',
+                    email: 'admin@externallyyoursproductions.com',
+                    password: 'admin123', // Should be hashed in production
+                    isSuperUser: true,
+                    createdAt: new Date().toISOString()
+                };
+                adminUsers.push(superUser);
+                localStorage.setItem('admin_users', JSON.stringify(adminUsers));
+            }
+        }
+
+        // Initialize super user on page load
+        initializeSuperUser();
+
+        // Load admin name
+        const adminUser = localStorage.getItem('admin_user') || 'Admin';
+        document.getElementById('admin-name').textContent = adminUser;
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            if (tabName === 'calendar') {
+                generateMasterCalendar();
+            } else if (tabName === 'bookings') {
+                filterAllBookings();
+            } else if (tabName === 'users') {
+                loadAllUsers();
+            }
+        }
+
+        // Get all DJ data
+        function getAllDJs() {
+            // TODO: Fetch from backend API
+            // For now, get from localStorage
+            const allUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            return allUsers;
+        }
+
+        // Get all admin users
+        function getAllAdmins() {
+            const admins = JSON.parse(localStorage.getItem('admin_users') || '[]');
+            return admins;
+        }
+
+        // Create new user
+        document.getElementById('create-user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('new-username').value.trim();
+            const email = document.getElementById('new-email').value.trim();
+            const password = document.getElementById('new-password').value;
+            const userType = document.getElementById('new-user-type').value;
+            const messageDiv = document.getElementById('create-user-message');
+
+            // Validation
+            if (username.length < 3) {
+                showMessage('Username must be at least 3 characters long.', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showMessage('Password must be at least 8 characters long.', 'error');
+                return;
+            }
+
+            // Check if user already exists
+            if (userType === 'dj') {
+                const djs = getAllDJs();
+                if (djs.find(u => u.username === username || u.email === email)) {
+                    showMessage('Username or email already exists.', 'error');
+                    return;
+                }
+
+                // Create DJ user
+                const newDJ = {
+                    username: username,
+                    email: email,
+                    password: password, // Should be hashed in production
+                    createdAt: new Date().toISOString()
+                };
+                djs.push(newDJ);
+                localStorage.setItem('dj_users', JSON.stringify(djs));
+                showMessage(`DJ user "${username}" created successfully!`, 'success');
+            } else {
+                const admins = getAllAdmins();
+                if (admins.find(u => u.username === username || u.email === email)) {
+                    showMessage('Username or email already exists.', 'error');
+                    return;
+                }
+
+                // Create admin user
+                const newAdmin = {
+                    username: username,
+                    email: email,
+                    password: password, // Should be hashed in production
+                    isSuperUser: false, // Only first admin is super user
+                    createdAt: new Date().toISOString()
+                };
+                admins.push(newAdmin);
+                localStorage.setItem('admin_users', JSON.stringify(admins));
+                showMessage(`Admin user "${username}" created successfully!`, 'success');
+            }
+
+            // Reset form
+            document.getElementById('create-user-form').reset();
+
+            // Reload users list
+            loadAllUsers();
+        });
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('create-user-message');
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            messageDiv.style.background = type === 'success' ? '#efe' : '#fee';
+            messageDiv.style.color = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+            messageDiv.style.border = `1px solid ${type === 'success' ? 'var(--success-color)' : 'var(--error-color)'}`;
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load and display all users
+        function loadAllUsers() {
+            const djs = getAllDJs();
+            const admins = getAllAdmins();
+            const container = document.getElementById('users-list-container');
+
+            let usersHTML = '';
+
+            // Admin Users Section
+            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--admin-color);">Admin Users</h4>';
+            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
+            
+            admins.forEach(admin => {
+                const superUserBadge = admin.isSuperUser ? '<span style="background: var(--accent-color); color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">Super User</span>' : '';
+                usersHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
+                        <div>
+                            <strong>${admin.username}</strong> ${superUserBadge}
+                            <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
+                                ${admin.email} • Created: ${new Date(admin.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                        ${!admin.isSuperUser ? `<button onclick="deleteUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>` : ''}
+                    </div>
+                `;
+            });
+            usersHTML += '</div></div>';
+
+            // DJ Users Section
+            usersHTML += '<div><h4 style="margin-bottom: 1rem; color: var(--primary-color);">DJ Users</h4>';
+            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
+            
+            if (djs.length === 0) {
+                usersHTML += '<div style="padding: 2rem; text-align: center; color: var(--text-light);">No DJ users found</div>';
+            } else {
+                djs.forEach(dj => {
+                    usersHTML += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
+                            <div>
+                                <strong>${dj.username}</strong>
+                                <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
+                                    ${dj.email} • Created: ${new Date(dj.createdAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                            <button onclick="deleteUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                        </div>
+                    `;
+                });
+            }
+            usersHTML += '</div></div>';
+
+            container.innerHTML = usersHTML;
+        }
+
+        // Delete user
+        function deleteUser(userType, username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            if (userType === 'dj') {
+                const djs = getAllDJs();
+                const filtered = djs.filter(u => u.username !== username);
+                localStorage.setItem('dj_users', JSON.stringify(filtered));
+            } else {
+                const admins = getAllAdmins();
+                const filtered = admins.filter(u => u.username !== username);
+                localStorage.setItem('admin_users', JSON.stringify(filtered));
+            }
+
+            loadAllUsers();
+            loadAllDJs(); // Refresh DJs list in All DJs tab
+        }
+
+        // Get all bookings
+        function getAllBookings() {
+            // TODO: Fetch from backend API
+            // For now, use sample data from localStorage
+            return JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+        }
+
+        // Get all blocked dates
+        function getAllBlockedDates() {
+            // TODO: Fetch from backend API
+            // For now, get from localStorage
+            return JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+        }
+
+        // Load and display all DJs
+        function loadAllDJs() {
+            const djs = getAllDJs();
+            const bookings = getAllBookings();
+            const blockedDates = getAllBlockedDates();
+            const container = document.getElementById('djs-container');
+
+            // Update stats
+            document.getElementById('total-djs').textContent = djs.length;
+            document.getElementById('active-bookings').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
+            document.getElementById('total-blocked').textContent = blockedDates.length;
+            document.getElementById('upcoming-events').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
+
+            if (djs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No DJs registered yet</p></div>';
+                return;
+            }
+
+            container.innerHTML = djs.map(dj => {
+                const djBookings = bookings.filter(b => b.djUser === dj.username || !b.djUser);
+                const djBlocked = blockedDates.filter(bd => bd.djUser === dj.username || !bd.djUser);
+                const upcomingBookings = djBookings.filter(b => new Date(b.date) >= new Date());
+
+                return `
+                    <div class="dj-card">
+                        <div class="dj-card-header">
+                            <div class="dj-name">${dj.username}</div>
+                            <div class="dj-stats">
+                                <span>📅 ${upcomingBookings.length} Upcoming</span>
+                                <span>🚫 ${djBlocked.length} Blocked</span>
+                                <span>📋 ${djBookings.length} Total Bookings</span>
+                            </div>
+                        </div>
+                        <div style="color: var(--text-light); font-size: 0.9rem;">
+                            <div>Email: ${dj.email}</div>
+                            <div>Member since: ${new Date(dj.createdAt).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Populate DJ filter dropdowns
+            const djOptions = djs.map(dj => `<option value="${dj.username}">${dj.username}</option>`).join('');
+            document.getElementById('booking-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
+            document.getElementById('calendar-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
+        }
+
+        // Filter and display all bookings
+        function filterAllBookings() {
+            const bookings = getAllBookings();
+            const selectedDJ = document.getElementById('booking-filter-dj').value;
+            const selectedStatus = document.getElementById('booking-filter-status').value;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let filteredBookings = bookings;
+            if (selectedDJ) {
+                filteredBookings = filteredBookings.filter(b => b.djUser === selectedDJ);
+            }
+            if (selectedStatus === 'upcoming') {
+                filteredBookings = filteredBookings.filter(b => new Date(b.date) >= today);
+            } else if (selectedStatus === 'past') {
+                filteredBookings = filteredBookings.filter(b => new Date(b.date) < today);
+            }
+
+            const container = document.getElementById('all-bookings-container');
+
+            if (filteredBookings.length === 0) {
+                container.innerHTML = '<tr><td colspan="7" class="empty-state">No bookings found</td></tr>';
+                return;
+            }
+
+            container.innerHTML = filteredBookings.map(booking => {
+                const bookingDate = new Date(booking.date);
+                const isUpcoming = bookingDate >= today;
+                const formattedDate = bookingDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+
+                return `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${booking.djUser || 'Unassigned'}</td>
+                        <td>${booking.clientName}</td>
+                        <td>${booking.eventType}</td>
+                        <td>${booking.time}</td>
+                        <td>${booking.location}</td>
+                        <td><span class="badge ${isUpcoming ? 'badge-upcoming' : 'badge-past'}">${isUpcoming ? 'Upcoming' : 'Past'}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Generate master calendar
+        function generateMasterCalendar() {
+            const blockedDates = getAllBlockedDates();
+            const bookings = getAllBookings();
+            const selectedDJ = document.getElementById('calendar-filter-dj').value;
+
+            let filteredBlocked = blockedDates;
+            let filteredBookings = bookings;
+
+            if (selectedDJ) {
+                filteredBlocked = blockedDates.filter(bd => bd.djUser === selectedDJ);
+                filteredBookings = bookings.filter(b => b.djUser === selectedDJ);
+            }
+
+            const blockedDatesList = filteredBlocked.map(bd => bd.date);
+            const bookingDatesList = filteredBookings.map(b => b.date);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+
+            let calendarHTML = `<h3 style="margin-bottom: 1rem;">${monthNames[currentMonth]} ${currentYear}</h3>`;
+            calendarHTML += '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; font-size: 0.85rem;">';
+            
+            // Day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                calendarHTML += `<div style="text-align: center; font-weight: bold; padding: 0.5rem; background: var(--bg-light);">${day}</div>`;
+            });
+
+            // Get first day of month
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                calendarHTML += '<div style="padding: 0.5rem; opacity: 0.3;"></div>';
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateObj = new Date(currentYear, currentMonth, day);
+                dateObj.setHours(0, 0, 0, 0);
+                
+                let style = 'padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 5px; text-align: center;';
+                let indicators = '';
+
+                if (dateObj.getTime() === today.getTime()) {
+                    style += ' background: var(--accent-color); color: white; font-weight: bold;';
+                } else if (blockedDatesList.includes(dateStr)) {
+                    style += ' background: var(--warning-color); font-weight: bold;';
+                    indicators += '<div style="font-size: 0.7rem;">🚫</div>';
+                } else if (bookingDatesList.includes(dateStr)) {
+                    style += ' background: var(--success-color); color: white; font-weight: bold;';
+                    indicators += '<div style="font-size: 0.7rem;">📅</div>';
+                }
+
+                calendarHTML += `
+                    <div style="${style}">
+                        <div>${day}</div>
+                        ${indicators}
+                    </div>
+                `;
+            }
+
+            calendarHTML += '</div>';
+
+            // Legend
+            calendarHTML += `
+                <div style="margin-top: 2rem; display: flex; gap: 2rem; font-size: 0.9rem;">
+                    <div><span style="background: var(--warning-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">🚫</span> Blocked</div>
+                    <div><span style="background: var(--success-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">📅</span> Booking</div>
+                    <div><span style="background: var(--accent-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">Today</span></div>
+                </div>
+            `;
+
+            document.getElementById('master-calendar-container').innerHTML = calendarHTML;
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                window.location.href = 'admin-login.html';
+            }
+        }
+
+        // Initialize
+        loadAllDJs();
+        filterAllBookings();
+        loadAllUsers();
+    </script>
+</body>
+</html>
+
