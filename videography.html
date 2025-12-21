@@ -273,6 +273,86 @@
             margin-bottom: 1rem;
         }
 
+        .packages-section {
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .package-card {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent-color);
+        }
+
+        .package-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .package-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .package-features {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .package-features li {
+            padding: 0.5rem 0;
+            color: var(--text-dark);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .package-features li:last-child {
+            border-bottom: none;
+        }
+
+        .package-features li:before {
+            content: "✓ ";
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .package-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .package-button:hover {
+            background: var(--accent-color);
+        }
+
         /* Portfolio Section */
         .portfolio {
             background: var(--bg-light);
@@ -726,26 +806,63 @@
                     <div class="service-icon">💍</div>
                     <h3>Wedding Videography</h3>
                     <p>Beautiful wedding videos and highlight reels that capture every precious moment of your special day, from the ceremony to the reception.</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🎉</div>
-                    <h3>Event Videography</h3>
-                    <p>Professional video coverage for corporate events, parties, conferences, and special celebrations.</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🏢</div>
-                    <h3>Corporate Videos</h3>
-                    <p>High-quality corporate video production for promotional content, training materials, and brand storytelling.</p>
+                    <div class="packages-section">
+                        <h3 style="margin-top: 0; color: var(--primary-color);">Wedding Videography Packages</h3>
+                        <div class="packages-grid">
+                            <!-- Package 1 - The Glimpse Package -->
+                            <div class="package-card">
+                                <h4>The Glimpse Package</h4>
+                                <div class="package-price">$1,800.00</div>
+                                <ul class="package-features">
+                                    <li>6 hours of coverage</li>
+                                    <li>One Cinematographer</li>
+                                    <li>3 to 5 minute Cinematic Film</li>
+                                    <li>Drone Footage</li>
+                                    <li>Unlimited Downloads via online storage drive plus all rights to post on all social media platforms</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 2 - The Memory -->
+                            <div class="package-card">
+                                <h4>The Memory</h4>
+                                <div class="package-price">$2,250.00</div>
+                                <ul class="package-features">
+                                    <li>Eight hours of coverage</li>
+                                    <li>One Cinematographer</li>
+                                    <li>Drone Footage</li>
+                                    <li>Online delivery</li>
+                                    <li>Unlimited Downloads</li>
+                                    <li>Bride and Groom Interviews</li>
+                                    <li>3 to 5 Minute Cinematic Highlight Film</li>
+                                    <li>8 to 15 minutes Extended Highlight Film</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 3 - The Exclusive Package -->
+                            <div class="package-card">
+                                <h4>The Exclusive Package</h4>
+                                <div class="package-price">$2,800.00</div>
+                                <ul class="package-features">
+                                    <li>Ten hours of coverage</li>
+                                    <li>One Cinematographer</li>
+                                    <li>Drone Footage</li>
+                                    <li>Online delivery</li>
+                                    <li>Unlimited Downloads</li>
+                                    <li>Bride and Groom Interviews</li>
+                                    <li>3 to 5 Minute Cinematic Highlight Film</li>
+                                    <li>8 to 15 minutes Extended Highlight Film</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">🎬</div>
                     <h3>Commercial Production</h3>
                     <p>Creative commercial video production for advertising, marketing campaigns, and brand promotion.</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">✂️</div>
-                    <h3>Post-Production</h3>
-                    <p>Professional editing, color grading, sound design, and visual effects to polish your video to perfection.</p>
                 </div>
             </div>
         </div>
