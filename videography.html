@@ -760,16 +760,17 @@
             <div class="portfolio-project">
                 <h4 class="portfolio-project-title">Rebecca and Justin Partain Wedding - Highlight Film (11/15/2025)</h4>
                 <div class="portfolio-grid">
-                    <div class="video-wrapper">
-                        <iframe 
-                                src="https://www.youtube-nocookie.com/embed/9IcJ9DG8HNA" 
-                                title="Rebecca and Justin Partain Wedding - Highlight Film" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen>
-                        </iframe>
+                    <div class="youtube-thumbnail" onclick="openVideoModal('9IcJ9DG8HNA', 'video-modal')" style="cursor: pointer;" title="Click to watch video">
+                        <img src="https://img.youtube.com/vi/9IcJ9DG8HNA/maxresdefault.jpg" alt="Rebecca and Justin Partain Wedding - Highlight Film">
+                        <div class="youtube-play-overlay">
+                            <div class="youtube-play-button">▶</div>
+                            <p>Click to watch video</p>
+                        </div>
                     </div>
                 </div>
+                <p style="text-align: center; margin-top: 1rem; color: var(--text-light); font-size: 0.9rem;">
+                    <a href="https://www.youtube.com/watch?v=9IcJ9DG8HNA" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Or watch directly on YouTube</a>
+                </p>
             </div>
             
             <!-- Sarah and Hardy Wedding Project -->
@@ -913,19 +914,30 @@
         function openVideoModal(videoId, modalId) {
             const modal = document.getElementById('video-modal');
             const iframe = document.getElementById('video-modal-iframe');
+            const errorMessage = document.getElementById('video-error-message');
+            const youtubeLink = document.getElementById('youtube-watch-link');
             
-            // Use youtube-nocookie.com for better embedding compatibility
-            if (videoId === '9IcJ9DG8HNA') {
-                // Rebecca and Justin video
-                iframe.src = 'https://www.youtube-nocookie.com/embed/9IcJ9DG8HNA?autoplay=1';
-            } else {
-                // Other videos - use standard embed
-                iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+            // Hide error message initially
+            if (errorMessage) errorMessage.style.display = 'none';
+            if (iframe) iframe.style.display = 'block';
+            
+            // Set YouTube watch link as fallback
+            if (youtubeLink) {
+                youtubeLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+            }
+            
+            // Try standard YouTube embed URL
+            if (iframe) {
+                // Use standard YouTube embed - if this fails with Error 153, 
+                // it means the video has embedding restrictions that can't be bypassed
+                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
             }
             
             // Show the modal
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function checkVideoError(iframe) {
