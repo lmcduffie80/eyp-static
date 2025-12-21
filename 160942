@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="About Us - Externally Yours Productions, LLC - Professional photography, videography, and DJ entertainment services">
-    <title>About Us - Externally Yours Productions, LLC</title>
+    <meta name="description" content="DJ Entertainment Services - Externally Yours Productions, LLC - High-energy professional DJs for weddings, parties, and events">
+    <title>DJ Entertainment - Externally Yours Productions, LLC</title>
     <style>
         * {
             margin: 0;
@@ -64,7 +64,7 @@
         }
 
         .logo img {
-            height: 80px;
+                    height: 80px;
             width: auto;
             max-width: 400px;
         }
@@ -154,7 +154,7 @@
 
         /* Hero Section */
         .hero {
-            height: 60vh;
+            height: 80vh;
             background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
                         url('Grace and Dillon Wedding/7L8A5712.jpg') center/cover;
             display: flex;
@@ -175,6 +175,23 @@
             font-size: 1.5rem;
             margin-bottom: 2rem;
             animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: var(--accent-color);
+            color: var(--secondary-color);
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
         }
 
         /* Sections */
@@ -205,17 +222,12 @@
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
             align-items: center;
-            margin-bottom: 3rem;
         }
 
         .about-text {
             font-size: 1.1rem;
             line-height: 1.8;
             color: var(--text-light);
-        }
-
-        .about-text p {
-            margin-bottom: 1.5rem;
         }
 
         .about-image {
@@ -226,50 +238,42 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        /* Values/Mission Section */
-        .values-section {
-            background: var(--secondary-color);
-        }
-
-        .values-grid {
+        /* Services Section */
+        .services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
-        .value-card {
-            background: var(--bg-light);
+        .service-card {
+            background: var(--secondary-color);
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .value-card:hover {
+        .service-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
 
-        .value-card h3 {
+        .service-card h3 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
             color: var(--primary-color);
         }
 
-        .value-card p {
+        .service-card p {
             color: var(--text-light);
         }
 
-        .value-icon {
+        .service-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
 
         /* Contact Section */
-        .contact-section {
-            background: var(--bg-light);
-        }
-
         .contact-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -293,9 +297,11 @@
             gap: 1.5rem;
         }
 
-        .hb-p-64f2adb3998a8300079826c0-1 {
+        .honeybook-widget {
             width: 100%;
             min-height: 600px;
+            border: none;
+            border-radius: 10px;
         }
 
         .form-group {
@@ -418,7 +424,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .values-grid {
+            .services-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -438,10 +444,10 @@
             </a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="about.html" class="active">About</a></li>
+                <li><a href="about.html">About</a></li>
                 <li><a href="photography.html">Photography</a></li>
                 <li><a href="videography.html">Videography</a></li>
-                <li><a href="dj-entertainment.html">DJ Entertainment</a></li>
+                <li><a href="dj-entertainment.html" class="active">DJ Entertainment</a></li>
                 <li><a href="index.html#contact">Contact</a></li>
             </ul>
             <button class="mobile-menu-toggle">☰</button>
@@ -451,77 +457,74 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
-            <h1>About Us</h1>
-            <p>Externally Yours Productions, LLC</p>
+            <h1>DJ Entertainment</h1>
+            <p>High-energy professional DJs bringing positive vibes and vibrant energy to your party</p>
+            <a href="#contact" class="cta-button">Book Your DJ</a>
         </div>
     </section>
 
     <!-- About Section -->
     <section id="about" class="about">
         <div class="container">
-            <h2 class="section-title">Our Story</h2>
+            <h2 class="section-title">Our DJ Services</h2>
             <div class="about-content">
                 <div class="about-text">
-                    <p>Welcome to Externally Yours Productions, LLC, where creativity meets excellence and every moment is captured with passion and precision. We are a full-service production company specializing in photography, videography, and DJ entertainment services that bring your most important events to life.</p>
-                    <p>With years of experience in the industry, we understand that every celebration, whether it's a wedding, corporate event, or special occasion, deserves to be captured with artistic vision and technical excellence. Our team is dedicated to creating compelling visual stories and unforgettable entertainment experiences that exceed your expectations.</p>
-                    <p>From intimate wedding ceremonies to grand celebrations, we combine professional photography that preserves your precious moments, cinematic videography that tells your story with emotion and artistry, and high-energy DJ entertainment that keeps the party vibrant and unforgettable. Our commitment to quality, attention to detail, and personalized approach ensures that every project we undertake reflects your unique vision and style.</p>
-                    <p>At Externally Yours Productions, LLC, we don't just document events—we create timeless memories. Let us be part of your special moments and help you relive them for years to come.</p>
+                    <p>At Externally Yours Productions, LLC, we provide high-energy, professional DJ services that bring positive energy and vibrant vibes to your event. Our experienced DJs are skilled at reading the crowd and keeping the dance floor packed all night long.</p>
+                    <p>We use professional equipment and seamless mixing techniques to ensure your event has the perfect soundtrack. Whether you're celebrating a wedding, hosting a corporate event, or throwing a party, our DJs create an atmosphere that gets everyone moving.</p>
+                    <p>From the first song to the last, we work closely with you to understand your musical preferences and event style, ensuring every moment is perfectly timed and the energy stays high throughout your celebration.</p>
                 </div>
-                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Externally Yours Productions team" class="about-image">
+                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="DJ Entertainment services" class="about-image">
             </div>
         </div>
     </section>
 
-    <!-- Values Section -->
-    <section class="values-section">
+    <!-- Services Section -->
+    <section id="services">
         <div class="container">
-            <h2 class="section-title">What We Stand For</h2>
-            <div class="values-grid">
-                <div class="value-card">
-                    <div class="value-icon">🎯</div>
-                    <h3>Excellence</h3>
-                    <p>We strive for excellence in every project, ensuring the highest quality results that exceed our clients' expectations.</p>
+            <h2 class="section-title">What We Offer</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">💍</div>
+                    <h3>Wedding DJ Services</h3>
+                    <p>Professional wedding DJ services that keep your reception celebration going with the perfect mix of music for all ages and tastes.</p>
                 </div>
-                <div class="value-card">
-                    <div class="value-icon">💡</div>
-                    <h3>Creativity</h3>
-                    <p>Our creative approach brings fresh perspectives and innovative solutions to every project we undertake.</p>
+                <div class="service-card">
+                    <div class="service-icon">🎉</div>
+                    <h3>Party DJ Services</h3>
+                    <p>High-energy DJ entertainment for birthdays, anniversaries, graduations, and any celebration that needs great music.</p>
                 </div>
-                <div class="value-card">
-                    <div class="value-icon">🤝</div>
-                    <h3>Partnership</h3>
-                    <p>We work closely with our clients as partners, ensuring their vision is brought to life with care and attention.</p>
+                <div class="service-card">
+                    <div class="service-icon">🏢</div>
+                    <h3>Corporate Events</h3>
+                    <p>Professional DJ services for corporate events, company parties, and business celebrations that need polished entertainment.</p>
                 </div>
-                <div class="value-card">
-                    <div class="value-icon">⭐</div>
-                    <h3>Quality</h3>
-                    <p>Quality is at the heart of everything we do, from the equipment we use to the final delivery of your project.</p>
+                <div class="service-card">
+                    <div class="service-icon">🎵</div>
+                    <h3>Music Selection</h3>
+                    <p>Custom music selection and playlists tailored to your event style, preferences, and guest demographics.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🔊</div>
+                    <h3>Professional Equipment</h3>
+                    <p>State-of-the-art sound systems, lighting, and professional DJ equipment to ensure crystal-clear sound and amazing atmosphere.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Contact Section -->
-    <section id="contact" class="contact-section">
+    <section id="contact">
         <div class="container">
             <h2 class="section-title">Get In Touch</h2>
             <div class="contact-content">
                 <div class="contact-info">
-                    <h3>Let's Work Together</h3>
-                    <p>Have a project in mind? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
-                    <p><strong>Email:</strong> lee@externallyyoursproductions.com</p>
-                    <p><strong>Phone:</strong> 229-326-5408</p>
-                    <p><strong>Address:</strong> Tifton, Georgia 31794</p>
+                    <h3>Let's Get The Party Started</h3>
+                    <p>Ready to book a DJ for your event? Contact us to discuss your needs and get a quote for your celebration.</p>
+                    <p><strong>Email:</strong> info@externallyyoursproductions.com</p>
+                    <p><strong>Phone:</strong> (555) 123-4567</p>
+                    <p><strong>Address:</strong> Your Address Here, City, State ZIP</p>
                 </div>
-                <div class="hb-p-64f2adb3998a8300079826c0-1"></div>
-                <img height="1" width="1" style="display:none" src="https://www.honeybook.com/p.png?pid=64f2adb3998a8300079826c0">
-                <script>
-                  (function(h,b,s,n,i,p,e,t) {
-                    h._HB_ = h._HB_ || {};h._HB_.pid = i;;;;
-                    t=b.createElement(s);t.type="text/javascript";t.async=!0;t.src=n;
-                    e=b.getElementsByTagName(s)[0];e.parentNode.insertBefore(t,e);
-                  })(window,document,"script","https://widget.honeybook.com/assets_users_production/websiteplacements/placement-controller.min.js","64f2adb3998a8300079826c0");
-                </script>
+                <iframe src="https://www.honeybook.com/widget/externally_yours_productions_llc_262039/cf_id/64f2adb3f708b5002632a4ee" class="honeybook-widget" title="Contact Form"></iframe>
             </div>
         </div>
     </section>

@@ -444,6 +444,11 @@
             gap: 1.5rem;
         }
 
+        .hb-p-64f2adb3998a8300079826c0-1 {
+            width: 100%;
+            min-height: 600px;
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -739,29 +744,19 @@
                 <div class="contact-info">
                     <h3>Let's Work Together</h3>
                     <p>Have a project in mind? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
-                    <p><strong>Email:</strong> info@externallyyoursproductions.com</p>
-                    <p><strong>Phone:</strong> (555) 123-4567</p>
-                    <p><strong>Address:</strong> Your Address Here, City, State ZIP</p>
+                    <p><strong>Email:</strong> lee@externallyyoursproductions.com</p>
+                    <p><strong>Phone:</strong> 229-326-5408</p>
+                    <p><strong>Address:</strong> Tifton, Georgia 31794</p>
                 </div>
-                <form class="contact-form" action="#" method="POST">
-                    <div class="form-group">
-                        <label for="name">Name</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="subject">Subject</label>
-                        <input type="text" id="subject" name="subject" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Message</label>
-                        <textarea id="message" name="message" required></textarea>
-                    </div>
-                    <button type="submit" class="submit-button">Send Message</button>
-                </form>
+                <div class="hb-p-64f2adb3998a8300079826c0-1"></div>
+                <img height="1" width="1" style="display:none" src="https://www.honeybook.com/p.png?pid=64f2adb3998a8300079826c0">
+                <script>
+                  (function(h,b,s,n,i,p,e,t) {
+                    h._HB_ = h._HB_ || {};h._HB_.pid = i;;;;
+                    t=b.createElement(s);t.type="text/javascript";t.async=!0;t.src=n;
+                    e=b.getElementsByTagName(s)[0];e.parentNode.insertBefore(t,e);
+                  })(window,document,"script","https://widget.honeybook.com/assets_users_production/websiteplacements/placement-controller.min.js","64f2adb3998a8300079826c0");
+                </script>
             </div>
         </div>
     </section>
@@ -884,17 +879,23 @@
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
+        // Smooth scrolling for navigation links (only for same-page anchors)
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                const href = this.getAttribute('href');
+                // Only apply smooth scrolling to same-page anchors (href starts with # and doesn't contain a path)
+                // Exclude cross-page navigation links like "photography.html#gallery"
+                if (href.startsWith('#') && !href.includes('.html') && !href.includes('/')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
                 }
+                // If it's a cross-page link with hash, let the browser handle navigation normally
             });
         });
 
@@ -943,14 +944,6 @@
         }
 
         // Form submission (basic implementation - you'll need to connect to a backend)
-        const contactForm = document.querySelector('.contact-form');
-        if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                alert('Thank you for your message! We will get back to you soon.');
-                contactForm.reset();
-            });
-        }
 
         // Navbar background on scroll
         window.addEventListener('scroll', () => {

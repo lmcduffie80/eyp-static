@@ -64,9 +64,9 @@
         }
 
         .logo img {
-            height: 60px;
+            height: 80px;
             width: auto;
-            max-width: 300px;
+            max-width: 400px;
         }
 
         .nav-links {
@@ -94,6 +94,62 @@
             color: var(--secondary-color);
             font-size: 1.5rem;
             cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        /* Mobile Menu Dropdown */
+        @media (max-width: 768px) {
+            .nav-links.mobile-open {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                width: 100%;
+                background: rgba(26, 26, 26, 0.98);
+                backdrop-filter: blur(10px);
+                padding: 1rem 0;
+                gap: 0;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                animation: slideDown 0.3s ease;
+                z-index: 1001;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+
+            .nav-links.mobile-open li {
+                width: 100%;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-links.mobile-open li:last-child {
+                border-bottom: none;
+            }
+
+            .nav-links.mobile-open a {
+                display: block;
+                padding: 1rem 2rem;
+                width: 100%;
+                color: var(--secondary-color);
+            }
+
+            .nav-links.mobile-open a:hover {
+                background: rgba(255, 107, 53, 0.1);
+                color: var(--accent-color);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Hero Section */
@@ -215,6 +271,87 @@
         .service-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
+        }
+
+        /* Photography Packages */
+        .packages-section {
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .package-card {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent-color);
+        }
+
+        .package-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .package-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .package-features {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .package-features li {
+            padding: 0.5rem 0;
+            color: var(--text-dark);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .package-features li:last-child {
+            border-bottom: none;
+        }
+
+        .package-features li:before {
+            content: "✓ ";
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .package-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .package-button:hover {
+            background: var(--accent-color);
         }
 
         /* Portfolio Section */
@@ -456,6 +593,11 @@
             gap: 1.5rem;
         }
 
+        .hb-p-64f2adb3998a8300079826c0-1 {
+            width: 100%;
+            min-height: 600px;
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -551,12 +693,16 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            nav .container {
+                position: relative;
+            }
+
             .nav-links {
-                display: none;
+                display: none !important;
             }
 
             .mobile-menu-toggle {
-                display: block;
+                display: block !important;
             }
 
             .hero-content h1 {
@@ -632,20 +778,116 @@
         <div class="container">
             <h2 class="section-title">What We Offer</h2>
             <div class="services-grid">
-                <div class="service-card">
+                <div class="service-card" style="grid-column: 1 / -1;">
                     <div class="service-icon">💍</div>
                     <h3>Wedding Photography</h3>
                     <p>Comprehensive wedding photography services to capture every precious moment of your special day, from the ceremony to the reception.</p>
+                    
+                    <!-- Photography Packages -->
+                    <div class="packages-section">
+                        <h3 style="margin-top: 0; color: var(--primary-color);">Wedding Photography Packages</h3>
+                        <div class="packages-grid">
+                            <!-- Package 1 - Ceremony -->
+                            <div class="package-card">
+                                <h4>Ceremony</h4>
+                                <div class="package-price">$1,800</div>
+                                <ul class="package-features">
+                                    <li>Six Hours of Professional Photography Coverage</li>
+                                    <li>A minimum of 100 Fully Edited Digital Downloads</li>
+                                    <li>Delivery of Photos via Online Gallery</li>
+                                    <li>Exclusive Printing rights</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 2 - Standard -->
+                            <div class="package-card">
+                                <h4>Standard Package</h4>
+                                <div class="package-price">$2,250</div>
+                                <ul class="package-features">
+                                    <li>8 hours of coverage</li>
+                                    <li>200+ edited photos</li>
+                                    <li>Online gallery</li>
+                                    <li>Digital download</li>
+                                    <li>Engagement session</li>
+                                    <li>Second shooter</li>
+                                    <li>Wedding album</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 4 - Deluxe -->
+                            <div class="package-card">
+                                <h4>Deluxe Package</h4>
+                                <div class="package-price">$2,800</div>
+                                <ul class="package-features">
+                                    <li>Full day coverage</li>
+                                    <li>300+ edited photos</li>
+                                    <li>Online gallery</li>
+                                    <li>Digital download</li>
+                                    <li>Engagement session</li>
+                                    <li>Second shooter</li>
+                                    <li>Bridal session</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">🎉</div>
                     <h3>Event Photography</h3>
                     <p>Professional event photography for corporate gatherings, parties, celebrations, and special occasions.</p>
                 </div>
-                <div class="service-card">
+                <div class="service-card" style="grid-column: 1 / -1;">
                     <div class="service-icon">👤</div>
                     <h3>Portrait Photography</h3>
                     <p>Professional portrait sessions for individuals, families, and groups. We create stunning portraits that capture personality and emotion.</p>
+                    
+                    <!-- Portrait Photography Packages -->
+                    <div class="packages-section">
+                        <h3 style="margin-top: 0; color: var(--primary-color);">Portrait Photography Packages</h3>
+                        <div class="packages-grid">
+                            <!-- Package 1 - All Inclusive Session -->
+                            <div class="package-card">
+                                <h4>All Inclusive Session</h4>
+                                <div class="package-price">$150</div>
+                                <ul class="package-features">
+                                    <li>$150 Session Fee (federal mileage rate more than 100 mile round trip)</li>
+                                    <li>All images deemed editable will be available via Online Gallery (20 images)</li>
+                                    <li>Digitals are in given in high-resolution Print ready versions</li>
+                                    <li>Other packages are available for purchase in gallery</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 2 - Couples and Engagements -->
+                            <div class="package-card">
+                                <h4>Couples and Engagements</h4>
+                                <div class="package-price">$150</div>
+                                <ul class="package-features">
+                                    <li>$150 Session Fee (federal mileage rate more than 100 mile round trip)</li>
+                                    <li>All images deemed editable will be available via Online Gallery (30 images)</li>
+                                    <li>Digital will be given in High Resolution Print ready versions</li>
+                                    <li>Other packages are available for purchase in gallery</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                            
+                            <!-- Package 3 - Family Portraits -->
+                            <div class="package-card">
+                                <h4>Family Portraits</h4>
+                                <div class="package-price">$150</div>
+                                <ul class="package-features">
+                                    <li>$150 Session Fee (federal mileage rate more than 100 mile round trip)</li>
+                                    <li>All images deemed editable will be available via Online Gallery (30 images)</li>
+                                    <li>Digital will be given in High Resolution Print ready versions</li>
+                                    <li>Other packages are available for purchase in gallery</li>
+                                </ul>
+                                <a href="#contact" class="package-button">Get Quote</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">📦</div>
@@ -708,29 +950,19 @@
                 <div class="contact-info">
                     <h3>Let's Capture Your Moments</h3>
                     <p>Ready to book a photography session? Contact us to discuss your project and get a quote.</p>
-                    <p><strong>Email:</strong> info@externallyyoursproductions.com</p>
-                    <p><strong>Phone:</strong> (555) 123-4567</p>
-                    <p><strong>Address:</strong> Your Address Here, City, State ZIP</p>
+                    <p><strong>Email:</strong> lee@externallyyoursproductions.com</p>
+                    <p><strong>Phone:</strong> 229-326-5408</p>
+                    <p><strong>Address:</strong> Tifton, Georgia 31794</p>
                 </div>
-                <form class="contact-form" action="#" method="POST">
-                    <div class="form-group">
-                        <label for="name">Name</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="subject">Subject</label>
-                        <input type="text" id="subject" name="subject" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Message</label>
-                        <textarea id="message" name="message" required></textarea>
-                    </div>
-                    <button type="submit" class="submit-button">Send Message</button>
-                </form>
+                <div class="hb-p-64f2adb3998a8300079826c0-1"></div>
+                <img height="1" width="1" style="display:none" src="https://www.honeybook.com/p.png?pid=64f2adb3998a8300079826c0">
+                <script>
+                  (function(h,b,s,n,i,p,e,t) {
+                    h._HB_ = h._HB_ || {};h._HB_.pid = i;;;;
+                    t=b.createElement(s);t.type="text/javascript";t.async=!0;t.src=n;
+                    e=b.getElementsByTagName(s)[0];e.parentNode.insertBefore(t,e);
+                  })(window,document,"script","https://widget.honeybook.com/assets_users_production/websiteplacements/placement-controller.min.js","64f2adb3998a8300079826c0");
+                </script>
             </div>
         </div>
     </section>
@@ -971,25 +1203,51 @@
     </footer>
 
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle with dropdown
         const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
         const navLinks = document.querySelector('.nav-links');
         
-        if (mobileMenuToggle) {
-            mobileMenuToggle.addEventListener('click', () => {
-                navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        if (mobileMenuToggle && navLinks) {
+            // Ensure menu is hidden on page load
+            navLinks.classList.remove('mobile-open');
+            
+            mobileMenuToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Toggle the mobile-open class
+                const isOpen = navLinks.classList.contains('mobile-open');
+                
+                if (isOpen) {
+                    navLinks.classList.remove('mobile-open');
+                    mobileMenuToggle.textContent = '☰';
+                } else {
+                    navLinks.classList.add('mobile-open');
+                    mobileMenuToggle.textContent = '✕';
+                }
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (navLinks.classList.contains('mobile-open')) {
+                    if (!navLinks.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                        navLinks.classList.remove('mobile-open');
+                        mobileMenuToggle.textContent = '☰';
+                    }
+                }
+            });
+
+            // Close menu when clicking a link
+            const navLinksItems = navLinks.querySelectorAll('a');
+            navLinksItems.forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('mobile-open');
+                    mobileMenuToggle.textContent = '☰';
+                });
             });
         }
 
         // Form submission
-        const contactForm = document.querySelector('.contact-form');
-        if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                alert('Thank you for your message! We will get back to you soon.');
-                contactForm.reset();
-            });
-        }
 
         // Navbar background on scroll
         window.addEventListener('scroll', () => {
