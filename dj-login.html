@@ -127,6 +127,59 @@
             display: block;
         }
 
+        .success-message {
+            background: #efe;
+            color: var(--success-color);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid var(--success-color);
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .toggle-mode {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .toggle-mode p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .toggle-mode a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .toggle-mode a:hover {
+            text-decoration: underline;
+        }
+
+        .password-requirements {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+
+        .password-requirements ul {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .password-requirements li {
+            margin-bottom: 0.25rem;
+        }
+
         .back-link {
             text-align: center;
             margin-top: 1.5rem;
@@ -140,6 +193,10 @@
 
         .back-link a:hover {
             color: var(--accent-color);
+        }
+
+        .form-hidden {
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -158,11 +215,13 @@
         <div class="login-header">
             <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
             <h1>DJ Portal</h1>
-            <p>Sign in to access your calendar and bookings</p>
+            <p id="header-subtitle">Sign in to access your calendar and bookings</p>
         </div>
 
         <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
 
+        <!-- Login Form -->
         <form id="login-form">
             <div class="form-group">
                 <label for="username">Username or Email</label>
@@ -177,17 +236,165 @@
             <button type="submit" class="login-button">Sign In</button>
         </form>
 
+        <!-- Signup Form -->
+        <form id="signup-form" class="form-hidden">
+            <div class="form-group">
+                <label for="signup-username">Username</label>
+                <input type="text" id="signup-username" name="username" required autocomplete="username" minlength="3">
+            </div>
+
+            <div class="form-group">
+                <label for="signup-email">Email</label>
+                <input type="email" id="signup-email" name="email" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="signup-password">Password</label>
+                <input type="password" id="signup-password" name="password" required autocomplete="new-password" minlength="8">
+                <div class="password-requirements">
+                    <small>Password must be at least 8 characters long</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm-password" required autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="login-button">Create Account</button>
+        </form>
+
+        <div class="toggle-mode">
+            <p id="toggle-text">Don't have an account?</p>
+            <a id="toggle-link" onclick="toggleMode()">Create Account</a>
+        </div>
+
         <div class="back-link">
             <a href="index.html">← Back to Website</a>
         </div>
     </div>
 
     <script>
+        let isSignupMode = false;
+
+        // Toggle between login and signup forms
+        function toggleMode() {
+            isSignupMode = !isSignupMode;
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const headerSubtitle = document.getElementById('header-subtitle');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleLink = document.getElementById('toggle-link');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Hide messages
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+
+            if (isSignupMode) {
+                loginForm.classList.add('form-hidden');
+                signupForm.classList.remove('form-hidden');
+                headerSubtitle.textContent = 'Create your DJ portal account';
+                toggleText.textContent = 'Already have an account?';
+                toggleLink.textContent = 'Sign In';
+            } else {
+                loginForm.classList.remove('form-hidden');
+                signupForm.classList.add('form-hidden');
+                headerSubtitle.textContent = 'Sign in to access your calendar and bookings';
+                toggleText.textContent = "Don't have an account?";
+                toggleLink.textContent = 'Create Account';
+            }
+        }
+
+        // Signup form handling
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('signup-username').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Clear previous messages
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+            errorMessage.textContent = '';
+            successMessage.textContent = '';
+
+            // Validation
+            if (!username || !email || !password || !confirmPassword) {
+                errorMessage.textContent = 'Please fill in all fields.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            if (username.length < 3) {
+                errorMessage.textContent = 'Username must be at least 3 characters long.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            if (password.length < 8) {
+                errorMessage.textContent = 'Password must be at least 8 characters long.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // Check if username or email already exists (localStorage for dev)
+            const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const userExists = existingUsers.find(u => u.username === username || u.email === email);
+            
+            if (userExists) {
+                errorMessage.textContent = 'Username or email already exists.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // TODO: Replace with actual API call to create user
+            // In production, you would:
+            // 1. Send user data to backend API
+            // 2. Hash password server-side
+            // 3. Store in database
+            // 4. Return success/error
+
+            // For development: store in localStorage
+            const newUser = {
+                username: username,
+                email: email,
+                password: password, // In production, never store plain text passwords!
+                createdAt: new Date().toISOString()
+            };
+
+            existingUsers.push(newUser);
+            localStorage.setItem('dj_users', JSON.stringify(existingUsers));
+
+            // Show success message and switch to login
+            successMessage.textContent = 'Account created successfully! Please sign in.';
+            successMessage.classList.add('show');
+
+            // Clear form
+            document.getElementById('signup-form').reset();
+
+            // Switch to login mode after 2 seconds
+            setTimeout(() => {
+                toggleMode();
+            }, 2000);
+        });
+
         // Login form handling
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('error-message');
 
@@ -203,41 +410,46 @@
             }
 
             // TODO: Replace with actual authentication API call
-            // For now, this is a placeholder that redirects to dashboard
             // In production, you would:
             // 1. Send credentials to your backend API
             // 2. Verify credentials against database
             // 3. Create session/token
             // 4. Redirect on success
 
-            // Simulate API call
-            fetch('/api/dj-login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Store authentication token (in production, use httpOnly cookies)
-                    localStorage.setItem('dj_token', data.token);
-                    localStorage.setItem('dj_user', data.user);
-                    window.location.href = 'dj-dashboard.html';
-                } else {
-                    errorMessage.textContent = data.message || 'Invalid username or password.';
-                    errorMessage.classList.add('show');
-                }
-            })
-            .catch(error => {
-                // For development: redirect to dashboard if API doesn't exist
-                // Remove this in production!
-                console.warn('API endpoint not available. Redirecting to dashboard for development.');
-                localStorage.setItem('dj_token', 'dev_token');
-                localStorage.setItem('dj_user', username);
+            // For development: check against localStorage
+            const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const user = existingUsers.find(u => (u.username === username || u.email === username) && u.password === password);
+
+            if (user) {
+                // Store authentication token (in production, use httpOnly cookies)
+                localStorage.setItem('dj_token', 'dev_token_' + Date.now());
+                localStorage.setItem('dj_user', user.username);
                 window.location.href = 'dj-dashboard.html';
-            });
+            } else {
+                // Try API call if localStorage fails
+                fetch('/api/dj-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        localStorage.setItem('dj_token', data.token);
+                        localStorage.setItem('dj_user', data.user);
+                        window.location.href = 'dj-dashboard.html';
+                    } else {
+                        errorMessage.textContent = data.message || 'Invalid username or password.';
+                        errorMessage.classList.add('show');
+                    }
+                })
+                .catch(error => {
+                    errorMessage.textContent = 'Invalid username or password.';
+                    errorMessage.classList.add('show');
+                });
+            }
         });
     </script>
 </body>
