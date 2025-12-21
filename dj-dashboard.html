@@ -106,7 +106,10 @@
             background: var(--secondary-color);
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            min-width: 250px;
+            min-width: 350px;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
             padding: 0.5rem 0;
             z-index: 1000;
             display: none;
@@ -160,6 +163,83 @@
             height: 1px;
             background: #e0e0e0;
             margin: 0.5rem 0;
+        }
+
+        .profile-dropdown-account {
+            padding: 1rem;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+
+        .profile-dropdown-account.show {
+            display: block;
+        }
+
+        .profile-dropdown-account h3 {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .profile-dropdown-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .profile-dropdown-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .profile-dropdown-form label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .profile-dropdown-form input {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .profile-dropdown-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .profile-dropdown-form input:disabled {
+            background: var(--bg-light);
+            cursor: not-allowed;
+        }
+
+        .profile-dropdown-form-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .profile-dropdown-form .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .profile-dropdown-success {
+            padding: 0.75rem;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .profile-dropdown-success.show {
+            display: block;
         }
 
         .logout-btn {
@@ -570,32 +650,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Account Info Section */
-        .account-section {
-            background: var(--secondary-color);
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-top: 2rem;
-        }
-
-        .account-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .account-header h2 {
-            color: var(--primary-color);
-        }
-
-        .account-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
         /* Reviews Section */
         .reviews-section {
             background: var(--secondary-color);
@@ -779,12 +833,6 @@
         }
 
         @media (max-width: 768px) {
-            .account-form {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
             .dashboard-container {
                 padding: 1rem;
             }
@@ -826,10 +874,38 @@
                         <div class="profile-dropdown-email" id="dropdown-email"></div>
                     </div>
                     <ul class="profile-dropdown-menu">
-                        <li><a href="#" onclick="scrollToAccountSection(event); return false;">Account Settings</a></li>
+                        <li><a href="#" onclick="toggleAccountSettings(); return false;">Account Settings</a></li>
                         <li class="divider"></li>
                         <li><a href="#" onclick="logout(); return false;">Logout</a></li>
                     </ul>
+                    <div class="profile-dropdown-account" id="profile-account-form">
+                        <h3>Account Information</h3>
+                        <form id="dropdown-account-form" class="profile-dropdown-form" onsubmit="saveAccountFromDropdown(event); return false;">
+                            <div class="form-group">
+                                <label for="dropdown-username">Username</label>
+                                <input type="text" id="dropdown-username" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="dropdown-name">Full Name</label>
+                                <input type="text" id="dropdown-name" placeholder="Enter your full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="dropdown-email">Email Address *</label>
+                                <input type="email" id="dropdown-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dropdown-phone">Phone Number</label>
+                                <input type="tel" id="dropdown-phone" placeholder="(555) 555-5555">
+                            </div>
+                            <div class="profile-dropdown-success" id="dropdown-save-success">
+                                Your account information has been updated successfully!
+                            </div>
+                            <div class="profile-dropdown-form-actions">
+                                <button type="submit" class="btn btn-success">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelAccountFromDropdown()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -884,38 +960,6 @@
             <div id="bookings-container" class="bookings-list">
                 <!-- Bookings will be populated here -->
             </div>
-        </div>
-
-        <!-- Account Info Section -->
-        <div class="account-section">
-            <div class="account-header">
-                <h2>Account Information</h2>
-            </div>
-            <form id="account-form" class="account-form">
-                <div class="form-group">
-                    <label for="account-username">Username</label>
-                    <input type="text" id="account-username" disabled>
-                </div>
-                <div class="form-group">
-                    <label for="account-name">Full Name</label>
-                    <input type="text" id="account-name" placeholder="Enter your full name">
-                </div>
-                <div class="form-group">
-                    <label for="account-email">Email Address *</label>
-                    <input type="email" id="account-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="account-phone">Phone Number</label>
-                    <input type="tel" id="account-phone" placeholder="(555) 555-5555">
-                </div>
-                <div class="save-success" id="save-success">
-                    Your account information has been updated successfully!
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <button type="button" class="btn btn-secondary" onclick="cancelAccountEdit()">Cancel</button>
-                </div>
-            </form>
         </div>
 
         <!-- Reviews Section -->
@@ -1011,8 +1055,6 @@
                 }
             }
             
-            // Load account info into form
-            loadAccountInfo();
         }
         
         // Update profile icon with user initials
@@ -1037,58 +1079,49 @@
             }
         });
         
-        // Scroll to account section
-        function scrollToAccountSection(event) {
-            if (event) {
-                event.preventDefault();
+        // Toggle account settings in dropdown
+        function toggleAccountSettings() {
+            const accountForm = document.getElementById('profile-account-form');
+            accountForm.classList.toggle('show');
+            
+            // Load account info when opening
+            if (accountForm.classList.contains('show')) {
+                loadAccountInfoToDropdown();
             }
-            const accountSection = document.querySelector('.account-section');
-            if (accountSection) {
-                // Close dropdown first
-                document.getElementById('profile-dropdown').classList.remove('show');
-                // Small delay to allow dropdown to close smoothly
-                setTimeout(() => {
-                    accountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // Focus on the name field for better UX
-                    setTimeout(() => {
-                        document.getElementById('account-name').focus();
-                    }, 500);
-                }, 100);
-            }
-            return false;
         }
         
-        // Load account information into the form
-        function loadAccountInfo() {
+        // Load account information into dropdown form
+        function loadAccountInfoToDropdown() {
             const currentUsername = localStorage.getItem('dj_user');
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
             const currentDJ = allDJs.find(dj => dj.username === currentUsername);
             
             if (currentDJ) {
-                document.getElementById('account-username').value = currentDJ.username || '';
-                document.getElementById('account-name').value = currentDJ.fullName || currentDJ.name || '';
-                document.getElementById('account-email').value = currentDJ.email || '';
-                document.getElementById('account-phone').value = currentDJ.phone || '';
+                document.getElementById('dropdown-username').value = currentDJ.username || '';
+                document.getElementById('dropdown-name').value = currentDJ.fullName || currentDJ.name || '';
+                document.getElementById('dropdown-email').value = currentDJ.email || '';
+                document.getElementById('dropdown-phone').value = currentDJ.phone || '';
             } else {
-                // If user not found in dj_users, try to get from dj_user
-                document.getElementById('account-username').value = currentUsername || '';
-                document.getElementById('account-name').value = '';
-                document.getElementById('account-email').value = '';
-                document.getElementById('account-phone').value = '';
+                document.getElementById('dropdown-username').value = currentUsername || '';
+                document.getElementById('dropdown-name').value = '';
+                document.getElementById('dropdown-email').value = '';
+                document.getElementById('dropdown-phone').value = '';
             }
         }
         
-        // Handle account form submission
-        document.getElementById('account-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Save account from dropdown
+        function saveAccountFromDropdown(event) {
+            if (event) {
+                event.preventDefault();
+            }
             
             const currentUsername = localStorage.getItem('dj_user');
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
             const currentDJIndex = allDJs.findIndex(dj => dj.username === currentUsername);
             
-            const email = document.getElementById('account-email').value.trim();
-            const phone = document.getElementById('account-phone').value.trim();
-            const name = document.getElementById('account-name').value.trim();
+            const email = document.getElementById('dropdown-email').value.trim();
+            const phone = document.getElementById('dropdown-phone').value.trim();
+            const name = document.getElementById('dropdown-name').value.trim();
             
             if (!email) {
                 alert('Email address is required');
@@ -1097,7 +1130,6 @@
             
             // Update user info
             if (currentDJIndex !== -1) {
-                // Update existing user
                 allDJs[currentDJIndex].email = email;
                 allDJs[currentDJIndex].phone = phone;
                 if (name) {
@@ -1105,7 +1137,6 @@
                     allDJs[currentDJIndex].name = name;
                 }
             } else {
-                // Create new user entry if doesn't exist
                 const newUser = {
                     username: currentUsername,
                     email: email,
@@ -1120,7 +1151,7 @@
             localStorage.setItem('dj_users', JSON.stringify(allDJs));
             
             // Show success message
-            const successMsg = document.getElementById('save-success');
+            const successMsg = document.getElementById('dropdown-save-success');
             successMsg.classList.add('show');
             
             // Hide success message after 3 seconds
@@ -1130,13 +1161,15 @@
             
             // Reload user info to update header and dropdown
             loadDJUserInfo();
-        });
-        
-        // Cancel account edit (reload original values)
-        function cancelAccountEdit() {
-            loadAccountInfo();
-            document.getElementById('save-success').classList.remove('show');
         }
+        
+        // Cancel account edit from dropdown
+        function cancelAccountFromDropdown() {
+            loadAccountInfoToDropdown();
+            document.getElementById('dropdown-save-success').classList.remove('show');
+            document.getElementById('profile-account-form').classList.remove('show');
+        }
+        
         
         // Load user info on page load
         loadDJUserInfo();
