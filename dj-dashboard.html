@@ -327,12 +327,25 @@
             margin-bottom: 2rem;
         }
 
+        /* Calendar Widgets Container */
+        .calendars-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .calendars-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Visual Calendar Widget */
         .calendar-widget {
             background: var(--bg-light);
             border-radius: 10px;
             padding: 0.75rem;
-            margin-bottom: 2rem;
             max-width: 400px;
         }
 
@@ -921,15 +934,42 @@
                 </div>
             </div>
             
-            <!-- Visual Calendar Widget -->
-            <div class="calendar-widget">
-                <div class="calendar-widget-header">
-                    <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
-                    <h3 id="calendar-month-year">January 2025</h3>
-                    <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+            <!-- Visual Calendar Widgets - Current Month + 2 Months Ahead -->
+            <div class="calendars-container">
+                <!-- Current Month Calendar -->
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year-0">January 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container-0">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
                 </div>
-                <div id="calendar-grid-container">
-                    <!-- Calendar grid will be generated here -->
+
+                <!-- Next Month Calendar -->
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year-1">February 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container-1">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
+                </div>
+
+                <!-- Month +2 Calendar -->
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year-2">March 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container-2">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
                 </div>
             </div>
 
@@ -1200,9 +1240,9 @@
             fp.config.disable.push(date);
             fp.set('disable', fp.config.disable);
 
-            // Refresh blocked dates list and calendar
+            // Refresh blocked dates list and calendars
             displayBlockedDates();
-            generateCalendar();
+            generateAllCalendars();
 
             // Clear form
             document.getElementById('block-date-form').reset();
@@ -1255,22 +1295,25 @@
             fp.set('disable', fp.config.disable);
 
             displayBlockedDates();
-            generateCalendar();
+            generateAllCalendars();
         }
 
         // Calendar state
         let currentCalendarDate = new Date();
         currentCalendarDate.setDate(1); // Start at first day of month
 
-        // Generate calendar widget
-        function generateCalendar() {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
+        // Generate calendar widget for a specific month offset (0 = current, 1 = next, 2 = month+2)
+        function generateCalendar(monthOffset = 0) {
+            const targetDate = new Date(currentCalendarDate);
+            targetDate.setMonth(targetDate.getMonth() + monthOffset);
+            
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth();
             
             // Update header
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"];
-            document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+            document.getElementById(`calendar-month-year-${monthOffset}`).textContent = `${monthNames[month]} ${year}`;
 
             // Get blocked dates and bookings
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]').map(b => b.date);
@@ -1331,18 +1374,25 @@
             }
 
             calendarHTML += '</div>';
-            document.getElementById('calendar-grid-container').innerHTML = calendarHTML;
+            document.getElementById(`calendar-grid-container-${monthOffset}`).innerHTML = calendarHTML;
         }
 
-        // Navigate calendar months
+        // Generate all three calendars
+        function generateAllCalendars() {
+            generateCalendar(0); // Current month
+            generateCalendar(1); // Next month
+            generateCalendar(2); // Month + 2
+        }
+
+        // Navigate calendar months (updates all three calendars)
         function previousMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            generateCalendar();
+            generateAllCalendars();
         }
 
         function nextMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            generateCalendar();
+            generateAllCalendars();
         }
 
         // Select date from calendar widget
@@ -1607,7 +1657,7 @@
         }
 
         // Initialize - Load both calendar and bookings on page load
-        generateCalendar();
+        generateAllCalendars();
         displayBlockedDates();
         loadBookings();
         loadReviews();
