@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Photography Services - Externally Yours Productions, LLC - Professional wedding, event, and commercial photography">
     <title>Photography - Externally Yours Productions, LLC</title>
+    <link rel="icon" type="image/png" href="EYP Logo_New.png">
     <style>
         * {
             margin: 0;
@@ -1394,6 +1395,11 @@
         let currentImages = [];
 
         function openLightbox(images, index) {
+            // Close any open gallery modals first
+            document.querySelectorAll('.gallery-modal.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            
             currentImages = images;
             currentImageIndex = index;
             updateLightboxImage();

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Externally Yours Productions, LLC - Professional video and film production services">
     <title>Externally Yours Productions, LLC</title>
+    <link rel="icon" type="image/png" href="EYP Logo_New.png">
     <style>
         * {
             margin: 0;
@@ -47,7 +48,7 @@
         nav .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -204,7 +205,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 2rem;
         }
 
         .section-title {
@@ -418,6 +419,60 @@
 
         .gallery-item:hover img {
             transform: scale(1.05);
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            background: var(--secondary-color);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .testimonial-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .testimonial-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-light);
+            font-style: italic;
+            margin: 0;
+        }
+
+        .testimonial-service {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
+        }
+
+        .testimonial-service-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .testimonial-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
         }
 
         /* Contact Section */
@@ -731,6 +786,80 @@
                             </div>
                         </div>
                     </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Clients Say</h2>
+            <div class="testimonials-grid">
+                <!-- Photography Testimonial -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"The photography team captured our wedding day perfectly! Every moment was beautifully documented, and we now have stunning photos that we'll treasure forever. Their attention to detail and creative eye made our special day even more memorable."</p>
+                    </div>
+                    <div class="testimonial-service">
+                        <p class="testimonial-service-label">Photography Services</p>
+                        <p class="testimonial-date">2025</p>
+                    </div>
+                </div>
+
+                <!-- Videography Testimonial -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"Our wedding video exceeded all expectations! The team created a cinematic masterpiece that perfectly captured the emotion and joy of our celebration. Every time we watch it, we're transported back to that magical day. Absolutely incredible work!"</p>
+                    </div>
+                    <div class="testimonial-service">
+                        <p class="testimonial-service-label">Videography Services</p>
+                        <p class="testimonial-date">2025</p>
+                    </div>
+                </div>
+
+                <!-- DJ Entertainment Testimonial -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"The DJ brought incredible energy to our wedding reception! The dance floor was packed all night, and the music selection was perfect. They kept the party going and made sure everyone had an amazing time. Highly professional and super fun!"</p>
+                    </div>
+                    <div class="testimonial-service">
+                        <p class="testimonial-service-label">DJ Entertainment</p>
+                        <p class="testimonial-date">2025</p>
+                    </div>
+                </div>
+
+                <!-- Photography Testimonial 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"Professional, talented, and so easy to work with! The photographers made us feel comfortable throughout the entire session and delivered breathtaking photos. We couldn't be happier with the results and would definitely book them again."</p>
+                    </div>
+                    <div class="testimonial-service">
+                        <p class="testimonial-service-label">Photography Services</p>
+                        <p class="testimonial-date">2024</p>
+                    </div>
+                </div>
+
+                <!-- Videography Testimonial 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"The highlight film they created was absolutely stunning! It beautifully told our story and captured all the special moments. The quality is outstanding, and we love sharing it with family and friends. Worth every penny!"</p>
+                    </div>
+                    <div class="testimonial-service">
+                        <p class="testimonial-service-label">Videography Services</p>
+                        <p class="testimonial-date">2024</p>
+                    </div>
+                </div>
+
+                <!-- DJ Entertainment Testimonial 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p class="testimonial-text">"Best DJ we've ever worked with! They understood exactly what we wanted and kept the energy high all night. The sound quality was perfect, the music selection was spot-on, and they made our event unforgettable. Our guests are still talking about how great the music was!"</p>
+                    </div>
+                    <div class="testimonial-service">
+                        <p class="testimonial-service-label">DJ Entertainment</p>
+                        <p class="testimonial-date">2024</p>
+                    </div>
                 </div>
             </div>
         </div>

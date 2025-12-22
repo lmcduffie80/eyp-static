@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="DJ Dashboard - Externally Yours Productions, LLC">
     <title>DJ Dashboard - Externally Yours Productions, LLC</title>
+    <link rel="icon" type="image/png" href="EYP Logo_New.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         * {
@@ -59,6 +60,186 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+            position: relative;
+        }
+
+        .user-profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+        }
+
+        .profile-icon:hover {
+            border-color: var(--secondary-color);
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--secondary-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            min-width: 350px;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0.5rem 0;
+            z-index: 1000;
+            display: none;
+            animation: slideDown 0.2s ease;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+        }
+
+        .profile-dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .profile-dropdown-name {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-dropdown-email {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .profile-dropdown-menu {
+            list-style: none;
+            padding: 0.5rem 0;
+        }
+
+        .profile-dropdown-menu li {
+            padding: 0;
+        }
+
+        .profile-dropdown-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: background 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .profile-dropdown-menu a:hover {
+            background: var(--bg-light);
+        }
+
+        .profile-dropdown-menu .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 0.5rem 0;
+        }
+
+        .profile-dropdown-account {
+            padding: 1rem;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+
+        .profile-dropdown-account.show {
+            display: block;
+        }
+
+        .profile-dropdown-account h3 {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .profile-dropdown-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .profile-dropdown-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .profile-dropdown-form label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .profile-dropdown-form input {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .profile-dropdown-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .profile-dropdown-form input:disabled {
+            background: var(--bg-light);
+            cursor: not-allowed;
+        }
+
+        .profile-dropdown-form-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .profile-dropdown-form .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .profile-dropdown-success {
+            padding: 0.75rem;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .profile-dropdown-success.show {
+            display: block;
         }
 
         .logout-btn {
@@ -74,6 +255,17 @@
 
         .logout-btn:hover {
             background: #e55a2b;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Main Container */
@@ -458,6 +650,188 @@
             margin-bottom: 1rem;
         }
 
+        /* Reviews Section */
+        .reviews-section {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .reviews-header h2 {
+            color: var(--primary-color);
+        }
+
+        .reviews-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .rating-display {
+            text-align: center;
+        }
+
+        .rating-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            line-height: 1;
+        }
+
+        .rating-stars {
+            font-size: 1.2rem;
+            color: var(--warning-color);
+            margin-top: 0.5rem;
+        }
+
+        .total-reviews {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .reviews-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .review-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background: var(--bg-light);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .review-client {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .review-event {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .review-date {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .review-rating {
+            color: var(--warning-color);
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+        }
+
+        .review-text {
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin-top: 0.75rem;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .no-reviews-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group input:disabled {
+            background: var(--bg-light);
+            cursor: not-allowed;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: var(--secondary-color);
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+            color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .save-success {
+            grid-column: 1 / -1;
+            padding: 1rem;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 5px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .save-success.show {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 1rem;
@@ -486,10 +860,54 @@
         </h1>
         <div class="header-actions">
             <div style="text-align: right; margin-right: 1rem;">
-                <div style="font-size: 0.85rem; color: #999; margin-bottom: 0.25rem;">Logged in as</div>
-                <div id="user-name" style="font-weight: bold; font-size: 1.1rem; color: var(--secondary-color);">DJ User</div>
+                <div id="welcome-message" style="font-size: 1rem; color: var(--secondary-color); margin-bottom: 0.25rem;">Welcome,</div>
+                <div id="user-name" style="font-weight: bold; font-size: 1.2rem; color: var(--secondary-color);">DJ User</div>
+                <div id="user-email" style="font-size: 0.75rem; color: #ccc; margin-top: 0.25rem;"></div>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div class="user-profile-menu">
+                <div class="profile-icon" id="profile-icon" onclick="toggleProfileDropdown()">
+                    <span id="profile-initials">DJ</span>
+                </div>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <div class="profile-dropdown-header">
+                        <div class="profile-dropdown-name" id="dropdown-name">DJ User</div>
+                        <div class="profile-dropdown-email" id="dropdown-email"></div>
+                    </div>
+                    <ul class="profile-dropdown-menu">
+                        <li><a href="#" onclick="toggleAccountSettings(); return false;">Account Settings</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+                    </ul>
+                    <div class="profile-dropdown-account" id="profile-account-form">
+                        <h3>Account Information</h3>
+                        <form id="dropdown-account-form" class="profile-dropdown-form" onsubmit="saveAccountFromDropdown(event); return false;">
+                            <div class="form-group">
+                                <label for="dropdown-username">Username</label>
+                                <input type="text" id="dropdown-username" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="dropdown-name">Full Name</label>
+                                <input type="text" id="dropdown-name" placeholder="Enter your full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="dropdown-email">Email Address *</label>
+                                <input type="email" id="dropdown-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dropdown-phone">Phone Number</label>
+                                <input type="tel" id="dropdown-phone" placeholder="(555) 555-5555">
+                            </div>
+                            <div class="profile-dropdown-success" id="dropdown-save-success">
+                                Your account information has been updated successfully!
+                            </div>
+                            <div class="profile-dropdown-form-actions">
+                                <button type="submit" class="btn btn-success">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelAccountFromDropdown()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -543,6 +961,23 @@
                 <!-- Bookings will be populated here -->
             </div>
         </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+            <div class="reviews-header">
+                <h2>Customer Reviews</h2>
+                <div class="reviews-stats" id="reviews-stats">
+                    <div class="rating-display">
+                        <div class="rating-number" id="average-rating">0.0</div>
+                        <div class="rating-stars" id="rating-stars">★★★★★</div>
+                        <div class="total-reviews" id="total-reviews">0 Reviews</div>
+                    </div>
+                </div>
+            </div>
+            <div id="reviews-container" class="reviews-list">
+                <!-- Reviews will be populated here -->
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -573,37 +1008,168 @@
                 // Display full name or username
                 displayName = currentDJ.fullName || currentDJ.name || currentDJ.username;
                 
-                // Update welcome message
+                // Update header welcome message and name
+                document.getElementById('welcome-message').textContent = 'Welcome,';
+                document.getElementById('user-name').textContent = displayName;
+                
+                // Show email if available
+                const emailDiv = document.getElementById('user-email');
+                if (currentDJ.email && emailDiv) {
+                    emailDiv.textContent = currentDJ.email;
+                } else if (emailDiv) {
+                    emailDiv.textContent = '';
+                }
+                
+                // Update dropdown menu
+                document.getElementById('dropdown-name').textContent = displayName;
+                document.getElementById('dropdown-email').textContent = currentDJ.email || '';
+                
+                // Update profile icon with initials
+                updateProfileIcon(displayName);
+                
+                // Update calendar welcome message
                 const welcomeMsg = document.getElementById('dj-welcome-message');
                 if (welcomeMsg) {
                     welcomeMsg.textContent = `Welcome back, ${displayName}!`;
                 }
-                
-                // Optionally show email below name in header
-                const userInfoDiv = document.getElementById('user-name').parentElement;
-                if (currentDJ.email) {
-                    let emailDiv = userInfoDiv.querySelector('.user-email');
-                    if (!emailDiv) {
-                        emailDiv = document.createElement('div');
-                        emailDiv.className = 'user-email';
-                        emailDiv.style.fontSize = '0.75rem';
-                        emailDiv.style.color = '#ccc';
-                        emailDiv.style.marginTop = '0.25rem';
-                        userInfoDiv.appendChild(emailDiv);
-                    }
-                    emailDiv.textContent = currentDJ.email;
-                }
             } else {
-                // Update welcome message with username
+                // Update header with username
+                document.getElementById('welcome-message').textContent = 'Welcome,';
+                document.getElementById('user-name').textContent = currentUsername;
+                const emailDiv = document.getElementById('user-email');
+                if (emailDiv) {
+                    emailDiv.textContent = '';
+                }
+                
+                // Update dropdown menu
+                document.getElementById('dropdown-name').textContent = currentUsername;
+                document.getElementById('dropdown-email').textContent = '';
+                
+                // Update profile icon with initials
+                updateProfileIcon(currentUsername);
+                
+                // Update calendar welcome message
                 const welcomeMsg = document.getElementById('dj-welcome-message');
                 if (welcomeMsg) {
                     welcomeMsg.textContent = `Welcome back, ${currentUsername}!`;
                 }
             }
             
-            // Update header name
-            document.getElementById('user-name').textContent = displayName;
         }
+        
+        // Update profile icon with user initials
+        function updateProfileIcon(name) {
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('profile-initials').textContent = initials || 'DJ';
+        }
+        
+        // Toggle profile dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profile-dropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // Close profile dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileMenu = document.querySelector('.user-profile-menu');
+            const dropdown = document.getElementById('profile-dropdown');
+            
+            if (profileMenu && !profileMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        
+        // Toggle account settings in dropdown
+        function toggleAccountSettings() {
+            const accountForm = document.getElementById('profile-account-form');
+            accountForm.classList.toggle('show');
+            
+            // Load account info when opening
+            if (accountForm.classList.contains('show')) {
+                loadAccountInfoToDropdown();
+            }
+        }
+        
+        // Load account information into dropdown form
+        function loadAccountInfoToDropdown() {
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            
+            if (currentDJ) {
+                document.getElementById('dropdown-username').value = currentDJ.username || '';
+                document.getElementById('dropdown-name').value = currentDJ.fullName || currentDJ.name || '';
+                document.getElementById('dropdown-email').value = currentDJ.email || '';
+                document.getElementById('dropdown-phone').value = currentDJ.phone || '';
+            } else {
+                document.getElementById('dropdown-username').value = currentUsername || '';
+                document.getElementById('dropdown-name').value = '';
+                document.getElementById('dropdown-email').value = '';
+                document.getElementById('dropdown-phone').value = '';
+            }
+        }
+        
+        // Save account from dropdown
+        function saveAccountFromDropdown(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJIndex = allDJs.findIndex(dj => dj.username === currentUsername);
+            
+            const email = document.getElementById('dropdown-email').value.trim();
+            const phone = document.getElementById('dropdown-phone').value.trim();
+            const name = document.getElementById('dropdown-name').value.trim();
+            
+            if (!email) {
+                alert('Email address is required');
+                return;
+            }
+            
+            // Update user info
+            if (currentDJIndex !== -1) {
+                allDJs[currentDJIndex].email = email;
+                allDJs[currentDJIndex].phone = phone;
+                if (name) {
+                    allDJs[currentDJIndex].fullName = name;
+                    allDJs[currentDJIndex].name = name;
+                }
+            } else {
+                const newUser = {
+                    username: currentUsername,
+                    email: email,
+                    phone: phone,
+                    name: name || '',
+                    fullName: name || ''
+                };
+                allDJs.push(newUser);
+            }
+            
+            // Save updated users list
+            localStorage.setItem('dj_users', JSON.stringify(allDJs));
+            
+            // Show success message
+            const successMsg = document.getElementById('dropdown-save-success');
+            successMsg.classList.add('show');
+            
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                successMsg.classList.remove('show');
+            }, 3000);
+            
+            // Reload user info to update header and dropdown
+            loadDJUserInfo();
+        }
+        
+        // Cancel account edit from dropdown
+        function cancelAccountFromDropdown() {
+            loadAccountInfoToDropdown();
+            document.getElementById('dropdown-save-success').classList.remove('show');
+            document.getElementById('profile-account-form').classList.remove('show');
+        }
+        
         
         // Load user info on page load
         loadDJUserInfo();
@@ -933,10 +1499,118 @@
             }
         }
 
+        // Load reviews for current DJ
+        function loadReviews() {
+            const currentUsername = localStorage.getItem('dj_user');
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const djReviews = allReviews.filter(review => review.djUsername === currentUsername);
+            
+            displayReviews(djReviews);
+            updateReviewStats(djReviews);
+        }
+        
+        // Display reviews
+        function displayReviews(reviews) {
+            const container = document.getElementById('reviews-container');
+            
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                    <div class="no-reviews">
+                        <div class="no-reviews-icon">⭐</div>
+                        <p>No reviews yet. Your customer reviews will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort reviews by date (newest first)
+            reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = reviews.map(review => {
+                const reviewDate = new Date(review.date);
+                const formattedDate = reviewDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                // Generate star rating display
+                const fullStars = '★'.repeat(Math.floor(review.rating));
+                const emptyStars = '☆'.repeat(5 - Math.floor(review.rating));
+                const stars = fullStars + emptyStars;
+                
+                return `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div>
+                                <div class="review-client">${review.clientName || 'Anonymous'}</div>
+                                ${review.eventName ? `<div class="review-event">${review.eventName}</div>` : ''}
+                            </div>
+                            <div class="review-date">${formattedDate}</div>
+                        </div>
+                        <div class="review-rating">${stars}</div>
+                        <div class="review-text">${review.comment || 'No comment provided.'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Update review statistics
+        function updateReviewStats(reviews) {
+            if (reviews.length === 0) {
+                document.getElementById('average-rating').textContent = '0.0';
+                document.getElementById('rating-stars').textContent = '★★★★★';
+                document.getElementById('total-reviews').textContent = '0 Reviews';
+                return;
+            }
+            
+            // Calculate average rating
+            const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+            const averageRating = (totalRating / reviews.length).toFixed(1);
+            
+            // Update average rating display
+            document.getElementById('average-rating').textContent = averageRating;
+            
+            // Update star display (show average as filled stars)
+            const avgStars = Math.round(averageRating);
+            const fullStars = '★'.repeat(avgStars);
+            const emptyStars = '☆'.repeat(5 - avgStars);
+            document.getElementById('rating-stars').textContent = fullStars + emptyStars;
+            
+            // Update total reviews count
+            const reviewCount = reviews.length;
+            document.getElementById('total-reviews').textContent = `${reviewCount} ${reviewCount === 1 ? 'Review' : 'Reviews'}`;
+        }
+        
+        // Helper function to add a review (can be called from admin dashboard or API)
+        // Example usage: addReview('djusername', { clientName: 'John Doe', rating: 5, comment: 'Great service!', eventName: 'Wedding', date: '2025-01-15' })
+        function addReview(djUsername, reviewData) {
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const newReview = {
+                id: Date.now().toString(),
+                djUsername: djUsername,
+                clientName: reviewData.clientName || 'Anonymous',
+                rating: reviewData.rating || 5,
+                comment: reviewData.comment || '',
+                eventName: reviewData.eventName || '',
+                date: reviewData.date || new Date().toISOString().split('T')[0],
+                createdAt: new Date().toISOString()
+            };
+            allReviews.push(newReview);
+            localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
+            
+            // Reload reviews if current user
+            const currentUsername = localStorage.getItem('dj_user');
+            if (currentUsername === djUsername) {
+                loadReviews();
+            }
+        }
+
         // Initialize - Load both calendar and bookings on page load
         generateCalendar();
         displayBlockedDates();
         loadBookings();
+        loadReviews();
     </script>
 </body>
 </html>
