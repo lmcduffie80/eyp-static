@@ -1468,7 +1468,7 @@
         });
 
         // Open gallery from URL hash (when linked from home page)
-        window.addEventListener('DOMContentLoaded', () => {
+        function handleHashGallery() {
             const hash = window.location.hash;
             if (hash) {
                 const galleryId = hash.substring(1); // Remove the # symbol
@@ -1485,7 +1485,15 @@
                     }, 500);
                 }
             }
-        });
+        }
+
+        // Check if DOM is already loaded (script is at end of body)
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', handleHashGallery);
+        } else {
+            // DOM is already loaded, run immediately
+            handleHashGallery();
+        }
     </script>
 </body>
 </html>
