@@ -1395,6 +1395,11 @@
         let currentImages = [];
 
         function openLightbox(images, index) {
+            // Close any open gallery modals first
+            document.querySelectorAll('.gallery-modal.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            
             currentImages = images;
             currentImageIndex = index;
             updateLightboxImage();
