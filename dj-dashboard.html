@@ -493,12 +493,21 @@
         }
 
         .btn-danger {
-            background: var(--error-color);
+            background: #dc3545;
             color: var(--secondary-color);
         }
 
         .btn-danger:hover {
             background: #c82333;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+            color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background: #555;
         }
 
         /* Blocked Dates List */
@@ -519,6 +528,13 @@
         .blocked-date-info {
             display: flex;
             gap: 1rem;
+            align-items: center;
+            flex: 1;
+        }
+
+        .blocked-date-actions {
+            display: flex;
+            gap: 0.5rem;
             align-items: center;
         }
 
@@ -1244,15 +1260,50 @@
                                 ${item.reason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${item.reason}</div>` : ''}
                             </div>
                         </div>
-                        <button class="btn btn-danger" onclick="unblockDate('${item.date}')">Unblock</button>
+                        <div class="blocked-date-actions">
+                            <button class="btn btn-secondary" onclick="editBlockedDate('${item.date}')">Edit</button>
+                            <button class="btn btn-danger" onclick="unblockDate('${item.date}')">Remove</button>
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Unblock date
+        // Edit blocked date
+        function editBlockedDate(date) {
+            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+            const blockedDate = blockedDates.find(item => item.date === date);
+            
+            if (!blockedDate) return;
+
+            // Pre-populate the form with existing values
+            document.getElementById('block-date').value = blockedDate.date;
+            document.getElementById('block-reason').value = blockedDate.reason || '';
+            
+            // Update flatpickr with the date
+            const fp = flatpickr("#block-date");
+            fp.setDate(blockedDate.date, false);
+            
+            // Remove the old blocked date (will be re-added when form is submitted)
+            const filtered = blockedDates.filter(item => item.date !== date);
+            localStorage.setItem('blocked_dates', JSON.stringify(filtered));
+            
+            // Update calendar picker to remove the old date
+            fp.config.disable = fp.config.disable.filter(d => d !== date);
+            fp.set('disable', fp.config.disable);
+
+            // Refresh display and calendar
+            displayBlockedDates();
+            generateCalendar();
+            
+            // Scroll to the form
+            document.getElementById('block-date-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('block-date').focus();
+        }
+
+        // Remove blocked date
         function unblockDate(date) {
-            if (!confirm('Are you sure you want to unblock this date?')) return;
+            if (!confirm('Are you sure you want to remove this blocked date?')) return;
 
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
             const filtered = blockedDates.filter(item => item.date !== date);
@@ -1264,7 +1315,7 @@
             fp.set('disable', fp.config.disable);
 
             displayBlockedDates();
-            generateAllCalendars();
+            generateCalendar();
         }
 
         // Calendar state
