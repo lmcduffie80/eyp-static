@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/dj-portal",
+      "destination": "/dj-login.html"
+    },
+    {
+      "source": "/dj-portal/",
+      "destination": "/dj-login.html"
+    }
+  ]
+}
+
