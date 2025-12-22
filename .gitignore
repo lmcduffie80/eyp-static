@@ -2,4 +2,8 @@
 DJ Entertainment/compressed_IMG_3072.mov
 *.mov
 .DS_Store
+
+# macOS resource fork files
+Icon*
 Icon?
+Icon\r
