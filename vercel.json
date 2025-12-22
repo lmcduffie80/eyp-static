@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/dj-portal",
+      "destination": "/dj-portal/index.html"
+    },
+    {
+      "source": "/dj-portal/",
+      "destination": "/dj-portal/index.html"
+    }
+  ],
+  "cleanUrls": true
+}
+
