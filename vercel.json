@@ -2,13 +2,12 @@
   "rewrites": [
     {
       "source": "/dj-portal",
-      "destination": "/dj-portal/index.html"
+      "destination": "/dj-login.html"
     },
     {
       "source": "/dj-portal/",
-      "destination": "/dj-portal/index.html"
+      "destination": "/dj-login.html"
     }
-  ],
-  "cleanUrls": true
+  ]
 }
 
