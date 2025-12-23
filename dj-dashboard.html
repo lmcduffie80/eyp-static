@@ -1275,7 +1275,13 @@
             }
 
             container.innerHTML = blockedDates.map(item => {
-                const dateObj = new Date(item.date);
+                // Parse date string directly to avoid timezone issues
+                // item.date is in YYYY-MM-DD format
+                const dateParts = item.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed
+                const day = parseInt(dateParts[2], 10);
+                const dateObj = new Date(year, month, day);
                 const formattedDate = formatDateMMDDYYYY(dateObj);
                 return `
                     <div class="blocked-date-item">
@@ -1456,9 +1462,27 @@
 
             let filteredBookings = bookings;
             if (filter === 'upcoming') {
-                filteredBookings = bookings.filter(b => new Date(b.date) >= today);
+                filteredBookings = bookings.filter(b => {
+                    // Parse date string to avoid timezone issues
+                    const dateParts = b.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const bookingDate = new Date(year, month, day);
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate >= today;
+                });
             } else if (filter === 'past') {
-                filteredBookings = bookings.filter(b => new Date(b.date) < today);
+                filteredBookings = bookings.filter(b => {
+                    // Parse date string to avoid timezone issues
+                    const dateParts = b.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const bookingDate = new Date(year, month, day);
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate < today;
+                });
             }
 
             if (filteredBookings.length === 0) {
@@ -1467,17 +1491,18 @@
             }
 
             container.innerHTML = filteredBookings.map(booking => {
-                const bookingDate = new Date(booking.date);
+                // Parse date string to avoid timezone issues
+                const dateParts = booking.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const bookingDate = new Date(year, month, day);
+                bookingDate.setHours(0, 0, 0, 0);
                 const isUpcoming = bookingDate >= today;
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
                 const showReminder = isUpcoming && daysUntil <= 14;
 
-                const formattedDate = bookingDate.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(bookingDate);
 
                 return `
                     <div class="booking-card ${isUpcoming ? 'upcoming' : 'past'}">
@@ -1536,7 +1561,13 @@
             twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
 
             bookings.forEach(booking => {
-                const bookingDate = new Date(booking.date);
+                // Parse date string to avoid timezone issues
+                const dateParts = booking.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const bookingDate = new Date(year, month, day);
+                bookingDate.setHours(0, 0, 0, 0);
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
 
                 // If booking is exactly 14 days away and reminder hasn't been sent
@@ -1581,16 +1612,31 @@
                 return;
             }
             
-            // Sort reviews by date (newest first)
-            reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Sort reviews by date (newest first) - parse dates to avoid timezone issues
+            reviews.sort((a, b) => {
+                const parseDate = (dateStr) => {
+                    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+                        const parts = dateStr.split('-');
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    }
+                    return new Date(dateStr);
+                };
+                return parseDate(b.date) - parseDate(a.date);
+            });
             
             container.innerHTML = reviews.map(review => {
-                const reviewDate = new Date(review.date);
-                const formattedDate = reviewDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+                // Parse date string to avoid timezone issues
+                let reviewDate;
+                if (typeof review.date === 'string' && review.date.includes('-')) {
+                    const dateParts = review.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    reviewDate = new Date(year, month, day);
+                } else {
+                    reviewDate = new Date(review.date);
+                }
+                const formattedDate = formatDateMMDDYYYY(reviewDate);
                 
                 // Generate star rating display
                 const fullStars = '★'.repeat(Math.floor(review.rating));
