@@ -421,10 +421,13 @@
                 
                 <!-- Create User Form -->
                 <div style="background: var(--bg-light); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Create New User</h3>
+                    <h3 id="form-title" style="margin-bottom: 1rem; color: var(--primary-color);">Create New User</h3>
                     <form id="create-user-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <input type="hidden" id="edit-mode" value="false">
+                        <input type="hidden" id="edit-original-username" value="">
+                        <input type="hidden" id="edit-original-usertype" value="">
                         <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Name</label>
                             <input type="text" id="new-username" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                         </div>
                         <div>
@@ -433,7 +436,8 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
-                            <input type="password" id="new-password" required minlength="8" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <input type="password" id="new-password" minlength="8" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <small id="password-hint" style="font-size: 0.85rem; color: var(--text-light);">Leave blank to keep current password</small>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">User Type</label>
@@ -442,10 +446,16 @@
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
-                        <div style="display: flex; align-items: flex-end;">
-                            <button type="submit" style="padding: 0.75rem 2rem; background: var(--admin-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%;">
-                                Create User
-                            </button>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; visibility: hidden;">Actions</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" id="submit-btn" style="padding: 0.75rem 2rem; background: var(--admin-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1;">
+                                    Create User
+                                </button>
+                                <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" style="padding: 0.75rem 1.5rem; background: #999; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     </form>
                     <div id="create-user-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 5px; display: none;"></div>
@@ -587,7 +597,7 @@
             return admins;
         }
 
-        // Create new user
+        // Create new user or update existing user
         document.getElementById('create-user-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -595,7 +605,9 @@
             const email = document.getElementById('new-email').value.trim();
             const password = document.getElementById('new-password').value;
             const userType = document.getElementById('new-user-type').value;
-            const messageDiv = document.getElementById('create-user-message');
+            const isEditMode = document.getElementById('edit-mode').value === 'true';
+            const originalUsername = document.getElementById('edit-original-username').value;
+            const originalUserType = document.getElementById('edit-original-usertype').value;
 
             // Validation
             if (username.length < 3) {
@@ -603,51 +615,113 @@
                 return;
             }
 
-            if (password.length < 8) {
+            if (!isEditMode && password.length < 8) {
                 showMessage('Password must be at least 8 characters long.', 'error');
                 return;
             }
 
-            // Check if user already exists
+            if (isEditMode && password && password.length < 8) {
+                showMessage('Password must be at least 8 characters long.', 'error');
+                return;
+            }
+
             if (userType === 'dj') {
                 const djs = getAllDJs();
-                if (djs.find(u => u.username === username || u.email === email)) {
-                    showMessage('Username or email already exists.', 'error');
-                    return;
-                }
+                
+                if (isEditMode) {
+                    // Update existing DJ user
+                    const userIndex = djs.findIndex(u => u.username === originalUsername);
+                    if (userIndex === -1) {
+                        showMessage('User not found.', 'error');
+                        return;
+                    }
 
-                // Create DJ user
-                const newDJ = {
-                    username: username,
-                    email: email,
-                    password: password, // Should be hashed in production
-                    createdAt: new Date().toISOString()
-                };
-                djs.push(newDJ);
-                localStorage.setItem('dj_users', JSON.stringify(djs));
-                showMessage(`DJ user "${username}" created successfully!`, 'success');
+                    // Check if username or email is already taken by another user
+                    const duplicateUser = djs.find(u => (u.username === username || u.email === email) && u.username !== originalUsername);
+                    if (duplicateUser) {
+                        showMessage('Username or email already exists.', 'error');
+                        return;
+                    }
+
+                    // Update user
+                    djs[userIndex].username = username;
+                    djs[userIndex].email = email;
+                    if (password) {
+                        djs[userIndex].password = password; // Should be hashed in production
+                    }
+                    localStorage.setItem('dj_users', JSON.stringify(djs));
+                    showMessage(`DJ user "${username}" updated successfully!`, 'success');
+                } else {
+                    // Create new DJ user
+                    if (djs.find(u => u.username === username || u.email === email)) {
+                        showMessage('Username or email already exists.', 'error');
+                        return;
+                    }
+
+                    const newDJ = {
+                        username: username,
+                        email: email,
+                        password: password, // Should be hashed in production
+                        createdAt: new Date().toISOString()
+                    };
+                    djs.push(newDJ);
+                    localStorage.setItem('dj_users', JSON.stringify(djs));
+                    showMessage(`DJ user "${username}" created successfully!`, 'success');
+                }
             } else {
                 const admins = getAllAdmins();
-                if (admins.find(u => u.username === username || u.email === email)) {
-                    showMessage('Username or email already exists.', 'error');
-                    return;
-                }
+                
+                if (isEditMode) {
+                    // Update existing admin user
+                    const userIndex = admins.findIndex(u => u.username === originalUsername);
+                    if (userIndex === -1) {
+                        showMessage('User not found.', 'error');
+                        return;
+                    }
 
-                // Create admin user
-                const newAdmin = {
-                    username: username,
-                    email: email,
-                    password: password, // Should be hashed in production
-                    isSuperUser: false, // Only first admin is super user
-                    createdAt: new Date().toISOString()
-                };
-                admins.push(newAdmin);
-                localStorage.setItem('admin_users', JSON.stringify(admins));
-                showMessage(`Admin user "${username}" created successfully!`, 'success');
+                    // Prevent editing super user
+                    if (admins[userIndex].isSuperUser) {
+                        showMessage('Cannot edit super user.', 'error');
+                        return;
+                    }
+
+                    // Check if username or email is already taken by another user
+                    const duplicateUser = admins.find(u => (u.username === username || u.email === email) && u.username !== originalUsername);
+                    if (duplicateUser) {
+                        showMessage('Username or email already exists.', 'error');
+                        return;
+                    }
+
+                    // Update user
+                    admins[userIndex].username = username;
+                    admins[userIndex].email = email;
+                    if (password) {
+                        admins[userIndex].password = password; // Should be hashed in production
+                    }
+                    localStorage.setItem('admin_users', JSON.stringify(admins));
+                    showMessage(`Admin user "${username}" updated successfully!`, 'success');
+                } else {
+                    // Create new admin user
+                    if (admins.find(u => u.username === username || u.email === email)) {
+                        showMessage('Username or email already exists.', 'error');
+                        return;
+                    }
+
+                    const newAdmin = {
+                        username: username,
+                        email: email,
+                        password: password, // Should be hashed in production
+                        isSuperUser: false, // Only first admin is super user
+                        createdAt: new Date().toISOString()
+                    };
+                    admins.push(newAdmin);
+                    localStorage.setItem('admin_users', JSON.stringify(admins));
+                    showMessage(`Admin user "${username}" created successfully!`, 'success');
+                }
             }
 
             // Reset form
-            document.getElementById('create-user-form').reset();
+            cancelEdit();
 
             // Reload users list
             loadAllUsers();
@@ -688,7 +762,12 @@
                                 ${admin.email} • Created: ${new Date(admin.createdAt).toLocaleDateString()}
                             </div>
                         </div>
-                        ${!admin.isSuperUser ? `<button onclick="deleteUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>` : ''}
+                        ${!admin.isSuperUser ? `
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="editUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: #666666; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s ease;">Edit</button>
+                                <button onclick="deleteUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             });
@@ -710,7 +789,10 @@
                                     ${dj.email} • Created: ${new Date(dj.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
-                            <button onclick="deleteUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="editUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: #666666; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s ease;">Edit</button>
+                                <button onclick="deleteUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -718,6 +800,63 @@
             usersHTML += '</div></div>';
 
             container.innerHTML = usersHTML;
+        }
+
+        // Edit user
+        function editUser(userType, username) {
+            let user;
+            if (userType === 'dj') {
+                const djs = getAllDJs();
+                user = djs.find(u => u.username === username);
+            } else {
+                const admins = getAllAdmins();
+                user = admins.find(u => u.username === username);
+                
+                // Prevent editing super user
+                if (user && user.isSuperUser) {
+                    showMessage('Cannot edit super user.', 'error');
+                    return;
+                }
+            }
+
+            if (!user) {
+                showMessage('User not found.', 'error');
+                return;
+            }
+
+            // Populate form
+            document.getElementById('edit-mode').value = 'true';
+            document.getElementById('edit-original-username').value = username;
+            document.getElementById('edit-original-usertype').value = userType;
+            document.getElementById('new-username').value = user.username;
+            document.getElementById('new-email').value = user.email;
+            document.getElementById('new-password').value = '';
+            document.getElementById('new-password').removeAttribute('required');
+            document.getElementById('new-user-type').value = userType;
+            document.getElementById('new-user-type').disabled = true; // Don't allow changing user type
+
+            // Update UI
+            document.getElementById('form-title').textContent = 'Edit User';
+            document.getElementById('submit-btn').textContent = 'Update User';
+            document.getElementById('password-hint').style.display = 'block';
+            document.getElementById('cancel-edit-btn').style.display = 'block';
+
+            // Scroll to form
+            document.getElementById('create-user-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Cancel edit mode
+        function cancelEdit() {
+            document.getElementById('edit-mode').value = 'false';
+            document.getElementById('edit-original-username').value = '';
+            document.getElementById('edit-original-usertype').value = '';
+            document.getElementById('create-user-form').reset();
+            document.getElementById('new-password').setAttribute('required', '');
+            document.getElementById('new-user-type').disabled = false;
+            document.getElementById('form-title').textContent = 'Create New User';
+            document.getElementById('submit-btn').textContent = 'Create User';
+            document.getElementById('password-hint').style.display = 'none';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
         }
 
         // Delete user
