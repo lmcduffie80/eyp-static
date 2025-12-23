@@ -1293,12 +1293,21 @@
         }
         
         // Initialize calendar picker
-        const datePicker = flatpickr("#block-date", {
-            dateFormat: "m-d-Y",
-            minDate: "today",
-            disable: [],
-            altInput: false,
-            altFormat: "m-d-Y"
+        let datePicker;
+        document.addEventListener('DOMContentLoaded', function() {
+            datePicker = flatpickr("#block-date", {
+                dateFormat: "m-d-Y",
+                minDate: "today",
+                disable: [],
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Ensure date is in mm-dd-yyyy format
+                    if (dateStr) {
+                        const dateObj = new Date(selectedDates[0]);
+                        const formattedDate = formatDateMMDDYYYY(dateObj);
+                        instance.input.value = formattedDate;
+                    }
+                }
+            });
         });
 
         // Load user data
@@ -1732,11 +1741,11 @@
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy
-            const dateObj = new Date(dateStr);
+            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy for display
+            const dateObj = new Date(dateStr + 'T00:00:00'); // Add time to avoid timezone issues
             const formattedDate = formatDateMMDDYYYY(dateObj);
             document.getElementById('block-date').value = formattedDate;
-            datePicker.setDate(dateStr, false); // false = don't trigger onChange
+            datePicker.setDate(dateStr, false); // false = don't trigger onChange, dateStr is YYYY-MM-DD for flatpickr
         }
 
         // Load bookings
