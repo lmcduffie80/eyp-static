@@ -854,6 +854,12 @@
                     const newBookings = [];
                     let importedCount = 0;
                     let skippedCount = 0;
+                    const skipReasons = {
+                        notEnoughColumns: 0,
+                        missingFields: 0,
+                        invalidDate: 0,
+                        duplicate: 0
+                    };
                     
                     for (let i = 1; i < lines.length; i++) {
                         const values = parseCSVLine(lines[i]);
@@ -861,6 +867,7 @@
                         
                         if (values.length < Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1) {
                             console.log(`Row ${i} skipped: Not enough columns (${values.length} found, need at least ${Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1})`);
+                            skipReasons.notEnoughColumns++;
                             skippedCount++;
                             continue;
                         }
@@ -874,7 +881,13 @@
                         console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payout });
                         
                         if (!djName || !dateStr || !projectName || !location) {
-                            console.log(`Row ${i} skipped: Missing required fields`);
+                            const missingFields = [];
+                            if (!djName) missingFields.push('DJ Name');
+                            if (!dateStr) missingFields.push('Date');
+                            if (!projectName) missingFields.push('Project Name');
+                            if (!location) missingFields.push('Location');
+                            console.log(`Row ${i} skipped: Missing required fields: ${missingFields.join(', ')}`);
+                            skipReasons.missingFields++;
                             skippedCount++;
                             continue;
                         }
@@ -882,7 +895,8 @@
                         // Convert date to YYYY-MM-DD format
                         const formattedDate = convertDateToYYYYMMDD(dateStr);
                         if (!formattedDate) {
-                            console.log(`Row ${i} skipped: Invalid date format: ${dateStr}`);
+                            console.log(`Row ${i} skipped: Invalid date format: "${dateStr}". Accepted formats: MM/DD/YYYY, MM-DD-YYYY, YYYY-MM-DD, YYYY/MM/DD, or standard date strings.`);
+                            skipReasons.invalidDate++;
                             skippedCount++;
                             continue;
                         }
@@ -895,6 +909,8 @@
                         );
                         
                         if (exists) {
+                            console.log(`Row ${i} skipped: Duplicate entry (already exists)`);
+                            skipReasons.duplicate++;
                             skippedCount++;
                             continue;
                         }
@@ -920,15 +936,23 @@
                     }
                     
                     console.log(`Import complete: ${importedCount} imported, ${skippedCount} skipped`);
+                    console.log('Skip reasons:', skipReasons);
                     
                     // Merge with existing bookings
                     const allBookings = [...existingBookings, ...newBookings];
                     localStorage.setItem('dj_bookings', JSON.stringify(allBookings));
                     console.log('Total bookings in localStorage:', allBookings.length);
                     
+                    // Build detailed error message
+                    let errorDetails = [];
+                    if (skipReasons.notEnoughColumns > 0) errorDetails.push(`${skipReasons.notEnoughColumns} row(s) with not enough columns`);
+                    if (skipReasons.missingFields > 0) errorDetails.push(`${skipReasons.missingFields} row(s) with missing required fields`);
+                    if (skipReasons.invalidDate > 0) errorDetails.push(`${skipReasons.invalidDate} row(s) with invalid date format`);
+                    if (skipReasons.duplicate > 0) errorDetails.push(`${skipReasons.duplicate} duplicate row(s)`);
+                    
                     // Show success message
                     if (importedCount > 0) {
-                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skippedCount > 0 ? `, skipped ${skippedCount} duplicate(s) or invalid row(s)` : ''}.`, 'success');
+                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skippedCount > 0 ? `. Skipped: ${errorDetails.join(', ')}.` : ''}.`, 'success');
                         
                         // Clear file input
                         fileInput.value = '';
@@ -942,7 +966,8 @@
                             messageEl.style.display = 'none';
                         }, 5000);
                     } else {
-                        showCSVMessage(`No projects imported. ${skippedCount > 0 ? `Skipped ${skippedCount} row(s).` : 'Please check your CSV file format.'}`, 'error');
+                        const errorMsg = `No projects imported. Skipped ${skippedCount} row(s). ${errorDetails.length > 0 ? 'Reasons: ' + errorDetails.join(', ') + '.' : 'Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout'}`;
+                        showCSVMessage(errorMsg, 'error');
                     }
                     
                 } catch (error) {
@@ -1004,45 +1029,69 @@
         function convertDateToYYYYMMDD(dateStr) {
             if (!dateStr) return null;
             
+            // Clean the date string (remove extra spaces, quotes, etc.)
+            dateStr = dateStr.trim().replace(/["']/g, '');
+            
             // Try parsing as ISO format first (YYYY-MM-DD)
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
                 return dateStr;
             }
             
-            // Try parsing common date formats
-            let date;
-            
-            // Try MM/DD/YYYY or M/D/YYYY
+            // Try MM/DD/YYYY or M/D/YYYY format
             if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
                 const parts = dateStr.split('/');
                 const month = parts[0].padStart(2, '0');
                 const day = parts[1].padStart(2, '0');
                 const year = parts[2];
-                date = new Date(`${year}-${month}-${day}`);
+                // Validate the date by creating it and checking if it's valid
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (date.getFullYear() == year && date.getMonth() == parseInt(month) - 1 && date.getDate() == parseInt(day)) {
+                    return `${year}-${month}-${day}`;
+                }
             }
-            // Try MM-DD-YYYY or M-D-YYYY
-            else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
+            
+            // Try MM-DD-YYYY or M-D-YYYY format (but not YYYY-MM-DD which we already handled)
+            if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
                 const parts = dateStr.split('-');
                 const month = parts[0].padStart(2, '0');
                 const day = parts[1].padStart(2, '0');
                 const year = parts[2];
-                date = new Date(`${year}-${month}-${day}`);
-            }
-            // Try parsing as general date string
-            else {
-                date = new Date(dateStr);
-            }
-            
-            if (isNaN(date.getTime())) {
-                return null;
+                // Validate the date
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (date.getFullYear() == year && date.getMonth() == parseInt(month) - 1 && date.getDate() == parseInt(day)) {
+                    return `${year}-${month}-${day}`;
+                }
             }
             
-            // Format as YYYY-MM-DD
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
+            // Try YYYY/MM/DD format
+            if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(dateStr)) {
+                const parts = dateStr.split('/');
+                const year = parts[0];
+                const month = parts[1].padStart(2, '0');
+                const day = parts[2].padStart(2, '0');
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (date.getFullYear() == year && date.getMonth() == parseInt(month) - 1 && date.getDate() == parseInt(day)) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
             
-            return `${year}-${month}-${day}`;
+            // Try various other date formats using Date constructor
+            // This will handle formats like "Jan 1, 2024", "January 1, 2024", etc.
+            const date = new Date(dateStr);
+            
+            // Check if date is valid
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                
+                // Validate that the parsed date makes sense (not too far in past/future)
+                if (year >= 1900 && year <= 2100) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            
+            return null;
         }
 
         // Generate master calendar
