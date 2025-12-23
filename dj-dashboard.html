@@ -1022,7 +1022,7 @@
             </div>
 
             <form class="block-date-form" id="block-date-form">
-                <input type="text" id="block-date" class="form-input" placeholder="Select date to block" required>
+                <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar above" required readonly>
                 <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
                 <button type="submit" class="btn btn-primary">Block Date</button>
             </form>
@@ -1292,11 +1292,13 @@
             return `${month}-${day}-${year}`;
         }
         
-        // Initialize calendar picker
+        // Initialize calendar picker - disable click to open, only allow selection from visual calendar
         const datePicker = flatpickr("#block-date", {
             dateFormat: "m-d-Y",
             minDate: "today",
-            disable: []
+            disable: [],
+            clickOpens: false, // Disable clicking input to open calendar
+            allowInput: true // Allow manual input if needed
         });
 
         // Load user data
@@ -1614,7 +1616,7 @@
                 return;
             }
             
-            if (!confirm('Are you sure you want to unblock this date?')) return;
+            if (!confirm('Are you sure you want to unblock date?')) return;
 
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
             const filtered = blockedDates.filter(item => item.date !== date);
