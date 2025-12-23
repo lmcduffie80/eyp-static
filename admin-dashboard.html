@@ -283,6 +283,14 @@
             background: var(--bg-light);
         }
 
+        .bookings-table .btn-delete {
+            transition: background 0.2s ease;
+        }
+
+        .bookings-table .btn-delete:hover {
+            background: #c0392b !important;
+        }
+
         .badge {
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
@@ -442,6 +450,7 @@
                                 <th class="sortable" onclick="sortTable('project')" data-column="project">Project</th>
                                 <th class="sortable" onclick="sortTable('location')" data-column="location">Location</th>
                                 <th class="sortable" onclick="sortTable('payout')" data-column="payout">Payout</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="all-bookings-container">
@@ -746,6 +755,23 @@
             return JSON.parse(localStorage.getItem('dj_bookings') || '[]');
         }
 
+        // Delete a project/booking
+        function deleteProject(projectId) {
+            if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                return;
+            }
+
+            const bookings = getAllBookings();
+            const filteredBookings = bookings.filter(b => b.id !== projectId);
+            localStorage.setItem('dj_bookings', JSON.stringify(filteredBookings));
+
+            // Refresh the table
+            filterAllBookings();
+            
+            // Also refresh the DJ stats
+            loadAllDJs();
+        }
+
         // Get all blocked dates
         function getAllBlockedDates() {
             // TODO: Fetch from backend API
@@ -794,9 +820,8 @@
                 `;
             }).join('');
 
-            // Populate DJ filter dropdowns
+            // Populate calendar filter dropdown (bookings filter is populated from bookings in filterAllBookings)
             const djOptions = djs.map(dj => `<option value="${dj.username}">${dj.username}</option>`).join('');
-            document.getElementById('booking-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
             document.getElementById('calendar-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
         }
 
@@ -832,79 +857,23 @@
         function filterAllBookings() {
             const bookings = getAllBookings();
             const selectedDJ = document.getElementById('booking-filter-dj').value;
-            const selectedStatus = document.getElementById('booking-filter-status').value;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
 
-            // Get column filter values
-            const filterDJ = document.getElementById('filter-dj-column').value.toLowerCase().trim();
-            const filterDate = document.getElementById('filter-date-column').value.toLowerCase().trim();
-            const filterProject = document.getElementById('filter-project-column').value.toLowerCase().trim();
-            const filterLocation = document.getElementById('filter-location-column').value.toLowerCase().trim();
-            const filterPayout = document.getElementById('filter-payout-column').value.toLowerCase().trim();
+            // Populate DJ dropdown with unique DJs from bookings
+            const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
+            const djSelect = document.getElementById('booking-filter-dj');
+            const currentValue = djSelect.value;
+            djSelect.innerHTML = '<option value="">All DJs</option>' + 
+                uniqueDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+            // Restore selected value
+            if (currentValue) {
+                djSelect.value = currentValue;
+            }
 
             let filteredBookings = bookings;
             
             // Apply DJ filter (dropdown)
             if (selectedDJ) {
                 filteredBookings = filteredBookings.filter(b => b.djUser === selectedDJ);
-            }
-            
-            // Apply status filter
-            if (selectedStatus === 'upcoming') {
-                filteredBookings = filteredBookings.filter(b => {
-                    const dateParts = b.date.split('-');
-                    const bookingDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
-                    bookingDate.setHours(0, 0, 0, 0);
-                    return bookingDate >= today;
-                });
-            } else if (selectedStatus === 'past') {
-                filteredBookings = filteredBookings.filter(b => {
-                    const dateParts = b.date.split('-');
-                    const bookingDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
-                    bookingDate.setHours(0, 0, 0, 0);
-                    return bookingDate < today;
-                });
-            }
-            
-            // Apply column filters
-            if (filterDJ) {
-                filteredBookings = filteredBookings.filter(b => 
-                    (b.djUser || 'Unassigned').toLowerCase().includes(filterDJ)
-                );
-            }
-            
-            if (filterDate) {
-                filteredBookings = filteredBookings.filter(b => {
-                    const dateParts = b.date.split('-');
-                    const formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
-                    return formattedDate.toLowerCase().includes(filterDate);
-                });
-            }
-            
-            if (filterProject) {
-                filteredBookings = filteredBookings.filter(b => 
-                    (b.eventType || '').toLowerCase().includes(filterProject)
-                );
-            }
-            
-            if (filterLocation) {
-                filteredBookings = filteredBookings.filter(b => 
-                    (b.location || '').toLowerCase().includes(filterLocation)
-                );
-            }
-            
-            if (filterPayout) {
-                filteredBookings = filteredBookings.filter(b => {
-                    let payoutStr = '-';
-                    if (b.payout) {
-                        const payoutValue = String(b.payout).replace(/[$,]/g, '').trim();
-                        if (payoutValue) {
-                            payoutStr = '$' + parseFloat(payoutValue).toFixed(2);
-                        }
-                    }
-                    return payoutStr.toLowerCase().includes(filterPayout.toLowerCase());
-                });
             }
 
             // Apply sorting
@@ -949,7 +918,7 @@
             const container = document.getElementById('all-bookings-container');
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" class="empty-state">No projects found</td></tr>';
+                container.innerHTML = '<tr><td colspan="6" class="empty-state">No projects found</td></tr>';
                 return;
             }
 
@@ -982,6 +951,11 @@
                         <td>${booking.eventType}</td>
                         <td>${booking.location}</td>
                         <td>${formattedPayout}</td>
+                        <td>
+                            <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
+                                Delete
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
