@@ -994,6 +994,19 @@
             window.location.href = 'dj-login.html';
         }
 
+        // Date formatting helper function - formats date as mm-dd-yyyy
+        function formatDateMMDDYYYY(date) {
+            if (!date) return '';
+            const dateObj = date instanceof Date ? date : new Date(date);
+            if (isNaN(dateObj.getTime())) return '';
+            
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            
+            return `${month}-${day}-${year}`;
+        }
+
         // Initialize calendar picker
         flatpickr("#block-date", {
             dateFormat: "Y-m-d",
@@ -1227,20 +1240,12 @@
 
             container.innerHTML = blockedDates.map(item => {
                 const dateObj = new Date(item.date);
-                const formattedDate = dateObj.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(dateObj);
                 return `
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
-                            <span class="date-badge">${item.date}</span>
-                            <div>
-                                <strong>${formattedDate}</strong>
-                                ${item.reason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${item.reason}</div>` : ''}
-                            </div>
+                            <span class="date-badge">${formattedDate}</span>
+                            ${item.reason ? `<div style="color: var(--text-dark); font-size: 0.95rem;">${item.reason}</div>` : ''}
                         </div>
                         <button class="btn btn-danger" onclick="unblockDate('${item.date}')">Unblock</button>
                     </div>
