@@ -684,7 +684,7 @@
             <div class="section-card" style="margin-bottom: 2rem;">
                 <h2>Import Projects from CSV</h2>
                 <p style="color: var(--text-light); margin-bottom: 1rem;">
-                    Upload a CSV file with columns: DJ Name, Date of Project, Project name, Location for venue, Payout
+                    Upload a CSV file with columns: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue
                 </p>
                 <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
@@ -1390,11 +1390,12 @@
                 return sum;
             }, 0);
 
-            // Calculate total revenue (currently same as DJ revenue, can be updated if revenue field is added)
+            // Calculate total revenue (use totalRevenue field if available, otherwise use payout)
             const totalRevenue = bookings.reduce((sum, booking) => {
-                // For now, use payout as revenue. Can be updated to use booking.revenue if that field exists
-                if (booking.payout) {
-                    const revenueValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                // Use totalRevenue field if it exists, otherwise fall back to payout
+                const revenueSource = booking.totalRevenue || booking.payout;
+                if (revenueSource) {
+                    const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
                     return sum + (parseFloat(revenueValue) || 0);
                 }
                 return sum;
@@ -1672,7 +1673,7 @@
                     
                     // Check if headers are empty
                     if (headers.length === 0 || headers.every(h => !h)) {
-                        showCSVMessage(`Could not parse CSV headers. First line of file: "${lines[0].substring(0, 200)}...". Please ensure the first row contains column names: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        showCSVMessage(`Could not parse CSV headers. First line of file: "${lines[0].substring(0, 200)}...". Please ensure the first row contains column names: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
                         return;
                     }
                     
@@ -1690,7 +1691,8 @@
                     const dateIndex = findColumnIndex(headers, ['date of project', 'date of project', 'date']);
                     const projectNameIndex = findColumnIndex(headers, ['project name', 'projectname', 'project']);
                     const locationIndex = findColumnIndex(headers, ['location for venue', 'location', 'venue location']);
-                    const payoutIndex = findColumnIndex(headers, ['payout']);
+                    const payoutIndex = findColumnIndex(headers, ['payout', 'dj payout']);
+                    const totalRevenueIndex = findColumnIndex(headers, ['total revenue', 'totalrevenue', 'revenue']);
                     
                     console.log('Column indices:', { 
                         djNameIndex, 
@@ -1698,13 +1700,15 @@
                         projectNameIndex, 
                         locationIndex, 
                         payoutIndex,
+                        totalRevenueIndex,
                         'All headers': headerValues,
                         'headers found': {
                             djName: dateIndex !== -1 ? headerValues[djNameIndex] : 'NOT FOUND',
                             date: dateIndex !== -1 ? headerValues[dateIndex] : 'NOT FOUND',
                             projectName: projectNameIndex !== -1 ? headerValues[projectNameIndex] : 'NOT FOUND',
                             location: locationIndex !== -1 ? headerValues[locationIndex] : 'NOT FOUND',
-                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND'
+                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND',
+                            totalRevenue: totalRevenueIndex !== -1 ? headerValues[totalRevenueIndex] : 'NOT FOUND'
                         }
                     });
                     
@@ -1715,7 +1719,7 @@
                         if (projectNameIndex === -1) missing.push('Project name');
                         if (locationIndex === -1) missing.push('Location for venue');
                         
-                        showCSVMessage(`CSV is missing required columns: ${missing.join(', ')}. Found headers: "${headerValues.join('", "')}". Please ensure your CSV has columns: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        showCSVMessage(`CSV is missing required columns: ${missing.join(', ')}. Found headers: "${headerValues.join('", "')}". Please ensure your CSV has columns: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
                         return;
                     }
                     
@@ -1753,7 +1757,7 @@
                     }
                     
                     if (!dateColumnValid) {
-                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex] || 'empty'}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex] || 'empty'}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
                         return;
                     }
                     
@@ -1786,8 +1790,9 @@
                         const projectName = values[projectNameIndex] ? values[projectNameIndex].trim() : '';
                         const location = values[locationIndex] ? values[locationIndex].trim() : '';
                         const payout = payoutIndex !== -1 && values[payoutIndex] ? values[payoutIndex].trim() : '';
+                        const totalRevenue = totalRevenueIndex !== -1 && values[totalRevenueIndex] ? values[totalRevenueIndex].trim() : '';
                         
-                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payout });
+                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payout, totalRevenue });
                         
                         if (!djName || !dateStr || !projectName || !location) {
                             const missingFields = [];
@@ -1840,6 +1845,7 @@
                             location: location,
                             clientName: projectName, // Use project name as client name if no separate field
                             payout: payout || '',
+                            totalRevenue: totalRevenue || '',
                             time: '', // Not in CSV, leave empty
                             contactEmail: '',
                             contactPhone: '',
@@ -1891,7 +1897,7 @@
                         if (invalidDateExamples.length > 0) {
                             errorMsg += ` Example invalid dates: ${invalidDateExamples.join(', ')}. Please use formats like MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, or YYYY-MM-DD.`;
                         } else {
-                            errorMsg += ' Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout';
+                            errorMsg += ' Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue';
                         }
                         
                         showCSVMessage(errorMsg, 'error');
