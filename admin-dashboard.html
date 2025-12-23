@@ -653,6 +653,16 @@
                     </h3>
                     <span class="stat-info-icon" title="Click to view revenue details">ℹ️</span>
                 </div>
+                <div class="stat-value" id="dj-revenue">$0.00</div>
+            </div>
+            <div class="stat-card" onclick="filterByStat('total-revenue')" id="stat-card-total-revenue">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">💵</span>
+                        Total Revenue
+                    </h3>
+                    <span class="stat-info-icon" title="Click to view total revenue details">ℹ️</span>
+                </div>
                 <div class="stat-value" id="total-revenue">$0.00</div>
             </div>
         </div>
@@ -1371,11 +1381,21 @@
                 return bookingDate >= today;
             });
 
-            // Calculate total revenue
-            const totalRevenue = bookings.reduce((sum, booking) => {
+            // Calculate DJ revenue (sum of all payouts to DJs)
+            const djRevenue = bookings.reduce((sum, booking) => {
                 if (booking.payout) {
                     const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
                     return sum + (parseFloat(payoutValue) || 0);
+                }
+                return sum;
+            }, 0);
+
+            // Calculate total revenue (currently same as DJ revenue, can be updated if revenue field is added)
+            const totalRevenue = bookings.reduce((sum, booking) => {
+                // For now, use payout as revenue. Can be updated to use booking.revenue if that field exists
+                if (booking.payout) {
+                    const revenueValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                    return sum + (parseFloat(revenueValue) || 0);
                 }
                 return sum;
             }, 0);
@@ -1384,6 +1404,7 @@
             document.getElementById('total-projects').textContent = bookings.length;
             document.getElementById('completed-projects').textContent = completedBookings.length;
             document.getElementById('uncompleted-projects').textContent = uncompletedBookings.length;
+            document.getElementById('dj-revenue').textContent = '$' + djRevenue.toFixed(2);
             document.getElementById('total-revenue').textContent = '$' + totalRevenue.toFixed(2);
         }
 
@@ -1394,8 +1415,8 @@
                 card.classList.remove('active');
             });
 
-            // For revenue, just show all bookings (no special filter)
-            if (filterType === 'revenue') {
+            // For revenue and total-revenue, just show all bookings (no special filter)
+            if (filterType === 'revenue' || filterType === 'total-revenue') {
                 currentStatusFilter = null;
                 // Switch to bookings tab if not already there
                 if (!document.getElementById('bookings-tab').classList.contains('active')) {
