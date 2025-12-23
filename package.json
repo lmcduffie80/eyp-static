@@ -1,0 +1,18 @@
+{
+  "name": "eyp-static",
+  "version": "1.0.0",
+  "description": "Externally Yours Productions - Static Website with DJ Portal",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
+
