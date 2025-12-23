@@ -1,0 +1,36 @@
+# Files to Upload to S3
+# This is a reference list of files that should be uploaded
+
+# HTML Files (Root)
+index.html
+about.html
+photography.html
+videography.html
+dj-entertainment.html
+dj-login.html
+dj-dashboard.html
+admin-login.html
+admin-dashboard.html
+
+# Assets (Root)
+EYP Logo_New.png
+
+# Image Folders (Upload entire folders)
+AboutUs/
+Amy and Cody Hardy Wedding/
+Grace and Dillon Wedding/
+Homer and Lynnell Wedding/
+Melissa and Jeremy Engagement Session/
+Our Videography Services/
+PhotographyPagePhotos/
+PhotographyWork/
+Prom 2025/
+Tess and Tommy Coward Wedding/
+Tess and Tommy Engagement Photos/
+Tray and Kelly Stapleton Wedding/
+Yazmine and Josh Wedding/
+DJ Entertainment/
+
+# Portal Directory
+dj-portal/index.html
+
