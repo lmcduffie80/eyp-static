@@ -62,6 +62,26 @@
             z-index: 100;
         }
 
+        .sidebar-logo {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-logo:hover {
+            opacity: 0.8;
+        }
+
+        .sidebar-logo img {
+            max-width: 100%;
+            height: auto;
+            max-height: 60px;
+        }
+
         .sidebar-nav {
             list-style: none;
             padding: 0;
@@ -76,7 +96,6 @@
         .sidebar-nav-link {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
             padding: 1rem 1.5rem;
             color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
@@ -95,12 +114,6 @@
             border-left-color: white;
             color: white;
             font-weight: 500;
-        }
-
-        .sidebar-nav-icon {
-            font-size: 1.2rem;
-            width: 20px;
-            text-align: center;
         }
 
         .sidebar-nav-arrow {
@@ -546,76 +559,63 @@
     <div class="dashboard-wrapper">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
+            <div class="sidebar-logo" onclick="switchTab('djs')">
+                <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
+            </div>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
-                    <a class="sidebar-nav-link active" onclick="switchTab('djs')" id="nav-djs">
-                        <span class="sidebar-nav-icon">🏠</span>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="switchTab('bookings')" id="nav-bookings">
-                        <span class="sidebar-nav-icon">💼</span>
                         <span>Projects</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="switchTab('users')" id="nav-users">
-                        <span class="sidebar-nav-icon">👥</span>
                         <span>Contacts</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="switchTab('calendar')" id="nav-calendar">
-                        <span class="sidebar-nav-icon">📅</span>
                         <span>Calendar</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">🎯</span>
                         <span>Lead capture</span>
                         <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">📁</span>
                         <span>Files</span>
                         <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">📋</span>
                         <span>Templates</span>
                         <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">💰</span>
                         <span>Finance</span>
                         <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">🔧</span>
                         <span>Tools</span>
                         <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">⚡</span>
                         <span>Automations</span>
                         <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
-                        <span class="sidebar-nav-icon">📊</span>
                         <span>Reports</span>
                     </a>
                 </li>
@@ -855,13 +855,19 @@
                 link.classList.remove('active');
             });
             
-            // Map tab names to navigation IDs
+            // Map tab names to navigation IDs (djs tab no longer has nav link, default to first active)
             const navMap = {
-                'djs': 'nav-djs',
                 'bookings': 'nav-bookings',
                 'calendar': 'nav-calendar',
                 'users': 'nav-users'
             };
+            
+            // If djs tab, don't highlight any nav item since Home was removed
+            if (tabName === 'djs') {
+                document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+            }
             
             const navId = navMap[tabName];
             if (navId) {
