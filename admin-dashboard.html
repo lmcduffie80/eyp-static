@@ -24,6 +24,7 @@
             --success-color: #28a745;
             --warning-color: #ffc107;
             --info-color: #17a2b8;
+            --error-color: #dc3545;
         }
 
         body {
@@ -94,23 +95,61 @@
 
         .stat-card {
             background: var(--secondary-color);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+            border-color: #e0e0e0;
+        }
+
+        .stat-card.active {
+            border-color: var(--admin-color);
+            background: #f8f9ff;
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
         }
 
         .stat-card h3 {
             color: var(--text-light);
             font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 1.25rem;
+            opacity: 0.7;
         }
 
         .stat-card .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--admin-color);
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1.2;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .stat-card .stat-info-icon {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            opacity: 0.5;
+            cursor: help;
         }
 
         /* Tabs */
@@ -424,21 +463,45 @@
     <div class="dashboard-container">
         <!-- Statistics -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total DJs</h3>
-                <div class="stat-value" id="total-djs">0</div>
+            <div class="stat-card" onclick="filterByStat('all')" id="stat-card-all">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">📅</span>
+                        Total Projects
+                    </h3>
+                    <span class="stat-info-icon" title="Click to view all projects">ℹ️</span>
+                </div>
+                <div class="stat-value" id="total-projects">0</div>
             </div>
-            <div class="stat-card">
-                <h3>Active Projects</h3>
-                <div class="stat-value" id="active-bookings">0</div>
+            <div class="stat-card" onclick="filterByStat('completed')" id="stat-card-completed">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">✅</span>
+                        Completed
+                    </h3>
+                    <span class="stat-info-icon" title="Click to filter completed projects">ℹ️</span>
+                </div>
+                <div class="stat-value" id="completed-projects">0</div>
             </div>
-            <div class="stat-card">
-                <h3>Blocked Dates</h3>
-                <div class="stat-value" id="total-blocked">0</div>
+            <div class="stat-card" onclick="filterByStat('uncompleted')" id="stat-card-uncompleted">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">⏳</span>
+                        Uncompleted
+                    </h3>
+                    <span class="stat-info-icon" title="Click to filter uncompleted projects">ℹ️</span>
+                </div>
+                <div class="stat-value" id="uncompleted-projects">0</div>
             </div>
-            <div class="stat-card">
-                <h3>Upcoming Events</h3>
-                <div class="stat-value" id="upcoming-events">0</div>
+            <div class="stat-card" onclick="filterByStat('revenue')" id="stat-card-revenue">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">💰</span>
+                        Total Revenue
+                    </h3>
+                    <span class="stat-info-icon" title="Click to view revenue details">ℹ️</span>
+                </div>
+                <div class="stat-value" id="total-revenue">$0.00</div>
             </div>
         </div>
 
@@ -533,8 +596,12 @@
                         <input type="hidden" id="edit-original-username" value="">
                         <input type="hidden" id="edit-original-usertype" value="">
                         <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
-                            <input type="text" id="new-username" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">First Name</label>
+                            <input type="text" id="new-firstname" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Last Name</label>
+                            <input type="text" id="new-lastname" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
@@ -629,8 +696,16 @@
                 filterAllBookings();
             } else if (tabName === 'users') {
                 loadAllUsers();
+            } else if (tabName === 'djs') {
+                loadAllDJs();
             }
         }
+
+        // Initialize dashboard on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboardStats();
+            loadAllDJs();
+        });
 
         // Get all DJ data
         function getAllDJs() {
@@ -646,6 +721,28 @@
             return admins;
         }
 
+        // Helper function to get DJ unique identifier
+        function getDJIdentifier(user) {
+            if (user.firstName && user.lastName) {
+                return `${user.firstName}|${user.lastName}`;
+            }
+            // Fallback for old format
+            return user.username || '';
+        }
+
+        // Helper function to check if DJ exists by firstName and lastName
+        function findDJByIdentifier(djs, firstName, lastName) {
+            return djs.findIndex(dj => {
+                if (dj.firstName && dj.lastName) {
+                    return dj.firstName.toLowerCase() === firstName.toLowerCase() && 
+                           dj.lastName.toLowerCase() === lastName.toLowerCase();
+                }
+                // Fallback for old format - check username
+                const fullName = `${firstName} ${lastName}`;
+                return dj.username && dj.username.toLowerCase() === fullName.toLowerCase();
+            });
+        }
+
         // Create or update user
         document.getElementById('create-user-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -653,15 +750,20 @@
             const isEditMode = document.getElementById('edit-mode').value === 'true';
             const originalUsername = document.getElementById('edit-original-username').value;
             const originalUserType = document.getElementById('edit-original-usertype').value;
-            const username = document.getElementById('new-username').value.trim();
+            const firstName = document.getElementById('new-firstname').value.trim();
+            const lastName = document.getElementById('new-lastname').value.trim();
             const email = document.getElementById('new-email').value.trim();
             const password = document.getElementById('new-password').value;
             const userType = document.getElementById('new-user-type').value;
             const messageDiv = document.getElementById('create-user-message');
 
             // Validation
-            if (username.length < 3) {
-                showMessage('Username must be at least 3 characters long.', 'error');
+            if (firstName.length < 1) {
+                showMessage('First name is required.', 'error');
+                return;
+            }
+            if (lastName.length < 1) {
+                showMessage('Last name is required.', 'error');
                 return;
             }
 
@@ -674,30 +776,56 @@
                 // Edit existing user
                 if (userType === 'dj') {
                     const djs = getAllDJs();
-                    const userIndex = djs.findIndex(u => u.username === originalUsername);
+                    // Find user by original identifier (could be old username or firstName|lastName format)
+                    let userIndex = -1;
+                    if (originalUsername.includes('|')) {
+                        const [origFirst, origLast] = originalUsername.split('|');
+                        userIndex = findDJByIdentifier(djs, origFirst, origLast);
+                    } else {
+                        // Fallback for old format
+                        userIndex = djs.findIndex(u => u.username === originalUsername || getDJIdentifier(u) === originalUsername);
+                    }
+                    
                     if (userIndex === -1) {
                         showMessage('User not found.', 'error');
                         return;
                     }
 
-                    // Check if username or email is changed and conflicts with another user
-                    if (username !== originalUsername || email !== djs[userIndex].email) {
-                        if (djs.find(u => u.username !== originalUsername && (u.username === username || u.email === email))) {
-                            showMessage('Username or email already exists.', 'error');
+                    // Check if name or email is changed and conflicts with another user
+                    const currentDJ = djs[userIndex];
+                    const originalFirstName = currentDJ.firstName || (originalUsername.includes('|') ? originalUsername.split('|')[0] : '');
+                    const originalLastName = currentDJ.lastName || (originalUsername.includes('|') ? originalUsername.split('|')[1] : '');
+                    
+                    if ((firstName.toLowerCase() !== originalFirstName.toLowerCase() || 
+                         lastName.toLowerCase() !== originalLastName.toLowerCase()) || 
+                         email !== currentDJ.email) {
+                        if (findDJByIdentifier(djs, firstName, lastName) >= 0 && 
+                            (firstName.toLowerCase() !== originalFirstName.toLowerCase() || 
+                             lastName.toLowerCase() !== originalLastName.toLowerCase())) {
+                            showMessage('A DJ with this first and last name already exists.', 'error');
+                            return;
+                        }
+                        if (djs.find(u => u.email === email && u !== currentDJ)) {
+                            showMessage('Email already exists.', 'error');
                             return;
                         }
                     }
 
                     // Update DJ user
-                    djs[userIndex].username = username;
+                    djs[userIndex].firstName = firstName;
+                    djs[userIndex].lastName = lastName;
                     djs[userIndex].email = email;
+                    // Keep username for backward compatibility (set to full name)
+                    djs[userIndex].username = `${firstName} ${lastName}`;
                     if (password) {
                         djs[userIndex].password = password; // Should be hashed in production
                     }
                     localStorage.setItem('dj_users', JSON.stringify(djs));
-                    showMessage(`DJ user "${username}" updated successfully!`, 'success');
+                    showMessage(`DJ user "${firstName} ${lastName}" updated successfully!`, 'success');
                 } else {
                     const admins = getAllAdmins();
+                    // For admins, use firstName as username
+                    const adminUsername = firstName;
                     const userIndex = admins.findIndex(u => u.username === originalUsername);
                     if (userIndex === -1) {
                         showMessage('User not found.', 'error');
@@ -711,21 +839,21 @@
                     }
 
                     // Check if username or email is changed and conflicts with another user
-                    if (username !== originalUsername || email !== admins[userIndex].email) {
-                        if (admins.find(u => u.username !== originalUsername && (u.username === username || u.email === email))) {
+                    if (adminUsername !== originalUsername || email !== admins[userIndex].email) {
+                        if (admins.find(u => u.username !== originalUsername && (u.username === adminUsername || u.email === email))) {
                             showMessage('Username or email already exists.', 'error');
                             return;
                         }
                     }
 
                     // Update admin user
-                    admins[userIndex].username = username;
+                    admins[userIndex].username = adminUsername;
                     admins[userIndex].email = email;
                     if (password) {
                         admins[userIndex].password = password; // Should be hashed in production
                     }
                     localStorage.setItem('admin_users', JSON.stringify(admins));
-                    showMessage(`Admin user "${username}" updated successfully!`, 'success');
+                    showMessage(`Admin user "${adminUsername}" updated successfully!`, 'success');
                 }
 
                 // Cancel edit mode
@@ -734,31 +862,40 @@
                 // Create new user
                 if (userType === 'dj') {
                     const djs = getAllDJs();
-                    if (djs.find(u => u.username === username || u.email === email)) {
-                        showMessage('Username or email already exists.', 'error');
+                    // Check if DJ with same first and last name exists
+                    if (findDJByIdentifier(djs, firstName, lastName) >= 0) {
+                        showMessage('A DJ with this first and last name already exists.', 'error');
+                        return;
+                    }
+                    if (djs.find(u => u.email === email)) {
+                        showMessage('Email already exists.', 'error');
                         return;
                     }
 
                     // Create DJ user
                     const newDJ = {
-                        username: username,
+                        firstName: firstName,
+                        lastName: lastName,
+                        username: `${firstName} ${lastName}`, // Keep for backward compatibility
                         email: email,
                         password: password, // Should be hashed in production
                         createdAt: new Date().toISOString()
                     };
                     djs.push(newDJ);
                     localStorage.setItem('dj_users', JSON.stringify(djs));
-                    showMessage(`DJ user "${username}" created successfully!`, 'success');
+                    showMessage(`DJ user "${firstName} ${lastName}" created successfully!`, 'success');
                 } else {
                     const admins = getAllAdmins();
-                    if (admins.find(u => u.username === username || u.email === email)) {
+                    // For admins, use firstName as username
+                    const adminUsername = firstName;
+                    if (admins.find(u => u.username === adminUsername || u.email === email)) {
                         showMessage('Username or email already exists.', 'error');
                         return;
                     }
 
                     // Create admin user
                     const newAdmin = {
-                        username: username,
+                        username: adminUsername,
                         email: email,
                         password: password, // Should be hashed in production
                         isSuperUser: false, // Only first admin is super user
@@ -766,7 +903,7 @@
                     };
                     admins.push(newAdmin);
                     localStorage.setItem('admin_users', JSON.stringify(admins));
-                    showMessage(`Admin user "${username}" created successfully!`, 'success');
+                    showMessage(`Admin user "${adminUsername}" created successfully!`, 'success');
                 }
 
                 // Reset form
@@ -778,14 +915,20 @@
         });
         
         // Edit user function
-        function editUser(userType, username) {
+        function editUser(userType, identifier) {
             let user;
             if (userType === 'dj') {
                 const djs = getAllDJs();
-                user = djs.find(u => u.username === username);
+                // Handle both old format (username) and new format (firstName|lastName)
+                if (identifier.includes('|')) {
+                    const [first, last] = identifier.split('|');
+                    user = djs.find(u => u.firstName === first && u.lastName === last);
+                } else {
+                    user = djs.find(u => u.username === identifier || (u.firstName && u.lastName && `${u.firstName}|${u.lastName}` === identifier));
+                }
             } else {
                 const admins = getAllAdmins();
-                user = admins.find(u => u.username === username);
+                user = admins.find(u => u.username === identifier);
             }
 
             if (!user) {
@@ -795,9 +938,24 @@
 
             // Populate form with user data
             document.getElementById('edit-mode').value = 'true';
-            document.getElementById('edit-original-username').value = username;
+            // Store identifier for DJs (firstName|lastName) or username for admins
+            const editIdentifier = userType === 'dj' && user.firstName && user.lastName 
+                ? `${user.firstName}|${user.lastName}` 
+                : user.username;
+            document.getElementById('edit-original-username').value = editIdentifier;
             document.getElementById('edit-original-usertype').value = userType;
-            document.getElementById('new-username').value = user.username;
+            
+            // Populate firstName and lastName
+            if (userType === 'dj' && user.firstName && user.lastName) {
+                document.getElementById('new-firstname').value = user.firstName;
+                document.getElementById('new-lastname').value = user.lastName;
+            } else {
+                // Fallback for old format or admins
+                const nameParts = (user.username || '').split(' ');
+                document.getElementById('new-firstname').value = nameParts[0] || '';
+                document.getElementById('new-lastname').value = nameParts.slice(1).join(' ') || '';
+            }
+            
             document.getElementById('new-email').value = user.email;
             document.getElementById('new-password').value = ''; // Don't populate password
             document.getElementById('new-user-type').value = userType;
@@ -886,17 +1044,20 @@
                 usersHTML += '<div style="padding: 2rem; text-align: center; color: var(--text-light);">No DJ users found</div>';
             } else {
                 djs.forEach(dj => {
+                    // Display firstName and lastName for DJs
+                    const displayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                    const djIdentifier = (dj.firstName && dj.lastName) ? `${dj.firstName}|${dj.lastName}` : dj.username;
                     usersHTML += `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
                             <div>
-                                <strong>${dj.username}</strong>
+                                <strong>${displayName}</strong>
                                 <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
                                     ${dj.email} • Created: ${new Date(dj.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="editUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
-                                <button onclick="deleteUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                                <button onclick="editUser('dj', '${djIdentifier}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                <button onclick="deleteUser('dj', '${djIdentifier}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
                             </div>
                         </div>
                     `;
@@ -908,18 +1069,26 @@
         }
 
         // Delete user
-        function deleteUser(userType, username) {
-            if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+        function deleteUser(userType, identifier) {
+            const displayName = identifier.includes('|') ? identifier.replace('|', ' ') : identifier;
+            if (!confirm(`Are you sure you want to delete user "${displayName}"? This action cannot be undone.`)) {
                 return;
             }
 
             if (userType === 'dj') {
                 const djs = getAllDJs();
-                const filtered = djs.filter(u => u.username !== username);
+                let filtered;
+                if (identifier.includes('|')) {
+                    const [firstName, lastName] = identifier.split('|');
+                    filtered = djs.filter(u => !(u.firstName === firstName && u.lastName === lastName));
+                } else {
+                    // Fallback for old format
+                    filtered = djs.filter(u => u.username !== identifier && getDJIdentifier(u) !== identifier);
+                }
                 localStorage.setItem('dj_users', JSON.stringify(filtered));
             } else {
                 const admins = getAllAdmins();
-                const filtered = admins.filter(u => u.username !== username);
+                const filtered = admins.filter(u => u.username !== identifier);
                 localStorage.setItem('admin_users', JSON.stringify(filtered));
             }
 
@@ -947,6 +1116,9 @@
             // Refresh the table
             filterAllBookings();
             
+            // Update dashboard stats
+            updateDashboardStats();
+            
             // Also refresh the DJ stats
             loadAllDJs();
         }
@@ -965,11 +1137,8 @@
             const blockedDates = getAllBlockedDates();
             const container = document.getElementById('djs-container');
 
-            // Update stats
-            document.getElementById('total-djs').textContent = djs.length;
-            document.getElementById('active-bookings').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
-            document.getElementById('total-blocked').textContent = blockedDates.length;
-            document.getElementById('upcoming-events').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
+            // Update dashboard stats
+            updateDashboardStats();
 
             if (djs.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No DJs registered yet</p></div>';
@@ -977,14 +1146,22 @@
             }
 
             container.innerHTML = djs.map(dj => {
-                const djBookings = bookings.filter(b => b.djUser === dj.username || !b.djUser);
-                const djBlocked = blockedDates.filter(bd => bd.djUser === dj.username || !bd.djUser);
+                const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                const djMatchName = djDisplayName; // Use display name for matching with bookings
+                const djBookings = bookings.filter(b => {
+                    const bookingDJ = b.djUser || '';
+                    return bookingDJ === djDisplayName || bookingDJ === dj.username || !b.djUser;
+                });
+                const djBlocked = blockedDates.filter(bd => {
+                    const blockedDJ = bd.djUser || '';
+                    return blockedDJ === djDisplayName || blockedDJ === dj.username || !bd.djUser;
+                });
                 const upcomingBookings = djBookings.filter(b => new Date(b.date) >= new Date());
-
+                
                 return `
                     <div class="dj-card">
                         <div class="dj-card-header">
-                            <div class="dj-name">${dj.username}</div>
+                            <div class="dj-name">${djDisplayName}</div>
                             <div class="dj-stats">
                                 <span>📅 ${upcomingBookings.length} Upcoming</span>
                                 <span>🚫 ${djBlocked.length} Blocked</span>
@@ -1000,7 +1177,10 @@
             }).join('');
 
             // Populate calendar filter dropdown (bookings filter is populated from bookings in filterAllBookings)
-            const djOptions = djs.map(dj => `<option value="${dj.username}">${dj.username}</option>`).join('');
+            const djOptions = djs.map(dj => {
+                const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                return `<option value="${djDisplayName}">${djDisplayName}</option>`;
+            }).join('');
             document.getElementById('calendar-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
         }
 
@@ -1009,6 +1189,83 @@
             column: null,
             direction: 'asc' // 'asc' or 'desc'
         };
+
+        // Filter state for stats cards
+        let currentStatusFilter = null; // 'all', 'completed', 'uncompleted', or null
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            const bookings = getAllBookings();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Calculate completed (past dates) and uncompleted (future dates)
+            const completedBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.date + 'T00:00:00');
+                return bookingDate < today;
+            });
+
+            const uncompletedBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.date + 'T00:00:00');
+                return bookingDate >= today;
+            });
+
+            // Calculate total revenue
+            const totalRevenue = bookings.reduce((sum, booking) => {
+                if (booking.payout) {
+                    const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                    return sum + (parseFloat(payoutValue) || 0);
+                }
+                return sum;
+            }, 0);
+
+            // Update stat values
+            document.getElementById('total-projects').textContent = bookings.length;
+            document.getElementById('completed-projects').textContent = completedBookings.length;
+            document.getElementById('uncompleted-projects').textContent = uncompletedBookings.length;
+            document.getElementById('total-revenue').textContent = '$' + totalRevenue.toFixed(2);
+        }
+
+        // Filter by stat card click
+        function filterByStat(filterType) {
+            // Remove active class from all cards
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.classList.remove('active');
+            });
+
+            // For revenue, just show all bookings (no special filter)
+            if (filterType === 'revenue') {
+                currentStatusFilter = null;
+                // Switch to bookings tab if not already there
+                if (!document.getElementById('bookings-tab').classList.contains('active')) {
+                    switchTab('bookings');
+                } else {
+                    filterAllBookings();
+                }
+                return;
+            }
+
+            // Set current filter
+            if (currentStatusFilter === filterType) {
+                // If clicking the same filter, reset to show all
+                currentStatusFilter = null;
+            } else {
+                currentStatusFilter = filterType;
+                // Add active class to clicked card
+                document.getElementById(`stat-card-${filterType}`).classList.add('active');
+            }
+
+            // Switch to bookings tab if not already there
+            if (!document.getElementById('bookings-tab').classList.contains('active')) {
+                switchTab('bookings');
+                // Wait a moment for tab switch, then filter
+                setTimeout(() => {
+                    filterAllBookings();
+                }, 100);
+            } else {
+                filterAllBookings();
+            }
+        }
 
         // Sort table function
         function sortTable(column) {
@@ -1036,6 +1293,8 @@
         function filterAllBookings() {
             const bookings = getAllBookings();
             const selectedDJ = document.getElementById('booking-filter-dj').value;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             // Populate DJ dropdown with unique DJs from bookings
             const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
@@ -1049,6 +1308,20 @@
             }
 
             let filteredBookings = bookings;
+            
+            // Apply status filter (from stat card click)
+            if (currentStatusFilter === 'completed') {
+                filteredBookings = filteredBookings.filter(b => {
+                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    return bookingDate < today;
+                });
+            } else if (currentStatusFilter === 'uncompleted') {
+                filteredBookings = filteredBookings.filter(b => {
+                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    return bookingDate >= today;
+                });
+            }
+            // 'all' or null shows all bookings
             
             // Apply DJ filter (dropdown)
             if (selectedDJ) {
@@ -1417,6 +1690,9 @@
                         
                         // Clear file input
                         fileInput.value = '';
+                        
+                        // Update dashboard stats
+                        updateDashboardStats();
                         
                         // Refresh displays
                         filterAllBookings();
