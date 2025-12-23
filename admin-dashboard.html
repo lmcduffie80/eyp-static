@@ -860,6 +860,7 @@
                         invalidDate: 0,
                         duplicate: 0
                     };
+                    const invalidDateExamples = []; // Store examples of invalid dates
                     
                     for (let i = 1; i < lines.length; i++) {
                         const values = parseCSVLine(lines[i]);
@@ -895,11 +896,14 @@
                         // Convert date to YYYY-MM-DD format
                         const formattedDate = convertDateToYYYYMMDD(dateStr);
                         if (!formattedDate) {
-                            console.log(`Row ${i} skipped: Invalid date format: "${dateStr}". Accepted formats: MM/DD/YYYY, MM-DD-YYYY, YYYY-MM-DD, YYYY/MM/DD, or standard date strings.`);
+                            const errorMsg = `Row ${i} skipped: Could not parse date "${dateStr}". Please use formats like: MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, YYYY-MM-DD, or standard date strings.`;
+                            console.error(errorMsg);
+                            console.error(`  Raw date value:`, JSON.stringify(dateStr));
                             skipReasons.invalidDate++;
                             skippedCount++;
                             continue;
                         }
+                        console.log(`Row ${i} date "${dateStr}" parsed to "${formattedDate}"`);
                         
                         // Check if booking already exists (same DJ, date, and project name)
                         const exists = existingBookings.some(b => 
@@ -966,7 +970,15 @@
                             messageEl.style.display = 'none';
                         }, 5000);
                     } else {
-                        const errorMsg = `No projects imported. Skipped ${skippedCount} row(s). ${errorDetails.length > 0 ? 'Reasons: ' + errorDetails.join(', ') + '.' : 'Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout'}`;
+                        let errorMsg = `No projects imported. Skipped ${skippedCount} row(s). ${errorDetails.length > 0 ? 'Reasons: ' + errorDetails.join(', ') + '.' : ''}`;
+                        
+                        // Add examples of invalid dates if any
+                        if (invalidDateExamples.length > 0) {
+                            errorMsg += ` Example invalid dates: ${invalidDateExamples.join(', ')}. Please use formats like MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, or YYYY-MM-DD.`;
+                        } else {
+                            errorMsg += ' Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout';
+                        }
+                        
                         showCSVMessage(errorMsg, 'error');
                     }
                     
