@@ -899,6 +899,10 @@
                             const errorMsg = `Row ${i} skipped: Could not parse date "${dateStr}". Please use formats like: MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, YYYY-MM-DD, or standard date strings.`;
                             console.error(errorMsg);
                             console.error(`  Raw date value:`, JSON.stringify(dateStr));
+                            // Store first 3 examples for error message
+                            if (invalidDateExamples.length < 3) {
+                                invalidDateExamples.push(`"${dateStr}"`);
+                            }
                             skipReasons.invalidDate++;
                             skippedCount++;
                             continue;
