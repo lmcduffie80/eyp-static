@@ -509,11 +509,37 @@
             margin-bottom: 0.5rem;
         }
 
+        .blocked-date-item button,
+        .blocked-date-item .btn {
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: inline-block !important;
+        }
+
         .blocked-date-item .btn-danger {
-            display: block !important;
+            display: inline-block !important;
             visibility: visible !important;
             opacity: 1 !important;
-            flex-shrink: 0;
+            flex-shrink: 0 !important;
+            background: var(--error-color) !important;
+            color: var(--secondary-color) !important;
+            padding: 0.75rem 1.5rem !important;
+            border: none !important;
+            border-radius: 5px !important;
+            cursor: pointer !important;
+            font-weight: bold !important;
+            transition: background 0.3s ease !important;
+            min-width: auto !important;
+            width: auto !important;
+            height: auto !important;
+            pointer-events: auto !important;
+        }
+
+        .blocked-date-item:hover .btn-danger,
+        .blocked-date-item .btn-danger:hover {
+            background: #c82333 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
 
         .blocked-date-info {
@@ -941,7 +967,7 @@
             </div>
 
             <form class="block-date-form" id="block-date-form">
-                <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar above" required readonly>
+                <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar above or type date (mm-dd-yyyy)" required>
                 <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
                 <button type="submit" class="btn btn-primary">Block Date</button>
             </form>
@@ -1007,13 +1033,13 @@
             return `${month}-${day}-${year}`;
         }
 
-        // Initialize calendar picker - disable dropdown, format as mm-dd-yyyy
+        // Initialize calendar picker - format as mm-dd-yyyy, allow manual input
         const datePicker = flatpickr("#block-date", {
             dateFormat: "m-d-Y",
             minDate: "today",
             disable: [],
-            clickOpens: false, // Disable clicking input to open calendar
-            allowInput: false // Prevent manual input
+            clickOpens: false, // Keep dropdown disabled, but allow manual editing
+            allowInput: true // Allow manual input
         });
 
         // Load user data
@@ -1257,7 +1283,7 @@
                             <span class="date-badge">${formattedDate}</span>
                             ${item.reason ? `<div style="color: var(--text-dark); font-size: 0.95rem;">${item.reason}</div>` : ''}
                         </div>
-                        <button class="btn btn-danger" onclick="unblockDate('${item.date}')">Unblock</button>
+                        <button class="btn btn-danger" onclick="unblockDate('${item.date}')" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important;">Unblock</button>
                     </div>
                 `;
             }).join('');
