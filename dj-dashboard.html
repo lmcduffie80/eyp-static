@@ -1483,11 +1483,30 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            let filteredBookings = bookings;
+            // Filter bookings by current DJ's username
+            const currentUsername = localStorage.getItem('dj_user');
+            let filteredBookings = bookings.filter(b => b.djUser === currentUsername || !b.djUser);
+            
             if (filter === 'upcoming') {
-                filteredBookings = bookings.filter(b => new Date(b.date) >= today);
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const bookingDate = new Date(year, month, day);
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate >= today;
+                });
             } else if (filter === 'past') {
-                filteredBookings = bookings.filter(b => new Date(b.date) < today);
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const bookingDate = new Date(year, month, day);
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate < today;
+                });
             }
 
             if (filteredBookings.length === 0) {
@@ -1531,6 +1550,12 @@
                                 <span class="booking-detail-label">Location</span>
                                 <span class="booking-detail-value">${booking.location}</span>
                             </div>
+                            ${booking.payout ? `
+                            <div class="booking-detail-item">
+                                <span class="booking-detail-label">Payout</span>
+                                <span class="booking-detail-value" style="color: var(--success-color); font-weight: bold;">$${booking.payout}</span>
+                            </div>
+                            ` : ''}
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Contact</span>
                                 <span class="booking-detail-value">${booking.contactEmail}<br>${booking.contactPhone}</span>
