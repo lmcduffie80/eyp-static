@@ -232,7 +232,12 @@
                 localStorage.setItem('admin_users', JSON.stringify(adminUsers));
             }
 
-            const admin = adminUsers.find(u => u.username === username && u.password === password);
+            // Case-insensitive username comparison, exact password match
+            const admin = adminUsers.find(u => {
+                const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+                const passwordMatch = u.password === password; // Passwords are case-sensitive
+                return usernameMatch && passwordMatch;
+            });
 
             if (admin) {
                 // Store admin authentication token
@@ -240,7 +245,16 @@
                 localStorage.setItem('admin_user', admin.username);
                 window.location.href = 'admin-dashboard.html';
             } else {
-                // Try API call if localStorage fails
+                // Check if username exists but password is wrong
+                const userExists = adminUsers.find(u => u.username && u.username.toLowerCase() === username.toLowerCase());
+                if (userExists) {
+                    errorMessage.textContent = 'Invalid password. Please check your password and try again.';
+                } else {
+                    errorMessage.textContent = 'Invalid username. Please check your username and try again.';
+                }
+                errorMessage.classList.add('show');
+                
+                // Also try API call if localStorage fails (optional fallback)
                 fetch('/api/admin-login', {
                     method: 'POST',
                     headers: {
@@ -254,14 +268,12 @@
                         localStorage.setItem('admin_token', data.token);
                         localStorage.setItem('admin_user', data.user);
                         window.location.href = 'admin-dashboard.html';
-                    } else {
-                        errorMessage.textContent = data.message || 'Invalid username or password.';
-                        errorMessage.classList.add('show');
                     }
+                    // If API also fails, the error message above is already shown
                 })
                 .catch(error => {
-                    errorMessage.textContent = 'Invalid username or password.';
-                    errorMessage.classList.add('show');
+                    // API call failed, but error message is already shown above
+                    console.error('API login error:', error);
                 });
             }
         });
