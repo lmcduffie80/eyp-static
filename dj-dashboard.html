@@ -333,7 +333,8 @@
             border-radius: 10px;
             padding: 0.75rem;
             margin-bottom: 2rem;
-            max-width: 400px;
+            max-width: 600px;
+            width: 100%;
         }
 
         .calendar-widget-header {
@@ -453,6 +454,13 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
             flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .block-date-form #block-date {
+            min-width: 400px;
+            width: auto;
+            flex-shrink: 0;
         }
 
         .form-input {
