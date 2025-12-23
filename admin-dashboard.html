@@ -1851,6 +1851,7 @@
                     
                     // Build detailed error message
                     let errorDetails = [];
+                    if (skipReasons.skippedRows > 0) errorDetails.push(`${skipReasons.skippedRows} row(s) skipped (first 5 data rows)`);
                     if (skipReasons.notEnoughColumns > 0) errorDetails.push(`${skipReasons.notEnoughColumns} row(s) with not enough columns`);
                     if (skipReasons.missingFields > 0) errorDetails.push(`${skipReasons.missingFields} row(s) with missing required fields`);
                     if (skipReasons.invalidDate > 0) errorDetails.push(`${skipReasons.invalidDate} row(s) with invalid date format`);
@@ -1858,7 +1859,8 @@
                     
                     // Show success message
                     if (importedCount > 0) {
-                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skippedCount > 0 ? `. Skipped: ${errorDetails.join(', ')}.` : ''}.`, 'success');
+                        const skipMessage = skippedCount > 0 ? `. Skipped: ${errorDetails.join(', ')}.` : '';
+                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skipMessage}`, 'success');
                         
                         // Clear file input
                         fileInput.value = '';
