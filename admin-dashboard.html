@@ -17,7 +17,6 @@
             --primary-color: #1a1a1a;
             --secondary-color: #ffffff;
             --accent-color: #ff6b35;
-            --admin-color: #6c5ce7;
             --text-dark: #333;
             --text-light: #666;
             --bg-light: #f8f8f8;
@@ -53,7 +52,7 @@
         /* Sidebar Navigation */
         .sidebar {
             width: 260px;
-            background: var(--admin-color);
+            background: var(--primary-color);
             color: white;
             display: flex;
             flex-direction: column;
@@ -113,7 +112,7 @@
 
         /* Header */
         .dashboard-header {
-            background: var(--admin-color);
+            background: var(--primary-color);
             color: var(--secondary-color);
             padding: 1rem 2rem;
             display: flex;
@@ -144,7 +143,7 @@
         .logout-btn {
             padding: 0.5rem 1rem;
             background: var(--secondary-color);
-            color: var(--admin-color);
+            color: var(--primary-color);
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -192,8 +191,8 @@
         }
 
         .stat-card.active {
-            border-color: var(--admin-color);
-            background: #f8f9ff;
+            border-color: var(--accent-color);
+            background: #fff5f0;
         }
 
         .stat-card-header {
@@ -254,8 +253,8 @@
         }
 
         .tab-button.active {
-            color: var(--admin-color);
-            border-bottom-color: var(--admin-color);
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
         }
 
         .tab-button:hover {
@@ -299,7 +298,7 @@
 
         .dj-card:hover {
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: var(--admin-color);
+            border-color: var(--accent-color);
         }
 
         .dj-card-header {
@@ -496,7 +495,7 @@
         .filter-controls select:focus,
         .filter-controls input:focus {
             outline: none;
-            border-color: var(--admin-color);
+            border-color: var(--accent-color);
         }
 
         .empty-state {
@@ -766,7 +765,7 @@
                             </select>
                         </div>
                         <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
-                            <button type="submit" id="submit-user-button" style="padding: 0.75rem 2rem; background: var(--admin-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1;">
+                            <button type="submit" id="submit-user-button" style="padding: 0.75rem 2rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1;">
                                 Create User
                             </button>
                             <button type="button" id="cancel-edit-button" onclick="cancelEdit()" style="padding: 0.75rem 1.5rem; background: var(--text-light); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
@@ -1147,7 +1146,7 @@
             document.getElementById('password-hint').style.display = 'none';
             document.getElementById('user-form-title').textContent = 'Create New User';
             document.getElementById('submit-user-button').textContent = 'Create User';
-            document.getElementById('submit-user-button').style.background = 'var(--admin-color)';
+            document.getElementById('submit-user-button').style.background = 'var(--accent-color)';
             document.getElementById('cancel-edit-button').style.display = 'none';
             document.getElementById('new-user-type').disabled = false;
         }
@@ -1174,7 +1173,7 @@
             let usersHTML = '';
 
             // Admin Users Section
-            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--admin-color);">Admin Users</h4>';
+            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--primary-color);">Admin Users</h4>';
             usersHTML += '<div style="display: grid; gap: 0.5rem;">';
             
             admins.forEach(admin => {

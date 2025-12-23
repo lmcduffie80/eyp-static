@@ -22,13 +22,12 @@
             --bg-light: #f8f8f8;
             --error-color: #dc3545;
             --success-color: #28a745;
-            --admin-color: #6c5ce7;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -58,7 +57,7 @@
         }
 
         .login-header h1 {
-            color: var(--admin-color);
+            color: var(--primary-color);
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
@@ -70,7 +69,7 @@
 
         .admin-badge {
             display: inline-block;
-            background: var(--admin-color);
+            background: var(--accent-color);
             color: var(--secondary-color);
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
@@ -101,13 +100,13 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--admin-color);
+            border-color: var(--accent-color);
         }
 
         .login-button {
             width: 100%;
             padding: 0.75rem;
-            background: var(--admin-color);
+            background: var(--accent-color);
             color: var(--secondary-color);
             border: none;
             border-radius: 8px;
@@ -118,7 +117,7 @@
         }
 
         .login-button:hover {
-            background: #5a4fcf;
+            background: #e55a2b;
             transform: translateY(-2px);
         }
 
@@ -152,7 +151,7 @@
         }
 
         .back-link a:hover {
-            color: var(--admin-color);
+            color: var(--accent-color);
         }
 
         @media (max-width: 768px) {
