@@ -179,7 +179,7 @@
 
         <form id="login-form">
             <div class="form-group">
-                <label for="username">Admin Username</label>
+                <label for="username">Username or Email</label>
                 <input type="text" id="username" name="username" required autocomplete="username">
             </div>
 
@@ -232,11 +232,13 @@
                 localStorage.setItem('admin_users', JSON.stringify(adminUsers));
             }
 
-            // Case-insensitive username comparison, exact password match
+            // Case-insensitive username OR email comparison, exact password match
             const admin = adminUsers.find(u => {
                 const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+                const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
+                const credentialMatch = usernameMatch || emailMatch;
                 const passwordMatch = u.password === password; // Passwords are case-sensitive
-                return usernameMatch && passwordMatch;
+                return credentialMatch && passwordMatch;
             });
 
             if (admin) {
@@ -245,12 +247,16 @@
                 localStorage.setItem('admin_user', admin.username);
                 window.location.href = 'admin-dashboard.html';
             } else {
-                // Check if username exists but password is wrong
-                const userExists = adminUsers.find(u => u.username && u.username.toLowerCase() === username.toLowerCase());
+                // Check if username/email exists but password is wrong
+                const userExists = adminUsers.find(u => {
+                    const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+                    const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
+                    return usernameMatch || emailMatch;
+                });
                 if (userExists) {
                     errorMessage.textContent = 'Invalid password. Please check your password and try again.';
                 } else {
-                    errorMessage.textContent = 'Invalid username. Please check your username and try again.';
+                    errorMessage.textContent = 'Invalid username or email. Please check your credentials and try again.';
                 }
                 errorMessage.classList.add('show');
                 
