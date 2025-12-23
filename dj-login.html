@@ -235,6 +235,26 @@
             </div>
 
             <button type="submit" class="login-button">Sign In</button>
+            <div class="forgot-password-link" style="text-align: center; margin-top: 1rem;">
+                <a href="#" onclick="showResetPasswordForm(); return false;" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem;">Forgot Password?</a>
+            </div>
+        </form>
+
+        <!-- Reset Password Form -->
+        <form id="reset-password-form" class="form-hidden">
+            <div class="login-header">
+                <h1>Reset Password</h1>
+                <p>Enter your email address to receive a password reset link.</p>
+            </div>
+            <div class="form-group">
+                <label for="reset-email">Email Address</label>
+                <input type="email" id="reset-email" name="email" required autocomplete="email">
+            </div>
+            <button type="submit" class="login-button">Send Reset Link</button>
+            <div class="toggle-mode">
+                <p>Remember your password?</p>
+                <a onclick="hideResetPasswordForm()">Back to Sign In</a>
+            </div>
         </form>
 
         <!-- Signup Form -->
@@ -278,6 +298,30 @@
     <script>
         let isSignupMode = false;
 
+        // Show reset password form
+        function showResetPasswordForm() {
+            document.getElementById('login-form').classList.add('form-hidden');
+            document.getElementById('signup-form').classList.add('form-hidden');
+            document.getElementById('reset-password-form').classList.remove('form-hidden');
+            document.getElementById('header-subtitle').textContent = 'Reset your DJ portal password';
+            document.querySelector('.toggle-mode').classList.add('form-hidden');
+            document.querySelector('.back-link').classList.add('form-hidden');
+            document.getElementById('error-message').classList.remove('show');
+            document.getElementById('success-message').classList.remove('show');
+        }
+
+        // Hide reset password form
+        function hideResetPasswordForm() {
+            document.getElementById('reset-password-form').classList.add('form-hidden');
+            document.getElementById('login-form').classList.remove('form-hidden');
+            document.getElementById('header-subtitle').textContent = 'Sign in to access your calendar and bookings';
+            document.querySelector('.toggle-mode').classList.remove('form-hidden');
+            document.querySelector('.back-link').classList.remove('form-hidden');
+            document.getElementById('error-message').classList.remove('show');
+            document.getElementById('success-message').classList.remove('show');
+            document.getElementById('reset-password-form').reset();
+        }
+
         // Toggle between login and signup forms
         function toggleMode() {
             isSignupMode = !isSignupMode;
@@ -293,6 +337,9 @@
             errorMessage.classList.remove('show');
             successMessage.classList.remove('show');
 
+            // Hide reset password form if visible
+            document.getElementById('reset-password-form').classList.add('form-hidden');
+            
             if (isSignupMode) {
                 loginForm.classList.add('form-hidden');
                 signupForm.classList.remove('form-hidden');
@@ -451,6 +498,60 @@
                     errorMessage.classList.add('show');
                 });
             }
+        });
+
+        // Reset password form handling
+        document.getElementById('reset-password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('reset-email').value.trim();
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Clear previous messages
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+            errorMessage.textContent = '';
+            successMessage.textContent = '';
+
+            // Validation
+            if (!email) {
+                errorMessage.textContent = 'Please enter your email address.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorMessage.textContent = 'Please enter a valid email address.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // TODO: Replace with actual API call to send reset password email
+            // In production, you would:
+            // 1. Send email to backend API
+            // 2. Check if email exists in database
+            // 3. Generate reset token
+            // 4. Send password reset email
+            // 5. Return success (don't reveal if email exists for security)
+
+            // For development: check if email exists in localStorage
+            const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const userExists = existingUsers.find(u => u.email === email);
+
+            // Always show success message (security best practice - don't reveal if email exists)
+            successMessage.textContent = 'If an account exists with that email, a password reset link has been sent.';
+            successMessage.classList.add('show');
+
+            // Clear form
+            document.getElementById('reset-password-form').reset();
+
+            // Return to login after 3 seconds
+            setTimeout(() => {
+                hideResetPasswordForm();
+            }, 3000);
         });
     </script>
 </body>
