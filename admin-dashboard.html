@@ -225,6 +225,58 @@
             background: var(--bg-light);
             font-weight: bold;
             color: var(--primary-color);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 2rem;
+        }
+        
+        .bookings-table th:hover {
+            background: #e8e8e8;
+        }
+        
+        .bookings-table th.sortable::after {
+            content: ' ↕';
+            position: absolute;
+            right: 0.5rem;
+            opacity: 0.5;
+            font-size: 0.8rem;
+        }
+        
+        .bookings-table th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        
+        .bookings-table th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+        
+        .column-filters {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .column-filters input {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .column-filters {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .column-filters {
+                grid-template-columns: 1fr;
+            }
         }
 
         .bookings-table tr:hover {
@@ -375,7 +427,7 @@
             
             <div class="section-card">
                 <h2>All Projects</h2>
-                <div class="filter-controls">
+                <div class="filter-controls" style="margin-bottom: 1rem;">
                     <select id="booking-filter-dj" onchange="filterAllBookings()">
                         <option value="">All DJs</option>
                     </select>
@@ -385,15 +437,25 @@
                         <option value="past">Past</option>
                     </select>
                 </div>
+                
+                <!-- Column Filters -->
+                <div class="column-filters">
+                    <input type="text" id="filter-dj-column" placeholder="Filter by DJ..." onkeyup="filterAllBookings()">
+                    <input type="text" id="filter-date-column" placeholder="Filter by Date..." onkeyup="filterAllBookings()">
+                    <input type="text" id="filter-project-column" placeholder="Filter by Project..." onkeyup="filterAllBookings()">
+                    <input type="text" id="filter-location-column" placeholder="Filter by Location..." onkeyup="filterAllBookings()">
+                    <input type="text" id="filter-payout-column" placeholder="Filter by Payout..." onkeyup="filterAllBookings()">
+                </div>
+                
                 <div style="overflow-x: auto;">
                     <table class="bookings-table">
                         <thead>
                             <tr>
-                                <th>DJ</th>
-                                <th>Date</th>
-                                <th>Project</th>
-                                <th>Location</th>
-                                <th>Payout</th>
+                                <th class="sortable" onclick="sortTable('dj')" data-column="dj">DJ</th>
+                                <th class="sortable" onclick="sortTable('date')" data-column="date">Date</th>
+                                <th class="sortable" onclick="sortTable('project')" data-column="project">Project</th>
+                                <th class="sortable" onclick="sortTable('location')" data-column="location">Location</th>
+                                <th class="sortable" onclick="sortTable('payout')" data-column="payout">Payout</th>
                             </tr>
                         </thead>
                         <tbody id="all-bookings-container">
@@ -752,6 +814,34 @@
             document.getElementById('calendar-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
         }
 
+        // Sort state
+        let sortState = {
+            column: null,
+            direction: 'asc' // 'asc' or 'desc'
+        };
+
+        // Sort table function
+        function sortTable(column) {
+            // If clicking the same column, toggle direction; otherwise, set to ascending
+            if (sortState.column === column) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.direction = 'asc';
+            }
+            
+            // Update visual indicators
+            document.querySelectorAll('.bookings-table th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.column === column) {
+                    th.classList.add(sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
+            
+            // Re-filter and display
+            filterAllBookings();
+        }
+
         // Filter and display all bookings
         function filterAllBookings() {
             const bookings = getAllBookings();
@@ -760,14 +850,108 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            // Get column filter values
+            const filterDJ = document.getElementById('filter-dj-column').value.toLowerCase().trim();
+            const filterDate = document.getElementById('filter-date-column').value.toLowerCase().trim();
+            const filterProject = document.getElementById('filter-project-column').value.toLowerCase().trim();
+            const filterLocation = document.getElementById('filter-location-column').value.toLowerCase().trim();
+            const filterPayout = document.getElementById('filter-payout-column').value.toLowerCase().trim();
+
             let filteredBookings = bookings;
+            
+            // Apply DJ filter (dropdown)
             if (selectedDJ) {
                 filteredBookings = filteredBookings.filter(b => b.djUser === selectedDJ);
             }
+            
+            // Apply status filter
             if (selectedStatus === 'upcoming') {
-                filteredBookings = filteredBookings.filter(b => new Date(b.date) >= today);
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const bookingDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate >= today;
+                });
             } else if (selectedStatus === 'past') {
-                filteredBookings = filteredBookings.filter(b => new Date(b.date) < today);
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const bookingDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate < today;
+                });
+            }
+            
+            // Apply column filters
+            if (filterDJ) {
+                filteredBookings = filteredBookings.filter(b => 
+                    (b.djUser || 'Unassigned').toLowerCase().includes(filterDJ)
+                );
+            }
+            
+            if (filterDate) {
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+                    return formattedDate.toLowerCase().includes(filterDate);
+                });
+            }
+            
+            if (filterProject) {
+                filteredBookings = filteredBookings.filter(b => 
+                    (b.eventType || '').toLowerCase().includes(filterProject)
+                );
+            }
+            
+            if (filterLocation) {
+                filteredBookings = filteredBookings.filter(b => 
+                    (b.location || '').toLowerCase().includes(filterLocation)
+                );
+            }
+            
+            if (filterPayout) {
+                filteredBookings = filteredBookings.filter(b => {
+                    const payoutStr = b.payout ? '$' + b.payout : '-';
+                    return payoutStr.toLowerCase().includes(filterPayout);
+                });
+            }
+
+            // Apply sorting
+            if (sortState.column) {
+                filteredBookings.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    switch(sortState.column) {
+                        case 'dj':
+                            aValue = (a.djUser || 'Unassigned').toLowerCase();
+                            bValue = (b.djUser || 'Unassigned').toLowerCase();
+                            break;
+                        case 'date':
+                            // Parse dates for comparison
+                            const aDateParts = a.date.split('-');
+                            const bDateParts = b.date.split('-');
+                            aValue = new Date(parseInt(aDateParts[0], 10), parseInt(aDateParts[1], 10) - 1, parseInt(aDateParts[2], 10)).getTime();
+                            bValue = new Date(parseInt(bDateParts[0], 10), parseInt(bDateParts[1], 10) - 1, parseInt(bDateParts[2], 10)).getTime();
+                            break;
+                        case 'project':
+                            aValue = (a.eventType || '').toLowerCase();
+                            bValue = (b.eventType || '').toLowerCase();
+                            break;
+                        case 'location':
+                            aValue = (a.location || '').toLowerCase();
+                            bValue = (b.location || '').toLowerCase();
+                            break;
+                        case 'payout':
+                            aValue = parseFloat(a.payout || 0);
+                            bValue = parseFloat(b.payout || 0);
+                            break;
+                        default:
+                            return 0;
+                    }
+                    
+                    if (aValue < bValue) return sortState.direction === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortState.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
             }
 
             const container = document.getElementById('all-bookings-container');
