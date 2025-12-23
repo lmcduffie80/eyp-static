@@ -320,30 +320,26 @@
     <div class="dashboard-container">
         <!-- Statistics -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" onclick="navigateToTab('djs')">
                 <h3>Total DJs</h3>
                 <div class="stat-value" id="total-djs">0</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="navigateToTab('bookings')">
                 <h3>Active Bookings</h3>
                 <div class="stat-value" id="active-bookings">0</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="navigateToTab('calendar')">
                 <h3>Blocked Dates</h3>
                 <div class="stat-value" id="total-blocked">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Upcoming Events</h3>
-                <div class="stat-value" id="upcoming-events">0</div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('djs')">All DJs</button>
-            <button class="tab-button" onclick="switchTab('bookings')">All Bookings</button>
-            <button class="tab-button" onclick="switchTab('calendar')">Master Calendar</button>
-            <button class="tab-button" onclick="switchTab('users')">User Management</button>
+            <button class="tab-button active" onclick="switchTab('djs', this)">All DJs</button>
+            <button class="tab-button" onclick="switchTab('bookings', this)">All Bookings</button>
+            <button class="tab-button" onclick="switchTab('calendar', this)">Master Calendar</button>
+            <button class="tab-button" onclick="switchTab('users', this)">User Management</button>
         </div>
 
         <!-- DJs Tab -->
@@ -489,12 +485,20 @@
         document.getElementById('admin-name').textContent = adminUser;
 
         // Tab switching
-        function switchTab(tabName) {
+        function switchTab(tabName, clickedButton) {
             // Update tab buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
+                if (clickedButton && btn === clickedButton) {
+                    btn.classList.add('active');
+                } else if (!clickedButton) {
+                    // When called from stat cards, find button by onclick attribute
+                    const onclickAttr = btn.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes(`switchTab('${tabName}'`)) {
+                        btn.classList.add('active');
+                    }
+                }
             });
-            event.target.classList.add('active');
 
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -509,6 +513,11 @@
             } else if (tabName === 'users') {
                 loadAllUsers();
             }
+        }
+
+        // Navigate to tab when clicking stat cards
+        function navigateToTab(tabName) {
+            switchTab(tabName);
         }
 
         // Get all DJ data
@@ -703,7 +712,6 @@
             document.getElementById('total-djs').textContent = djs.length;
             document.getElementById('active-bookings').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
             document.getElementById('total-blocked').textContent = blockedDates.length;
-            document.getElementById('upcoming-events').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
 
             if (djs.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No DJs registered yet</p></div>';
