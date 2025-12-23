@@ -941,7 +941,7 @@
             </div>
 
             <form class="block-date-form" id="block-date-form">
-                <input type="text" id="block-date" class="form-input" placeholder="Select date to block" required>
+                <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar above" required readonly>
                 <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
                 <button type="submit" class="btn btn-primary">Block Date</button>
             </form>
@@ -1007,11 +1007,13 @@
             return `${month}-${day}-${year}`;
         }
 
-        // Initialize calendar picker
-        flatpickr("#block-date", {
-            dateFormat: "Y-m-d",
+        // Initialize calendar picker - disable dropdown, format as mm-dd-yyyy
+        const datePicker = flatpickr("#block-date", {
+            dateFormat: "m-d-Y",
             minDate: "today",
-            disable: []
+            disable: [],
+            clickOpens: false, // Disable clicking input to open calendar
+            allowInput: false // Prevent manual input
         });
 
         // Load user data
@@ -1197,12 +1199,20 @@
         // Block date form submission
         document.getElementById('block-date-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const date = document.getElementById('block-date').value;
-            const reason = document.getElementById('block-reason').value;
+            let date = document.getElementById('block-date').value.trim();
+            const reason = document.getElementById('block-reason').value.trim();
 
             if (!date) {
                 alert('Please select a date');
                 return;
+            }
+
+            // Convert mm-dd-yyyy to YYYY-MM-DD for storage (standard format)
+            // Check if date is in mm-dd-yyyy format
+            const mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;
+            if (mmddyyyyRegex.test(date)) {
+                const dateParts = date.split('-');
+                date = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Convert to YYYY-MM-DD
             }
 
             // TODO: Send to backend API
@@ -1359,8 +1369,11 @@
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            document.getElementById('block-date').value = dateStr;
-            datePicker.setDate(dateStr);
+            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy for display
+            const dateObj = new Date(dateStr + 'T00:00:00'); // Add time to avoid timezone issues
+            const formattedDate = formatDateMMDDYYYY(dateObj);
+            document.getElementById('block-date').value = formattedDate;
+            datePicker.setDate(dateStr, false); // Set internal date, false = don't trigger onChange
         }
 
         // Load bookings
