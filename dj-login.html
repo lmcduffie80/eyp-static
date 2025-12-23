@@ -200,6 +200,33 @@
             display: none;
         }
 
+        .forgot-password-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .forgot-password-link a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+
+        .reset-password-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
         @media (max-width: 768px) {
             .login-container {
                 padding: 2rem;
@@ -235,6 +262,28 @@
             </div>
 
             <button type="submit" class="login-button">Sign In</button>
+            
+            <div class="forgot-password-link">
+                <a href="#" onclick="showResetPassword(); return false;">Forgot Password?</a>
+            </div>
+        </form>
+
+        <!-- Reset Password Form -->
+        <form id="reset-password-form" class="form-hidden">
+            <div class="reset-password-info">
+                Enter your email address and we'll send you instructions to reset your password.
+            </div>
+            
+            <div class="form-group">
+                <label for="reset-email">Email Address</label>
+                <input type="email" id="reset-email" name="email" required autocomplete="email">
+            </div>
+
+            <button type="submit" class="login-button">Reset Password</button>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="#" onclick="hideResetPassword(); return false;" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem;">← Back to Sign In</a>
+            </div>
         </form>
 
         <!-- Signup Form -->
@@ -277,9 +326,73 @@
 
     <script>
         let isSignupMode = false;
+        let isResetPasswordMode = false;
+
+        // Show reset password form
+        function showResetPassword() {
+            isResetPasswordMode = true;
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const resetForm = document.getElementById('reset-password-form');
+            const headerSubtitle = document.getElementById('header-subtitle');
+            const toggleModeDiv = document.querySelector('.toggle-mode');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Hide messages
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+
+            // Hide other forms
+            loginForm.classList.add('form-hidden');
+            signupForm.classList.add('form-hidden');
+            resetForm.classList.remove('form-hidden');
+            
+            // Update header
+            headerSubtitle.textContent = 'Reset your password';
+            
+            // Hide toggle mode section
+            if (toggleModeDiv) {
+                toggleModeDiv.style.display = 'none';
+            }
+        }
+
+        // Hide reset password form
+        function hideResetPassword() {
+            isResetPasswordMode = false;
+            const loginForm = document.getElementById('login-form');
+            const resetForm = document.getElementById('reset-password-form');
+            const headerSubtitle = document.getElementById('header-subtitle');
+            const toggleModeDiv = document.querySelector('.toggle-mode');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Hide messages
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+
+            // Show login form
+            loginForm.classList.remove('form-hidden');
+            resetForm.classList.add('form-hidden');
+            
+            // Update header
+            headerSubtitle.textContent = 'Sign in to access your calendar and bookings';
+            
+            // Show toggle mode section
+            if (toggleModeDiv) {
+                toggleModeDiv.style.display = 'block';
+            }
+
+            // Clear reset form
+            document.getElementById('reset-password-form').reset();
+        }
 
         // Toggle between login and signup forms
         function toggleMode() {
+            // If in reset password mode, hide it first
+            if (isResetPasswordMode) {
+                hideResetPassword();
+            }
             isSignupMode = !isSignupMode;
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
@@ -451,6 +564,121 @@
                     errorMessage.classList.add('show');
                 });
             }
+        });
+
+        // Reset password form handling
+        document.getElementById('reset-password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('reset-email').value.trim();
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Clear previous messages
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+            errorMessage.textContent = '';
+            successMessage.textContent = '';
+
+            // Validation
+            if (!email) {
+                errorMessage.textContent = 'Please enter your email address.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorMessage.textContent = 'Please enter a valid email address.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // TODO: Replace with actual API call to reset password
+            // In production, you would:
+            // 1. Send email to backend API
+            // 2. Verify user exists with that email
+            // 3. Generate reset token
+            // 4. Send password reset email with token
+            // 5. Return success/error
+
+            // For development: check if user exists in localStorage
+            const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const user = existingUsers.find(u => u.email === email);
+
+            if (user) {
+                // In production, this would send an email
+                // For now, we'll simulate the process
+                
+                // Store reset token (in production, this would be sent via email)
+                const resetToken = 'reset_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('password_reset_token_' + user.username, resetToken);
+                localStorage.setItem('password_reset_email_' + user.username, email);
+                
+                // Show success message
+                successMessage.textContent = 'If an account exists with that email, password reset instructions have been sent. Please check your email.';
+                successMessage.classList.add('show');
+
+                // Clear form
+                document.getElementById('reset-password-form').reset();
+
+                // In production: The email would contain a link to a reset page with the token
+                // For now, show a message about checking email
+                console.log('Reset token for ' + user.username + ': ' + resetToken);
+                console.log('In production, an email would be sent to: ' + email);
+
+                // Optionally, after 3 seconds, go back to login
+                setTimeout(() => {
+                    hideResetPassword();
+                }, 3000);
+            } else {
+                // Don't reveal if user exists (security best practice)
+                // Show same success message even if user doesn't exist
+                successMessage.textContent = 'If an account exists with that email, password reset instructions have been sent. Please check your email.';
+                successMessage.classList.add('show');
+
+                // Clear form
+                document.getElementById('reset-password-form').reset();
+
+                // Go back to login after showing message
+                setTimeout(() => {
+                    hideResetPassword();
+                }, 3000);
+            }
+
+            // Alternative: Try API call if localStorage doesn't have user
+            // This would be used in production
+            /*
+            fetch('/api/dj-reset-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = 'Password reset instructions have been sent to your email.';
+                    successMessage.classList.add('show');
+                    setTimeout(() => {
+                        hideResetPassword();
+                    }, 3000);
+                } else {
+                    // Don't reveal if user exists
+                    successMessage.textContent = 'If an account exists with that email, password reset instructions have been sent.';
+                    successMessage.classList.add('show');
+                    setTimeout(() => {
+                        hideResetPassword();
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                errorMessage.textContent = 'An error occurred. Please try again later.';
+                errorMessage.classList.add('show');
+            });
+            */
         });
     </script>
 </body>

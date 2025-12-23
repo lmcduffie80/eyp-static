@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="DJ Dashboard - Externally Yours Productions, LLC">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <title>DJ Dashboard - Externally Yours Productions, LLC</title>
     <link rel="icon" type="image/png" href="EYP Logo_New.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -327,12 +331,25 @@
             margin-bottom: 2rem;
         }
 
+        /* Calendar Widgets Container */
+        .calendars-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .calendars-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Visual Calendar Widget */
         .calendar-widget {
             background: var(--bg-light);
             border-radius: 10px;
             padding: 0.75rem;
-            margin-bottom: 2rem;
             max-width: 400px;
         }
 
@@ -407,8 +424,8 @@
         }
 
         .calendar-day.blocked {
-            background: var(--warning-color);
-            color: var(--primary-color);
+            background: var(--primary-color);
+            color: var(--secondary-color);
             font-weight: bold;
         }
 
@@ -430,7 +447,7 @@
         }
 
         .calendar-day.blocked .calendar-day-indicator {
-            background: var(--primary-color);
+            background: var(--secondary-color);
         }
 
         .calendar-day.has-booking .calendar-day-indicator {
@@ -509,16 +526,24 @@
             margin-bottom: 0.5rem;
         }
 
+        .blocked-date-item .btn {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
         .blocked-date-info {
             display: flex;
+            flex-direction: row;
             gap: 1rem;
             align-items: center;
+            flex: 1;
         }
 
         .date-badge {
             padding: 0.25rem 0.75rem;
-            background: var(--warning-color);
-            color: var(--primary-color);
+            background: var(--primary-color);
+            color: var(--secondary-color);
             border-radius: 20px;
             font-size: 0.9rem;
             font-weight: bold;
@@ -832,6 +857,42 @@
             display: block;
         }
 
+        /* Security Session Warning */
+        .session-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--warning-color);
+            color: var(--primary-color);
+            padding: 1rem;
+            text-align: center;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            font-weight: bold;
+        }
+
+        .session-warning.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .session-warning-button {
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .session-warning-button:hover {
+            background: var(--accent-color);
+        }
+
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 1rem;
@@ -853,6 +914,12 @@
     </style>
 </head>
 <body>
+    <!-- Session Timeout Warning -->
+    <div class="session-warning" id="session-warning">
+        <span>Your session will expire soon due to inactivity.</span>
+        <button class="session-warning-button" onclick="extendSession()">Stay Logged In</button>
+    </div>
+
     <div class="dashboard-header">
         <h1>
             <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
@@ -921,20 +988,47 @@
                 </div>
             </div>
             
-            <!-- Visual Calendar Widget -->
-            <div class="calendar-widget">
-                <div class="calendar-widget-header">
-                    <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
-                    <h3 id="calendar-month-year">January 2025</h3>
-                    <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+            <!-- Visual Calendar Widgets - Current Month + 2 Months Ahead -->
+            <div class="calendars-container">
+                <!-- Current Month Calendar -->
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year-0">January 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container-0">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
                 </div>
-                <div id="calendar-grid-container">
-                    <!-- Calendar grid will be generated here -->
+
+                <!-- Next Month Calendar -->
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year-1">February 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container-1">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
+                </div>
+
+                <!-- Month +2 Calendar -->
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year-2">March 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container-2">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
                 </div>
             </div>
 
             <form class="block-date-form" id="block-date-form">
-                <input type="text" id="block-date" class="form-input" placeholder="Select date to block" required>
+                <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar above" required readonly>
                 <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
                 <button type="submit" class="btn btn-primary">Block Date</button>
             </form>
@@ -982,16 +1076,235 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        // Check authentication
-        if (!localStorage.getItem('dj_token')) {
+        // ========================================
+        // SECURITY MEASURES
+        // ========================================
+        
+        // Session timeout configuration (30 minutes of inactivity)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const SESSION_WARNING_TIME = 5 * 60 * 1000; // Show warning 5 minutes before timeout
+        const TOKEN_EXPIRY_KEY = 'dj_token_expiry';
+        let activityTimeout;
+        let warningTimeout;
+        let lastActivity = Date.now();
+
+        // Input sanitization function to prevent XSS attacks
+        function sanitizeInput(input) {
+            if (typeof input !== 'string') return input;
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.innerHTML;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return text;
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Validate and check token expiration
+        function validateToken() {
+            const token = localStorage.getItem('dj_token');
+            const tokenExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+            
+            if (!token) {
+                return false;
+            }
+            
+            // Check if token has expired
+            if (tokenExpiry) {
+                const expiryTime = parseInt(tokenExpiry, 10);
+                if (Date.now() > expiryTime) {
+                    // Token expired
+                    secureLogout('Your session has expired. Please log in again.');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Update last activity timestamp
+        function updateActivity() {
+            lastActivity = Date.now();
+            localStorage.setItem('dj_last_activity', lastActivity.toString());
+            
+            // Hide warning if showing
+            const warning = document.getElementById('session-warning');
+            if (warning) {
+                warning.classList.remove('show');
+            }
+            
+            // Reset activity timeout
+            if (activityTimeout) {
+                clearTimeout(activityTimeout);
+            }
+            if (warningTimeout) {
+                clearTimeout(warningTimeout);
+            }
+            
+            // Set warning timeout (5 minutes before logout)
+            warningTimeout = setTimeout(() => {
+                if (document.getElementById('session-warning')) {
+                    document.getElementById('session-warning').classList.add('show');
+                }
+            }, SESSION_TIMEOUT - SESSION_WARNING_TIME);
+            
+            // Set logout timeout
+            activityTimeout = setTimeout(() => {
+                secureLogout('You have been logged out due to inactivity. Please log in again.');
+            }, SESSION_TIMEOUT);
+        }
+
+        // Extend session when user clicks "Stay Logged In"
+        function extendSession() {
+            updateActivity();
+            logSecurityEvent('session_extended', {});
+        }
+
+        // Track user activity
+        const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        activityEvents.forEach(event => {
+            document.addEventListener(event, updateActivity, { passive: true });
+        });
+
+        // Log security events (in production, send to backend)
+        function logSecurityEvent(eventType, details) {
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                event: eventType,
+                user: localStorage.getItem('dj_user'),
+                details: details,
+                userAgent: navigator.userAgent,
+                ip: 'N/A' // Would be set by backend
+            };
+            
+            // Store in localStorage (in production, send to backend API)
+            const securityLogs = JSON.parse(localStorage.getItem('dj_security_logs') || '[]');
+            securityLogs.push(logEntry);
+            
+            // Keep only last 100 log entries
+            if (securityLogs.length > 100) {
+                securityLogs.shift();
+            }
+            
+            localStorage.setItem('dj_security_logs', JSON.stringify(securityLogs));
+            
+            // Log to console for debugging (remove in production)
+            console.log('Security Event:', logEntry);
+        }
+
+        // Secure logout function
+        function secureLogout(message) {
+            logSecurityEvent('logout', { reason: message || 'User logout' });
+            
+            // Clear all authentication data
+            localStorage.removeItem('dj_token');
+            localStorage.removeItem('dj_user');
+            localStorage.removeItem(TOKEN_EXPIRY_KEY);
+            localStorage.removeItem('dj_last_activity');
+            
+            // Clear activity timeout
+            if (activityTimeout) {
+                clearTimeout(activityTimeout);
+            }
+            
+            // Remove activity event listeners
+            activityEvents.forEach(event => {
+                document.removeEventListener(event, updateActivity);
+            });
+            
+            // Redirect to login
+            if (message) {
+                sessionStorage.setItem('logout_message', message);
+            }
             window.location.href = 'dj-login.html';
         }
 
-        // Initialize calendar picker
-        flatpickr("#block-date", {
-            dateFormat: "Y-m-d",
+        // Enhanced authentication check with token validation
+        if (!validateToken()) {
+            window.location.href = 'dj-login.html';
+            throw new Error('Authentication failed');
+        }
+
+        // Set token expiry on page load (30 minutes from now)
+        const tokenExpiry = Date.now() + SESSION_TIMEOUT;
+        localStorage.setItem(TOKEN_EXPIRY_KEY, tokenExpiry.toString());
+        
+        // Initialize activity tracking
+        updateActivity();
+        
+        // Log successful login
+        logSecurityEvent('page_access', { page: 'dashboard' });
+
+        // Handle page visibility changes (user switches tabs/windows)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                logSecurityEvent('page_hidden', {});
+            } else {
+                // Check token validity when page becomes visible again
+                if (!validateToken()) {
+                    secureLogout('Your session has expired. Please log in again.');
+                } else {
+                    updateActivity();
+                }
+            }
+        });
+
+        // Warn user if they try to leave with unsaved changes
+        let hasUnsavedChanges = false;
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                return e.returnValue;
+            }
+        });
+
+        // Track form changes
+        document.addEventListener('input', function(e) {
+            if (e.target.closest('form')) {
+                hasUnsavedChanges = true;
+            }
+        });
+
+        document.addEventListener('submit', function(e) {
+            if (e.target.tagName === 'FORM') {
+                hasUnsavedChanges = false;
+            }
+        });
+
+        // ========================================
+        // END SECURITY MEASURES
+        // ========================================
+
+        // Date formatting helper function - formats date as mm-dd-yyyy
+        function formatDateMMDDYYYY(date) {
+            if (!date) return '';
+            const dateObj = date instanceof Date ? date : new Date(date);
+            if (isNaN(dateObj.getTime())) return '';
+            
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            
+            return `${month}-${day}-${year}`;
+        }
+        
+        // Initialize calendar picker - disable click to open, only allow selection from visual calendar
+        const datePicker = flatpickr("#block-date", {
+            dateFormat: "m-d-Y",
             minDate: "today",
-            disable: []
+            disable: [],
+            clickOpens: false, // Disable clicking input to open calendar
+            allowInput: true // Allow manual input if needed
         });
 
         // Load user data
@@ -1109,22 +1422,47 @@
             }
         }
         
-        // Save account from dropdown
+        // Save account from dropdown - Enhanced with input validation and sanitization
         function saveAccountFromDropdown(event) {
             if (event) {
                 event.preventDefault();
+            }
+            
+            // Validate token before allowing action
+            if (!validateToken()) {
+                return;
             }
             
             const currentUsername = localStorage.getItem('dj_user');
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
             const currentDJIndex = allDJs.findIndex(dj => dj.username === currentUsername);
             
-            const email = document.getElementById('dropdown-email').value.trim();
-            const phone = document.getElementById('dropdown-phone').value.trim();
-            const name = document.getElementById('dropdown-name').value.trim();
+            let email = document.getElementById('dropdown-email').value.trim();
+            let phone = document.getElementById('dropdown-phone').value.trim();
+            let name = document.getElementById('dropdown-name').value.trim();
             
+            // Sanitize all inputs
+            email = sanitizeInput(email);
+            phone = sanitizeInput(phone);
+            name = sanitizeInput(name);
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email) {
                 alert('Email address is required');
+                return;
+            }
+            
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address');
+                logSecurityEvent('invalid_input', { field: 'email', value: email });
+                return;
+            }
+            
+            // Validate phone format (optional but check if provided)
+            if (phone && !/^[\d\s\-\(\)]+$/.test(phone)) {
+                alert('Please enter a valid phone number');
+                logSecurityEvent('invalid_input', { field: 'phone', value: phone });
                 return;
             }
             
@@ -1150,6 +1488,8 @@
             // Save updated users list
             localStorage.setItem('dj_users', JSON.stringify(allDJs));
             
+            logSecurityEvent('account_update', { fields: ['email', 'phone', 'name'] });
+            
             // Show success message
             const successMsg = document.getElementById('dropdown-save-success');
             successMsg.classList.add('show');
@@ -1174,35 +1514,67 @@
         // Load user info on page load
         loadDJUserInfo();
 
-        // Block date form submission
+        // Block date form submission - Enhanced with input sanitization
         document.getElementById('block-date-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const date = document.getElementById('block-date').value;
-            const reason = document.getElementById('block-reason').value;
+            
+            // Validate token before allowing action
+            if (!validateToken()) {
+                return;
+            }
+            
+            let date = document.getElementById('block-date').value.trim();
+            const reason = document.getElementById('block-reason').value.trim();
 
             if (!date) {
                 alert('Please select a date');
                 return;
             }
 
+            // Validate date format (mm-dd-yyyy)
+            const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
+            if (!dateRegex.test(date)) {
+                alert('Invalid date format');
+                logSecurityEvent('invalid_input', { field: 'date', value: date });
+                return;
+            }
+
+            // Convert mm-dd-yyyy to YYYY-MM-DD for storage (standard format)
+            const dateParts = date.split('-');
+            const dateForStorage = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`;
+            date = dateForStorage; // Use converted date for storage
+
+            // Sanitize reason input
+            const sanitizedReason = sanitizeInput(reason) || 'No reason provided';
+
             // TODO: Send to backend API
             // For now, store in localStorage
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+            
+            // Check for duplicate dates
+            if (blockedDates.some(bd => bd.date === date)) {
+                alert('This date is already blocked');
+                return;
+            }
+            
             blockedDates.push({
                 date: date,
-                reason: reason || 'No reason provided',
-                blockedAt: new Date().toISOString()
+                reason: sanitizedReason,
+                blockedAt: new Date().toISOString(),
+                blockedBy: localStorage.getItem('dj_user')
             });
             localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
+            
+            logSecurityEvent('block_date', { date: date });
 
             // Update calendar picker to disable blocked date
             const fp = flatpickr("#block-date");
             fp.config.disable.push(date);
             fp.set('disable', fp.config.disable);
 
-            // Refresh blocked dates list and calendar
+            // Refresh blocked dates list and calendars
             displayBlockedDates();
-            generateCalendar();
+            generateAllCalendars();
 
             // Clear form
             document.getElementById('block-date-form').reset();
@@ -1220,34 +1592,43 @@
 
             container.innerHTML = blockedDates.map(item => {
                 const dateObj = new Date(item.date);
-                const formattedDate = dateObj.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(dateObj);
+                // Sanitize date and reason to prevent XSS
+                const safeDate = escapeHtml(item.date);
+                const safeFormattedDate = escapeHtml(formattedDate);
+                const safeReason = item.reason ? escapeHtml(item.reason) : '';
                 return `
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
-                            <span class="date-badge">${item.date}</span>
-                            <div>
-                                <strong>${formattedDate}</strong>
-                                ${item.reason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${item.reason}</div>` : ''}
-                            </div>
+                            <span class="date-badge">${safeFormattedDate}</span>
+                            ${safeReason ? `<div style="color: var(--text-dark); font-size: 0.95rem; text-align: left;">${safeReason}</div>` : ''}
                         </div>
-                        <button class="btn btn-danger" onclick="unblockDate('${item.date}')">Unblock</button>
+                        <button class="btn btn-danger" onclick="unblockDate('${safeDate}')">Unblock</button>
                     </div>
                 `;
             }).join('');
         }
 
-        // Unblock date
+        // Unblock date - Enhanced with security
         function unblockDate(date) {
-            if (!confirm('Are you sure you want to unblock this date?')) return;
+            // Validate token before allowing action
+            if (!validateToken()) {
+                return;
+            }
+            
+            // Validate input
+            if (!date || typeof date !== 'string') {
+                logSecurityEvent('invalid_input', { field: 'unblock_date', value: date });
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to unblock date?')) return;
 
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
             const filtered = blockedDates.filter(item => item.date !== date);
             localStorage.setItem('blocked_dates', JSON.stringify(filtered));
+            
+            logSecurityEvent('unblock_date', { date: date });
 
             // Update calendar picker
             const fp = flatpickr("#block-date");
@@ -1255,22 +1636,25 @@
             fp.set('disable', fp.config.disable);
 
             displayBlockedDates();
-            generateCalendar();
+            generateAllCalendars();
         }
 
         // Calendar state
         let currentCalendarDate = new Date();
         currentCalendarDate.setDate(1); // Start at first day of month
 
-        // Generate calendar widget
-        function generateCalendar() {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
+        // Generate calendar widget for a specific month offset (0 = current, 1 = next, 2 = month+2)
+        function generateCalendar(monthOffset = 0) {
+            const targetDate = new Date(currentCalendarDate);
+            targetDate.setMonth(targetDate.getMonth() + monthOffset);
+            
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth();
             
             // Update header
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"];
-            document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+            document.getElementById(`calendar-month-year-${monthOffset}`).textContent = `${monthNames[month]} ${year}`;
 
             // Get blocked dates and bookings
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]').map(b => b.date);
@@ -1331,24 +1715,34 @@
             }
 
             calendarHTML += '</div>';
-            document.getElementById('calendar-grid-container').innerHTML = calendarHTML;
+            document.getElementById(`calendar-grid-container-${monthOffset}`).innerHTML = calendarHTML;
         }
 
-        // Navigate calendar months
+        // Generate all three calendars
+        function generateAllCalendars() {
+            generateCalendar(0); // Current month
+            generateCalendar(1); // Next month
+            generateCalendar(2); // Month + 2
+        }
+
+        // Navigate calendar months (updates all three calendars)
         function previousMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            generateCalendar();
+            generateAllCalendars();
         }
 
         function nextMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            generateCalendar();
+            generateAllCalendars();
         }
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            document.getElementById('block-date').value = dateStr;
-            datePicker.setDate(dateStr);
+            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy for display
+            const dateObj = new Date(dateStr + 'T00:00:00'); // Add time to avoid timezone issues
+            const formattedDate = formatDateMMDDYYYY(dateObj);
+            document.getElementById('block-date').value = formattedDate;
+            datePicker.setDate(dateStr, false); // false = don't trigger onChange, dateStr is YYYY-MM-DD for flatpickr
         }
 
         // Load bookings
@@ -1414,41 +1808,45 @@
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
                 const showReminder = isUpcoming && daysUntil <= 14;
 
-                const formattedDate = bookingDate.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(bookingDate);
 
+                // Sanitize all booking data to prevent XSS
+                const safeClientName = escapeHtml(booking.clientName || '');
+                const safeEventType = escapeHtml(booking.eventType || '');
+                const safeTime = escapeHtml(booking.time || '');
+                const safeLocation = escapeHtml(booking.location || '');
+                const safeEmail = escapeHtml(booking.contactEmail || '');
+                const safePhone = escapeHtml(booking.contactPhone || '');
+                const safeNotes = booking.notes ? escapeHtml(booking.notes) : '';
+                
                 return `
                     <div class="booking-card ${isUpcoming ? 'upcoming' : 'past'}">
                         <div class="booking-header">
                             <div>
-                                <div class="booking-title">${booking.clientName}</div>
-                                <div class="booking-date">${formattedDate}</div>
+                                <div class="booking-title">${safeClientName}</div>
+                                <div class="booking-date">${escapeHtml(formattedDate)}</div>
                             </div>
                             ${showReminder ? '<span class="reminder-badge">Reminder sent</span>' : ''}
                         </div>
                         <div class="booking-details">
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Event Type</span>
-                                <span class="booking-detail-value">${booking.eventType}</span>
+                                <span class="booking-detail-value">${safeEventType}</span>
                             </div>
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Time</span>
-                                <span class="booking-detail-value">${booking.time}</span>
+                                <span class="booking-detail-value">${safeTime}</span>
                             </div>
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Location</span>
-                                <span class="booking-detail-value">${booking.location}</span>
+                                <span class="booking-detail-value">${safeLocation}</span>
                             </div>
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Contact</span>
-                                <span class="booking-detail-value">${booking.contactEmail}<br>${booking.contactPhone}</span>
+                                <span class="booking-detail-value">${safeEmail}<br>${safePhone}</span>
                             </div>
                         </div>
-                        ${booking.notes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong> ${booking.notes}</div>` : ''}
+                        ${safeNotes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong> ${safeNotes}</div>` : ''}
                     </div>
                 `;
             }).join('');
@@ -1490,12 +1888,10 @@
             });
         }
 
-        // Logout
+        // Logout - Enhanced with security
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('dj_token');
-                localStorage.removeItem('dj_user');
-                window.location.href = 'dj-login.html';
+                secureLogout('You have been logged out successfully.');
             }
         }
 
@@ -1528,28 +1924,29 @@
             
             container.innerHTML = reviews.map(review => {
                 const reviewDate = new Date(review.date);
-                const formattedDate = reviewDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+                const formattedDate = formatDateMMDDYYYY(reviewDate);
                 
                 // Generate star rating display
                 const fullStars = '★'.repeat(Math.floor(review.rating));
                 const emptyStars = '☆'.repeat(5 - Math.floor(review.rating));
                 const stars = fullStars + emptyStars;
                 
+                // Sanitize review data to prevent XSS
+                const safeClientName = escapeHtml(review.clientName || 'Anonymous');
+                const safeEventName = review.eventName ? escapeHtml(review.eventName) : '';
+                const safeComment = review.comment ? escapeHtml(review.comment) : 'No comment provided.';
+                
                 return `
                     <div class="review-card">
                         <div class="review-header">
                             <div>
-                                <div class="review-client">${review.clientName || 'Anonymous'}</div>
-                                ${review.eventName ? `<div class="review-event">${review.eventName}</div>` : ''}
+                                <div class="review-client">${safeClientName}</div>
+                                ${safeEventName ? `<div class="review-event">${safeEventName}</div>` : ''}
                             </div>
-                            <div class="review-date">${formattedDate}</div>
+                            <div class="review-date">${escapeHtml(formattedDate)}</div>
                         </div>
-                        <div class="review-rating">${stars}</div>
-                        <div class="review-text">${review.comment || 'No comment provided.'}</div>
+                        <div class="review-rating">${escapeHtml(stars)}</div>
+                        <div class="review-text">${safeComment}</div>
                     </div>
                 `;
             }).join('');
@@ -1607,7 +2004,7 @@
         }
 
         // Initialize - Load both calendar and bookings on page load
-        generateCalendar();
+        generateAllCalendars();
         displayBlockedDates();
         loadBookings();
         loadReviews();
