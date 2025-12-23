@@ -1277,6 +1277,19 @@
         // END SECURITY MEASURES
         // ========================================
 
+        // Date formatting helper function - formats date as mm-dd-yyyy
+        function formatDateMMDDYYYY(date) {
+            if (!date) return '';
+            const dateObj = date instanceof Date ? date : new Date(date);
+            if (isNaN(dateObj.getTime())) return '';
+            
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            
+            return `${month}-${day}-${year}`;
+        }
+        
         // Initialize calendar picker
         flatpickr("#block-date", {
             dateFormat: "Y-m-d",
@@ -1564,21 +1577,17 @@
 
             container.innerHTML = blockedDates.map(item => {
                 const dateObj = new Date(item.date);
-                const formattedDate = dateObj.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(dateObj);
                 // Sanitize date and reason to prevent XSS
                 const safeDate = escapeHtml(item.date);
+                const safeFormattedDate = escapeHtml(formattedDate);
                 const safeReason = item.reason ? escapeHtml(item.reason) : '';
                 return `
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
                             <span class="date-badge">${safeDate}</span>
                             <div>
-                                <strong>${escapeHtml(formattedDate)}</strong>
+                                <strong>${safeFormattedDate}</strong>
                                 ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
                             </div>
                         </div>
@@ -1784,12 +1793,7 @@
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
                 const showReminder = isUpcoming && daysUntil <= 14;
 
-                const formattedDate = bookingDate.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(bookingDate);
 
                 // Sanitize all booking data to prevent XSS
                 const safeClientName = escapeHtml(booking.clientName || '');
@@ -1905,11 +1909,7 @@
             
             container.innerHTML = reviews.map(review => {
                 const reviewDate = new Date(review.date);
-                const formattedDate = reviewDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+                const formattedDate = formatDateMMDDYYYY(reviewDate);
                 
                 // Generate star rating display
                 const fullStars = '★'.repeat(Math.floor(review.rating));
