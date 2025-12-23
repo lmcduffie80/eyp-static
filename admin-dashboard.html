@@ -220,15 +220,119 @@
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
         }
+        
+        /* Column width constraints */
+        .bookings-table th:nth-child(1),
+        .bookings-table td:nth-child(1) {
+            /* DJ column */
+            min-width: 120px;
+            max-width: 180px;
+            white-space: nowrap;
+        }
+        
+        .bookings-table th:nth-child(2),
+        .bookings-table td:nth-child(2) {
+            /* Date column - wider to prevent wrapping */
+            min-width: 130px;
+            white-space: nowrap;
+        }
+        
+        .bookings-table th:nth-child(3),
+        .bookings-table td:nth-child(3) {
+            /* Project column */
+            min-width: 150px;
+            white-space: normal;
+        }
+        
+        .bookings-table th:nth-child(4),
+        .bookings-table td:nth-child(4) {
+            /* Location column */
+            min-width: 150px;
+            white-space: normal;
+        }
+        
+        .bookings-table th:nth-child(5),
+        .bookings-table td:nth-child(5) {
+            /* Payout column */
+            min-width: 110px;
+            white-space: nowrap;
+        }
+        
+        .bookings-table th:nth-child(6),
+        .bookings-table td:nth-child(6) {
+            /* Actions column */
+            min-width: 90px;
+            white-space: nowrap;
+        }
 
         .bookings-table th {
             background: var(--bg-light);
             font-weight: bold;
             color: var(--primary-color);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 2rem;
+        }
+        
+        .bookings-table th:hover {
+            background: #e8e8e8;
+        }
+        
+        .bookings-table th.sortable::after {
+            content: ' ↕';
+            position: absolute;
+            right: 0.5rem;
+            opacity: 0.5;
+            font-size: 0.8rem;
+        }
+        
+        .bookings-table th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        
+        .bookings-table th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+        
+        .column-filters {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .column-filters input {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .column-filters {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .column-filters {
+                grid-template-columns: 1fr;
+            }
         }
 
         .bookings-table tr:hover {
             background: var(--bg-light);
+        }
+
+        .bookings-table .btn-delete {
+            transition: background 0.2s ease;
+        }
+
+        .bookings-table .btn-delete:hover {
+            background: #c0392b !important;
         }
 
         .badge {
@@ -325,7 +429,7 @@
                 <div class="stat-value" id="total-djs">0</div>
             </div>
             <div class="stat-card">
-                <h3>Active Bookings</h3>
+                <h3>Active Projects</h3>
                 <div class="stat-value" id="active-bookings">0</div>
             </div>
             <div class="stat-card">
@@ -341,7 +445,7 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab-button active" onclick="switchTab('djs')">All DJs</button>
-            <button class="tab-button" onclick="switchTab('bookings')">All Bookings</button>
+            <button class="tab-button" onclick="switchTab('bookings')">All Projects</button>
             <button class="tab-button" onclick="switchTab('calendar')">Master Calendar</button>
             <button class="tab-button" onclick="switchTab('users')">User Management</button>
         </div>
@@ -358,34 +462,43 @@
 
         <!-- Bookings Tab -->
         <div id="bookings-tab" class="tab-content">
+            <!-- CSV Import Section -->
+            <div class="section-card" style="margin-bottom: 2rem;">
+                <h2>Import Projects from CSV</h2>
+                <p style="color: var(--text-light); margin-bottom: 1rem;">
+                    Upload a CSV file with columns: DJ Name, Date of Project, Project name, Location for venue, Payout
+                </p>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                    <button onclick="importCSVBookings()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                        Import CSV
+                    </button>
+                    <span id="csv-import-message" style="color: var(--success-color); display: none;"></span>
+                </div>
+            </div>
+            
             <div class="section-card">
-                <h2>All Bookings</h2>
-                <div class="filter-controls">
+                <h2>All Projects</h2>
+                <div class="filter-controls" style="margin-bottom: 1rem;">
                     <select id="booking-filter-dj" onchange="filterAllBookings()">
                         <option value="">All DJs</option>
                     </select>
-                    <select id="booking-filter-status" onchange="filterAllBookings()">
-                        <option value="all">All Status</option>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="past">Past</option>
-                    </select>
                 </div>
+                
                 <div style="overflow-x: auto;">
-                    <table class="bookings-table">
+                    <table class="bookings-table" style="table-layout: auto; width: 100%; min-width: 900px;">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>DJ</th>
-                                <th>Client</th>
-                                <th>Event Type</th>
-                                <th>Time</th>
-                                <th>Location</th>
-                                <th>Payout</th>
-                                <th>Status</th>
+                                <th class="sortable" onclick="sortTable('dj')" data-column="dj">DJ</th>
+                                <th class="sortable" onclick="sortTable('date')" data-column="date">Date</th>
+                                <th class="sortable" onclick="sortTable('project')" data-column="project">Project</th>
+                                <th class="sortable" onclick="sortTable('location')" data-column="location">Location</th>
+                                <th class="sortable" onclick="sortTable('payout')" data-column="payout">Payout</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="all-bookings-container">
-                            <!-- Bookings will be populated here -->
+                            <!-- Projects will be populated here -->
                         </tbody>
                     </table>
                 </div>
@@ -395,7 +508,7 @@
         <!-- Calendar Tab -->
         <div id="calendar-tab" class="tab-content">
             <div class="section-card">
-                <h2>Master Calendar - All Blocked Dates & Bookings</h2>
+                <h2>Master Calendar - All Blocked Dates & Projects</h2>
                 <div class="filter-controls">
                     <select id="calendar-filter-dj" onchange="generateMasterCalendar()">
                         <option value="">All DJs</option>
@@ -412,10 +525,13 @@
             <div class="section-card">
                 <h2>User Management</h2>
                 
-                <!-- Create User Form -->
+                <!-- Create/Edit User Form -->
                 <div style="background: var(--bg-light); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Create New User</h3>
+                    <h3 id="user-form-title" style="margin-bottom: 1rem; color: var(--primary-color);">Create New User</h3>
                     <form id="create-user-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <input type="hidden" id="edit-mode" value="false">
+                        <input type="hidden" id="edit-original-username" value="">
+                        <input type="hidden" id="edit-original-usertype" value="">
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
                             <input type="text" id="new-username" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
@@ -426,7 +542,8 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
-                            <input type="password" id="new-password" required minlength="8" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <input type="password" id="new-password" minlength="8" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <small id="password-hint" style="display: block; margin-top: 0.25rem; color: var(--text-light); font-size: 0.85rem;">Leave blank to keep existing password</small>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">User Type</label>
@@ -435,9 +552,12 @@
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
-                        <div style="display: flex; align-items: flex-end;">
-                            <button type="submit" style="padding: 0.75rem 2rem; background: var(--admin-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%;">
+                        <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                            <button type="submit" id="submit-user-button" style="padding: 0.75rem 2rem; background: var(--admin-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1;">
                                 Create User
+                            </button>
+                            <button type="button" id="cancel-edit-button" onclick="cancelEdit()" style="padding: 0.75rem 1.5rem; background: var(--text-light); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+                                Cancel
                             </button>
                         </div>
                     </form>
@@ -526,10 +646,13 @@
             return admins;
         }
 
-        // Create new user
+        // Create or update user
         document.getElementById('create-user-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const isEditMode = document.getElementById('edit-mode').value === 'true';
+            const originalUsername = document.getElementById('edit-original-username').value;
+            const originalUserType = document.getElementById('edit-original-usertype').value;
             const username = document.getElementById('new-username').value.trim();
             const email = document.getElementById('new-email').value.trim();
             const password = document.getElementById('new-password').value;
@@ -542,55 +665,172 @@
                 return;
             }
 
-            if (password.length < 8) {
+            if (!isEditMode && password.length < 8) {
                 showMessage('Password must be at least 8 characters long.', 'error');
                 return;
             }
 
-            // Check if user already exists
-            if (userType === 'dj') {
-                const djs = getAllDJs();
-                if (djs.find(u => u.username === username || u.email === email)) {
-                    showMessage('Username or email already exists.', 'error');
-                    return;
+            if (isEditMode) {
+                // Edit existing user
+                if (userType === 'dj') {
+                    const djs = getAllDJs();
+                    const userIndex = djs.findIndex(u => u.username === originalUsername);
+                    if (userIndex === -1) {
+                        showMessage('User not found.', 'error');
+                        return;
+                    }
+
+                    // Check if username or email is changed and conflicts with another user
+                    if (username !== originalUsername || email !== djs[userIndex].email) {
+                        if (djs.find(u => u.username !== originalUsername && (u.username === username || u.email === email))) {
+                            showMessage('Username or email already exists.', 'error');
+                            return;
+                        }
+                    }
+
+                    // Update DJ user
+                    djs[userIndex].username = username;
+                    djs[userIndex].email = email;
+                    if (password) {
+                        djs[userIndex].password = password; // Should be hashed in production
+                    }
+                    localStorage.setItem('dj_users', JSON.stringify(djs));
+                    showMessage(`DJ user "${username}" updated successfully!`, 'success');
+                } else {
+                    const admins = getAllAdmins();
+                    const userIndex = admins.findIndex(u => u.username === originalUsername);
+                    if (userIndex === -1) {
+                        showMessage('User not found.', 'error');
+                        return;
+                    }
+
+                    // Don't allow editing super user
+                    if (admins[userIndex].isSuperUser) {
+                        showMessage('Cannot edit super user.', 'error');
+                        return;
+                    }
+
+                    // Check if username or email is changed and conflicts with another user
+                    if (username !== originalUsername || email !== admins[userIndex].email) {
+                        if (admins.find(u => u.username !== originalUsername && (u.username === username || u.email === email))) {
+                            showMessage('Username or email already exists.', 'error');
+                            return;
+                        }
+                    }
+
+                    // Update admin user
+                    admins[userIndex].username = username;
+                    admins[userIndex].email = email;
+                    if (password) {
+                        admins[userIndex].password = password; // Should be hashed in production
+                    }
+                    localStorage.setItem('admin_users', JSON.stringify(admins));
+                    showMessage(`Admin user "${username}" updated successfully!`, 'success');
                 }
 
-                // Create DJ user
-                const newDJ = {
-                    username: username,
-                    email: email,
-                    password: password, // Should be hashed in production
-                    createdAt: new Date().toISOString()
-                };
-                djs.push(newDJ);
-                localStorage.setItem('dj_users', JSON.stringify(djs));
-                showMessage(`DJ user "${username}" created successfully!`, 'success');
+                // Cancel edit mode
+                cancelEdit();
             } else {
-                const admins = getAllAdmins();
-                if (admins.find(u => u.username === username || u.email === email)) {
-                    showMessage('Username or email already exists.', 'error');
-                    return;
+                // Create new user
+                if (userType === 'dj') {
+                    const djs = getAllDJs();
+                    if (djs.find(u => u.username === username || u.email === email)) {
+                        showMessage('Username or email already exists.', 'error');
+                        return;
+                    }
+
+                    // Create DJ user
+                    const newDJ = {
+                        username: username,
+                        email: email,
+                        password: password, // Should be hashed in production
+                        createdAt: new Date().toISOString()
+                    };
+                    djs.push(newDJ);
+                    localStorage.setItem('dj_users', JSON.stringify(djs));
+                    showMessage(`DJ user "${username}" created successfully!`, 'success');
+                } else {
+                    const admins = getAllAdmins();
+                    if (admins.find(u => u.username === username || u.email === email)) {
+                        showMessage('Username or email already exists.', 'error');
+                        return;
+                    }
+
+                    // Create admin user
+                    const newAdmin = {
+                        username: username,
+                        email: email,
+                        password: password, // Should be hashed in production
+                        isSuperUser: false, // Only first admin is super user
+                        createdAt: new Date().toISOString()
+                    };
+                    admins.push(newAdmin);
+                    localStorage.setItem('admin_users', JSON.stringify(admins));
+                    showMessage(`Admin user "${username}" created successfully!`, 'success');
                 }
 
-                // Create admin user
-                const newAdmin = {
-                    username: username,
-                    email: email,
-                    password: password, // Should be hashed in production
-                    isSuperUser: false, // Only first admin is super user
-                    createdAt: new Date().toISOString()
-                };
-                admins.push(newAdmin);
-                localStorage.setItem('admin_users', JSON.stringify(admins));
-                showMessage(`Admin user "${username}" created successfully!`, 'success');
+                // Reset form
+                document.getElementById('create-user-form').reset();
             }
-
-            // Reset form
-            document.getElementById('create-user-form').reset();
 
             // Reload users list
             loadAllUsers();
         });
+        
+        // Edit user function
+        function editUser(userType, username) {
+            let user;
+            if (userType === 'dj') {
+                const djs = getAllDJs();
+                user = djs.find(u => u.username === username);
+            } else {
+                const admins = getAllAdmins();
+                user = admins.find(u => u.username === username);
+            }
+
+            if (!user) {
+                showMessage('User not found.', 'error');
+                return;
+            }
+
+            // Populate form with user data
+            document.getElementById('edit-mode').value = 'true';
+            document.getElementById('edit-original-username').value = username;
+            document.getElementById('edit-original-usertype').value = userType;
+            document.getElementById('new-username').value = user.username;
+            document.getElementById('new-email').value = user.email;
+            document.getElementById('new-password').value = ''; // Don't populate password
+            document.getElementById('new-user-type').value = userType;
+            document.getElementById('new-password').required = false;
+            document.getElementById('password-hint').style.display = 'block';
+            
+            // Update form UI
+            document.getElementById('user-form-title').textContent = 'Edit User';
+            document.getElementById('submit-user-button').textContent = 'Save Changes';
+            document.getElementById('submit-user-button').style.background = 'var(--accent-color)';
+            document.getElementById('cancel-edit-button').style.display = 'block';
+            
+            // Disable user type selection when editing
+            document.getElementById('new-user-type').disabled = true;
+
+            // Scroll to form
+            document.querySelector('#create-user-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Cancel edit function
+        function cancelEdit() {
+            document.getElementById('create-user-form').reset();
+            document.getElementById('edit-mode').value = 'false';
+            document.getElementById('edit-original-username').value = '';
+            document.getElementById('edit-original-usertype').value = '';
+            document.getElementById('new-password').required = true;
+            document.getElementById('password-hint').style.display = 'none';
+            document.getElementById('user-form-title').textContent = 'Create New User';
+            document.getElementById('submit-user-button').textContent = 'Create User';
+            document.getElementById('submit-user-button').style.background = 'var(--admin-color)';
+            document.getElementById('cancel-edit-button').style.display = 'none';
+            document.getElementById('new-user-type').disabled = false;
+        }
 
         function showMessage(message, type) {
             const messageDiv = document.getElementById('create-user-message');
@@ -627,7 +867,12 @@
                                 ${admin.email} • Created: ${new Date(admin.createdAt).toLocaleDateString()}
                             </div>
                         </div>
-                        ${!admin.isSuperUser ? `<button onclick="deleteUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>` : ''}
+                        <div style="display: flex; gap: 0.5rem;">
+                            ${!admin.isSuperUser ? `
+                                <button onclick="editUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                <button onclick="deleteUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -649,7 +894,10 @@
                                     ${dj.email} • Created: ${new Date(dj.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
-                            <button onclick="deleteUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="editUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                <button onclick="deleteUser('dj', '${dj.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -684,6 +932,23 @@
             // TODO: Fetch from backend API
             // For now, use sample data from localStorage
             return JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+        }
+
+        // Delete a project/booking
+        function deleteProject(projectId) {
+            if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                return;
+            }
+
+            const bookings = getAllBookings();
+            const filteredBookings = bookings.filter(b => b.id !== projectId);
+            localStorage.setItem('dj_bookings', JSON.stringify(filteredBookings));
+
+            // Refresh the table
+            filterAllBookings();
+            
+            // Also refresh the DJ stats
+            loadAllDJs();
         }
 
         // Get all blocked dates
@@ -723,7 +988,7 @@
                             <div class="dj-stats">
                                 <span>📅 ${upcomingBookings.length} Upcoming</span>
                                 <span>🚫 ${djBlocked.length} Blocked</span>
-                                <span>📋 ${djBookings.length} Total Bookings</span>
+                                <span>📋 ${djBookings.length} Total Projects</span>
                             </div>
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem;">
@@ -734,46 +999,121 @@
                 `;
             }).join('');
 
-            // Populate DJ filter dropdowns
+            // Populate calendar filter dropdown (bookings filter is populated from bookings in filterAllBookings)
             const djOptions = djs.map(dj => `<option value="${dj.username}">${dj.username}</option>`).join('');
-            document.getElementById('booking-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
             document.getElementById('calendar-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
+        }
+
+        // Sort state
+        let sortState = {
+            column: null,
+            direction: 'asc' // 'asc' or 'desc'
+        };
+
+        // Sort table function
+        function sortTable(column) {
+            // If clicking the same column, toggle direction; otherwise, set to ascending
+            if (sortState.column === column) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.direction = 'asc';
+            }
+            
+            // Update visual indicators
+            document.querySelectorAll('.bookings-table th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.column === column) {
+                    th.classList.add(sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
+            
+            // Re-filter and display
+            filterAllBookings();
         }
 
         // Filter and display all bookings
         function filterAllBookings() {
             const bookings = getAllBookings();
             const selectedDJ = document.getElementById('booking-filter-dj').value;
-            const selectedStatus = document.getElementById('booking-filter-status').value;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+
+            // Populate DJ dropdown with unique DJs from bookings
+            const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
+            const djSelect = document.getElementById('booking-filter-dj');
+            const currentValue = djSelect.value;
+            djSelect.innerHTML = '<option value="">All DJs</option>' + 
+                uniqueDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+            // Restore selected value
+            if (currentValue) {
+                djSelect.value = currentValue;
+            }
 
             let filteredBookings = bookings;
+            
+            // Apply DJ filter (dropdown)
             if (selectedDJ) {
                 filteredBookings = filteredBookings.filter(b => b.djUser === selectedDJ);
             }
-            if (selectedStatus === 'upcoming') {
-                filteredBookings = filteredBookings.filter(b => new Date(b.date) >= today);
-            } else if (selectedStatus === 'past') {
-                filteredBookings = filteredBookings.filter(b => new Date(b.date) < today);
+
+            // Apply sorting
+            if (sortState.column) {
+                filteredBookings.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    switch(sortState.column) {
+                        case 'dj':
+                            aValue = (a.djUser || 'Unassigned').toLowerCase();
+                            bValue = (b.djUser || 'Unassigned').toLowerCase();
+                            break;
+                        case 'date':
+                            // Parse dates for comparison
+                            const aDateParts = a.date.split('-');
+                            const bDateParts = b.date.split('-');
+                            aValue = new Date(parseInt(aDateParts[0], 10), parseInt(aDateParts[1], 10) - 1, parseInt(aDateParts[2], 10)).getTime();
+                            bValue = new Date(parseInt(bDateParts[0], 10), parseInt(bDateParts[1], 10) - 1, parseInt(bDateParts[2], 10)).getTime();
+                            break;
+                        case 'project':
+                            aValue = (a.eventType || '').toLowerCase();
+                            bValue = (b.eventType || '').toLowerCase();
+                            break;
+                        case 'location':
+                            aValue = (a.location || '').toLowerCase();
+                            bValue = (b.location || '').toLowerCase();
+                            break;
+                        case 'payout':
+                            aValue = parseFloat(a.payout || 0);
+                            bValue = parseFloat(b.payout || 0);
+                            break;
+                        default:
+                            return 0;
+                    }
+                    
+                    if (aValue < bValue) return sortState.direction === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortState.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
             }
 
             const container = document.getElementById('all-bookings-container');
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<tr><td colspan="8" class="empty-state">No bookings found</td></tr>';
+                container.innerHTML = '<tr><td colspan="6" class="empty-state">No projects found</td></tr>';
                 return;
             }
 
-            container.innerHTML = filteredBookings.map(booking => {
-                const bookingDate = new Date(booking.date);
-                const isUpcoming = bookingDate >= today;
-                const formattedDate = bookingDate.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric' 
-                });
+            // Date formatting helper function - formats date as mm-dd-yyyy
+            function formatDateMMDDYYYY(dateStr) {
+                if (!dateStr) return '';
+                const dateParts = dateStr.split('-');
+                if (dateParts.length === 3) {
+                    return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+                }
+                return dateStr;
+            }
 
+            container.innerHTML = filteredBookings.map(booking => {
+                const formattedDate = formatDateMMDDYYYY(booking.date);
+                
                 // Format payout - remove any existing $ signs and add one
                 let formattedPayout = '-';
                 if (booking.payout) {
@@ -785,17 +1125,451 @@
 
                 return `
                     <tr>
-                        <td>${formattedDate}</td>
                         <td>${booking.djUser || 'Unassigned'}</td>
-                        <td>${booking.clientName}</td>
+                        <td>${formattedDate}</td>
                         <td>${booking.eventType}</td>
-                        <td>${booking.time}</td>
                         <td>${booking.location}</td>
                         <td>${formattedPayout}</td>
-                        <td><span class="badge ${isUpcoming ? 'badge-upcoming' : 'badge-past'}">${isUpcoming ? 'Upcoming' : 'Past'}</span></td>
+                        <td>
+                            <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
+                                Delete
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        // CSV Import function
+        function importCSVBookings() {
+            const fileInput = document.getElementById('csv-file-input');
+            const file = fileInput.files[0];
+            const messageEl = document.getElementById('csv-import-message');
+            
+            // Helper function to show CSV import messages
+            function showCSVMessage(message, type) {
+                messageEl.textContent = message;
+                messageEl.style.display = 'inline';
+                messageEl.style.color = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+            }
+            
+            if (!file) {
+                showCSVMessage('Please select a CSV file to import.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let csv = e.target.result;
+                    
+                    // Remove BOM (Byte Order Mark) if present
+                    if (csv.charCodeAt(0) === 0xFEFF) {
+                        csv = csv.slice(1);
+                    }
+                    
+                    // Handle different line endings (Windows \r\n, Mac \r, Unix \n)
+                    const lines = csv.split(/\r?\n|\r/).filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        showCSVMessage('CSV file must have at least a header row and one data row.', 'error');
+                        return;
+                    }
+                    
+                    console.log('First line of CSV:', JSON.stringify(lines[0]));
+                    console.log('First 3 lines:', lines.slice(0, 3));
+                    
+                    // Parse header row - try multiple methods
+                    let headerValues = [];
+                    let headers = [];
+                    
+                    // Method 1: Try proper CSV parsing (handles quoted values)
+                    try {
+                        headerValues = parseCSVLine(lines[0]);
+                        headers = headerValues.map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
+                    } catch (e) {
+                        console.warn('CSV parsing failed, trying simple split:', e);
+                    }
+                    
+                    // Method 2: If that fails or returns empty, try simple comma split
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        console.log('Trying simple comma split for headers');
+                        headerValues = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+                        headers = headerValues.map(h => h.toLowerCase());
+                    }
+                    
+                    // Method 3: Try tab-separated (TSV)
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        console.log('Trying tab-separated for headers');
+                        headerValues = lines[0].split('\t').map(h => h.trim().replace(/^["']|["']$/g, ''));
+                        headers = headerValues.map(h => h.toLowerCase());
+                    }
+                    
+                    // Method 4: Try semicolon-separated (common in European Excel exports)
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        console.log('Trying semicolon-separated for headers');
+                        headerValues = lines[0].split(';').map(h => h.trim().replace(/^["']|["']$/g, ''));
+                        headers = headerValues.map(h => h.toLowerCase());
+                    }
+                                                        
+                    console.log('CSV Headers (parsed):', headers);
+                    console.log('CSV Headers (raw, cleaned):', headerValues);
+                    
+                    // Check if headers are empty
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        showCSVMessage(`Could not parse CSV headers. First line of file: "${lines[0].substring(0, 200)}...". Please ensure the first row contains column names: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        return;
+                    }
+                    
+                    // Store the separator for use in data parsing
+                    let csvSeparator = ',';
+                    if (lines[0].includes('\t') && !lines[0].includes(',')) {
+                        csvSeparator = '\t';
+                    } else if (lines[0].includes(';') && !lines[0].includes(',')) {
+                        csvSeparator = ';';
+                    }
+                    console.log('Detected CSV separator:', csvSeparator);
+                    
+                    // Find column indices (flexible matching) - be more specific to avoid wrong matches
+                    const djNameIndex = findColumnIndex(headers, ['dj name', 'djname']);
+                    const dateIndex = findColumnIndex(headers, ['date of project', 'date of project', 'date']);
+                    const projectNameIndex = findColumnIndex(headers, ['project name', 'projectname', 'project']);
+                    const locationIndex = findColumnIndex(headers, ['location for venue', 'location', 'venue location']);
+                    const payoutIndex = findColumnIndex(headers, ['payout']);
+                    
+                    console.log('Column indices:', { 
+                        djNameIndex, 
+                        dateIndex, 
+                        projectNameIndex, 
+                        locationIndex, 
+                        payoutIndex,
+                        'All headers': headerValues,
+                        'headers found': {
+                            djName: dateIndex !== -1 ? headerValues[djNameIndex] : 'NOT FOUND',
+                            date: dateIndex !== -1 ? headerValues[dateIndex] : 'NOT FOUND',
+                            projectName: projectNameIndex !== -1 ? headerValues[projectNameIndex] : 'NOT FOUND',
+                            location: locationIndex !== -1 ? headerValues[locationIndex] : 'NOT FOUND',
+                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND'
+                        }
+                    });
+                    
+                    if (djNameIndex === -1 || dateIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
+                        const missing = [];
+                        if (djNameIndex === -1) missing.push('DJ Name');
+                        if (dateIndex === -1) missing.push('Date of Project');
+                        if (projectNameIndex === -1) missing.push('Project name');
+                        if (locationIndex === -1) missing.push('Location for venue');
+                        
+                        showCSVMessage(`CSV is missing required columns: ${missing.join(', ')}. Found headers: "${headerValues.join('", "')}". Please ensure your CSV has columns: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        return;
+                    }
+                    
+                    // Create a helper function that uses the detected separator
+                    function parseRow(line) {
+                        if (csvSeparator === '\t') {
+                            return line.split('\t').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                        } else if (csvSeparator === ';') {
+                            return line.split(';').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                        } else {
+                            // Try proper CSV parsing first for comma-separated
+                            try {
+                                return parseCSVLine(line);
+                            } catch (e) {
+                                // Fallback to simple split
+                                return line.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                            }
+                        }
+                    }
+                    
+                    // Validate that the date column actually looks like it contains dates by checking first few data rows
+                    let dateColumnValid = false;
+                    let sampleDateValue = '';
+                    for (let i = 1; i < Math.min(4, lines.length); i++) {
+                        const testValues = parseRow(lines[i]);
+                        if (testValues.length > dateIndex && testValues[dateIndex]) {
+                            const testDate = testValues[dateIndex].trim();
+                            sampleDateValue = testDate;
+                            // Check if it looks like a date (contains numbers and separators)
+                            if (/\d/.test(testDate) && (/[\/\-\.]/.test(testDate) || /^\d{4}/.test(testDate))) {
+                                dateColumnValid = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!dateColumnValid) {
+                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex] || 'empty'}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        return;
+                    }
+                    
+                    // Parse data rows
+                    const existingBookings = getAllBookings();
+                    const newBookings = [];
+                    let importedCount = 0;
+                    let skippedCount = 0;
+                    const skipReasons = {
+                        notEnoughColumns: 0,
+                        missingFields: 0,
+                        invalidDate: 0,
+                        duplicate: 0
+                    };
+                    const invalidDateExamples = []; // Store examples of invalid dates
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = parseRow(lines[i]);
+                        console.log(`Row ${i}:`, values);
+                        
+                        if (values.length < Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1) {
+                            console.log(`Row ${i} skipped: Not enough columns (${values.length} found, need at least ${Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1})`);
+                            skipReasons.notEnoughColumns++;
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        const djName = values[djNameIndex] ? values[djNameIndex].trim() : '';
+                        const dateStr = values[dateIndex] ? values[dateIndex].trim() : '';
+                        const projectName = values[projectNameIndex] ? values[projectNameIndex].trim() : '';
+                        const location = values[locationIndex] ? values[locationIndex].trim() : '';
+                        const payout = payoutIndex !== -1 && values[payoutIndex] ? values[payoutIndex].trim() : '';
+                        
+                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payout });
+                        
+                        if (!djName || !dateStr || !projectName || !location) {
+                            const missingFields = [];
+                            if (!djName) missingFields.push('DJ Name');
+                            if (!dateStr) missingFields.push('Date');
+                            if (!projectName) missingFields.push('Project Name');
+                            if (!location) missingFields.push('Location');
+                            console.log(`Row ${i} skipped: Missing required fields: ${missingFields.join(', ')}`);
+                            skipReasons.missingFields++;
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        // Convert date to YYYY-MM-DD format
+                        const formattedDate = convertDateToYYYYMMDD(dateStr);
+                        if (!formattedDate) {
+                            const errorMsg = `Row ${i} skipped: Could not parse date "${dateStr}". Please use formats like: MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, YYYY-MM-DD, or standard date strings.`;
+                            console.error(errorMsg);
+                            console.error(`  Raw date value:`, JSON.stringify(dateStr));
+                            // Store first 3 examples for error message
+                            if (invalidDateExamples.length < 3) {
+                                invalidDateExamples.push(`"${dateStr}"`);
+                            }
+                            skipReasons.invalidDate++;
+                            skippedCount++;
+                            continue;
+                        }
+                        console.log(`Row ${i} date "${dateStr}" parsed to "${formattedDate}"`);
+                        
+                        // Check if booking already exists (same DJ, date, and project name)
+                        const exists = existingBookings.some(b => 
+                            b.djUser === djName && 
+                            b.date === formattedDate && 
+                            b.eventType === projectName
+                        );
+                        
+                        if (exists) {
+                            console.log(`Row ${i} skipped: Duplicate entry (already exists)`);
+                            skipReasons.duplicate++;
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        // Create booking object
+                        const booking = {
+                            id: Date.now() + i, // Simple ID generation
+                            djUser: djName,
+                            date: formattedDate,
+                            eventType: projectName,
+                            location: location,
+                            clientName: projectName, // Use project name as client name if no separate field
+                            payout: payout || '',
+                            time: '', // Not in CSV, leave empty
+                            contactEmail: '',
+                            contactPhone: '',
+                            notes: payout ? `Payout: ${payout}` : ''
+                        };
+                        
+                        newBookings.push(booking);
+                        importedCount++;
+                        console.log(`Row ${i} imported successfully:`, booking);
+                    }
+                    
+                    console.log(`Import complete: ${importedCount} imported, ${skippedCount} skipped`);
+                    console.log('Skip reasons:', skipReasons);
+                    
+                    // Merge with existing bookings
+                    const allBookings = [...existingBookings, ...newBookings];
+                    localStorage.setItem('dj_bookings', JSON.stringify(allBookings));
+                    console.log('Total bookings in localStorage:', allBookings.length);
+                    
+                    // Build detailed error message
+                    let errorDetails = [];
+                    if (skipReasons.notEnoughColumns > 0) errorDetails.push(`${skipReasons.notEnoughColumns} row(s) with not enough columns`);
+                    if (skipReasons.missingFields > 0) errorDetails.push(`${skipReasons.missingFields} row(s) with missing required fields`);
+                    if (skipReasons.invalidDate > 0) errorDetails.push(`${skipReasons.invalidDate} row(s) with invalid date format`);
+                    if (skipReasons.duplicate > 0) errorDetails.push(`${skipReasons.duplicate} duplicate row(s)`);
+                    
+                    // Show success message
+                    if (importedCount > 0) {
+                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skippedCount > 0 ? `. Skipped: ${errorDetails.join(', ')}.` : ''}.`, 'success');
+                        
+                        // Clear file input
+                        fileInput.value = '';
+                        
+                        // Refresh displays
+                        filterAllBookings();
+                        loadAllDJs();
+                        
+                        // Hide message after 5 seconds
+                        setTimeout(() => {
+                            messageEl.style.display = 'none';
+                        }, 5000);
+                    } else {
+                        let errorMsg = `No projects imported. Skipped ${skippedCount} row(s). ${errorDetails.length > 0 ? 'Reasons: ' + errorDetails.join(', ') + '.' : ''}`;
+                        
+                        // Add examples of invalid dates if any
+                        if (invalidDateExamples.length > 0) {
+                            errorMsg += ` Example invalid dates: ${invalidDateExamples.join(', ')}. Please use formats like MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, or YYYY-MM-DD.`;
+                        } else {
+                            errorMsg += ' Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout';
+                        }
+                        
+                        showCSVMessage(errorMsg, 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('CSV import error:', error);
+                    showCSVMessage('Error importing CSV file: ' + error.message, 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showCSVMessage('Error reading CSV file.', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Helper function to find column index (case-insensitive, flexible matching)
+        function findColumnIndex(headers, possibleNames) {
+            // First try exact matches (case-insensitive)
+            for (const name of possibleNames) {
+                const nameLower = name.toLowerCase();
+                const exactIndex = headers.findIndex(h => h.toLowerCase() === nameLower);
+                if (exactIndex !== -1) return exactIndex;
+            }
+            
+            // Then try contains matches (but be more careful - prefer longer matches)
+            for (const name of possibleNames.sort((a, b) => b.length - a.length)) {
+                const nameLower = name.toLowerCase();
+                const index = headers.findIndex(h => {
+                    const hLower = h.toLowerCase();
+                    // Check if header contains the name or vice versa
+                    return hLower.includes(nameLower) || nameLower.includes(hLower);
+                });
+                if (index !== -1) return index;
+            }
+            
+            return -1;
+        }
+        
+        // Parse CSV line handling quoted values
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++; // Skip next quote
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim()); // Add last field
+            return result;
+        }
+        
+        // Convert various date formats to YYYY-MM-DD
+        function convertDateToYYYYMMDD(dateStr) {
+            if (!dateStr) return null;
+            
+            // Clean the date string (remove extra spaces, quotes, etc.)
+            dateStr = dateStr.trim().replace(/["']/g, '');
+            
+            // Try parsing as ISO format first (YYYY-MM-DD)
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                return dateStr;
+            }
+            
+            // Try MM/DD/YYYY or M/D/YYYY format
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+                const parts = dateStr.split('/');
+                const month = parts[0].padStart(2, '0');
+                const day = parts[1].padStart(2, '0');
+                const year = parts[2];
+                // Validate the date by creating it and checking if it's valid
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (date.getFullYear() == year && date.getMonth() == parseInt(month) - 1 && date.getDate() == parseInt(day)) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            
+            // Try MM-DD-YYYY or M-D-YYYY format (but not YYYY-MM-DD which we already handled)
+            if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
+                const parts = dateStr.split('-');
+                const month = parts[0].padStart(2, '0');
+                const day = parts[1].padStart(2, '0');
+                const year = parts[2];
+                // Validate the date
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (date.getFullYear() == year && date.getMonth() == parseInt(month) - 1 && date.getDate() == parseInt(day)) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            
+            // Try YYYY/MM/DD format
+            if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(dateStr)) {
+                const parts = dateStr.split('/');
+                const year = parts[0];
+                const month = parts[1].padStart(2, '0');
+                const day = parts[2].padStart(2, '0');
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (date.getFullYear() == year && date.getMonth() == parseInt(month) - 1 && date.getDate() == parseInt(day)) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            
+            // Try various other date formats using Date constructor
+            // This will handle formats like "Jan 1, 2024", "January 1, 2024", etc.
+            const date = new Date(dateStr);
+            
+            // Check if date is valid
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                
+                // Validate that the parsed date makes sense (not too far in past/future)
+                if (year >= 1900 && year <= 2100) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            
+            return null;
         }
 
         // Generate master calendar
@@ -874,7 +1648,7 @@
             calendarHTML += `
                 <div style="margin-top: 2rem; display: flex; gap: 2rem; font-size: 0.9rem;">
                     <div><span style="background: var(--warning-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">🚫</span> Blocked</div>
-                    <div><span style="background: var(--success-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">📅</span> Booking</div>
+                    <div><span style="background: var(--success-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">📅</span> Project</div>
                     <div><span style="background: var(--accent-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">Today</span></div>
                 </div>
             `;

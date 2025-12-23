@@ -333,24 +333,18 @@
 
         /* Calendar Widgets Container */
         .calendars-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
+            display: flex;
+            justify-content: center;                                            
             margin-bottom: 2rem;
-        }
-
-        @media (max-width: 1200px) {
-            .calendars-container {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Visual Calendar Widget */
         .calendar-widget {
             background: var(--bg-light);
-            border-radius: 10px;
-            padding: 0.75rem;
-            max-width: 400px;
+            border-radius: 16.12px;
+            padding: 1.21rem;
+            max-width: 645px;
+            margin-bottom: 2rem;
         }
 
         .calendar-widget-header {
@@ -362,18 +356,18 @@
 
         .calendar-widget-header h3 {
             color: var(--primary-color);
-            font-size: 0.9rem;
+            font-size: 1.24rem;
         }
 
         .calendar-nav-btn {
             background: var(--accent-color);
             color: var(--secondary-color);
             border: none;
-            border-radius: 5px;
-            padding: 0.25rem 0.5rem;
+            border-radius: 6.88px;
+            padding: 0.34rem 0.69rem;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.75rem;
+            font-size: 1.03rem;
             transition: background 0.3s ease;
         }
 
@@ -384,15 +378,15 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 0.25rem;
+            gap: 0.34rem;
         }
 
         .calendar-day-header {
             text-align: center;
             font-weight: bold;
             color: var(--text-light);
-            padding: 0.25rem;
-            font-size: 0.65rem;
+            padding: 0.34rem;
+            font-size: 0.89rem;
         }
 
         .calendar-day {
@@ -436,14 +430,14 @@
         }
 
         .calendar-day-number {
-            font-size: 0.65rem;
+            font-size: 0.89rem;
         }
 
         .calendar-day-indicator {
-            width: 4px;
-            height: 4px;
+            width: 5.5px;
+            height: 5.5px;
             border-radius: 50%;
-            margin-top: 1px;
+            margin-top: 1.38px;
         }
 
         .calendar-day.blocked .calendar-day-indicator {
@@ -503,12 +497,21 @@
         }
 
         .btn-danger {
-            background: var(--error-color);
+            background: #dc3545;
             color: var(--secondary-color);
         }
 
         .btn-danger:hover {
             background: #c82333;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+            color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background: #555;
         }
 
         /* Blocked Dates List */
@@ -540,6 +543,12 @@
             flex: 1;
         }
 
+        .blocked-date-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
         .date-badge {
             padding: 0.25rem 0.75rem;
             background: var(--primary-color);
@@ -549,7 +558,7 @@
             font-weight: bold;
         }
 
-        /* Bookings Section */
+        /* Projects Section */
         .bookings-section {
             background: var(--secondary-color);
             border-radius: 10px;
@@ -988,40 +997,15 @@
                 </div>
             </div>
             
-            <!-- Visual Calendar Widgets - Current Month + 2 Months Ahead -->
+            <!-- Visual Calendar Widget -->
             <div class="calendars-container">
-                <!-- Current Month Calendar -->
                 <div class="calendar-widget">
                     <div class="calendar-widget-header">
                         <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
-                        <h3 id="calendar-month-year-0">January 2025</h3>
+                        <h3 id="calendar-month-year">January 2025</h3>
                         <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
                     </div>
-                    <div id="calendar-grid-container-0">
-                        <!-- Calendar grid will be generated here -->
-                    </div>
-                </div>
-
-                <!-- Next Month Calendar -->
-                <div class="calendar-widget">
-                    <div class="calendar-widget-header">
-                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
-                        <h3 id="calendar-month-year-1">February 2025</h3>
-                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
-                    </div>
-                    <div id="calendar-grid-container-1">
-                        <!-- Calendar grid will be generated here -->
-                    </div>
-                </div>
-
-                <!-- Month +2 Calendar -->
-                <div class="calendar-widget">
-                    <div class="calendar-widget-header">
-                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
-                        <h3 id="calendar-month-year-2">March 2025</h3>
-                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
-                    </div>
-                    <div id="calendar-grid-container-2">
+                    <div id="calendar-grid-container">
                         <!-- Calendar grid will be generated here -->
                     </div>
                 </div>
@@ -1041,10 +1025,10 @@
             </div>
         </div>
 
-        <!-- Bookings Section - Always Visible -->
+        <!-- Projects Section - Always Visible -->
         <div class="bookings-section">
             <div class="bookings-header">
-                <h2>Current Bookings</h2>
+                <h2>Current Projects</h2>
                 <div class="bookings-filter">
                     <button class="filter-btn active" onclick="filterBookings('all')">All</button>
                     <button class="filter-btn" onclick="filterBookings('upcoming')">Upcoming</button>
@@ -1052,7 +1036,7 @@
                 </div>
             </div>
             <div id="bookings-container" class="bookings-list">
-                <!-- Bookings will be populated here -->
+                <!-- Projects will be populated here -->
             </div>
         </div>
 
@@ -1298,7 +1282,7 @@
             return `${month}-${day}-${year}`;
         }
         
-        // Initialize calendar picker - disable click to open, only allow selection from visual calendar
+        // Initialize calendar picker - format as mm-dd-yyyy
         const datePicker = flatpickr("#block-date", {
             dateFormat: "m-d-Y",
             minDate: "today",
@@ -1541,12 +1525,10 @@
 
             // Convert mm-dd-yyyy to YYYY-MM-DD for storage (standard format)
             const dateParts = date.split('-');
-            const dateForStorage = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`;
-            date = dateForStorage; // Use converted date for storage
+            date = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Convert to YYYY-MM-DD
 
             // Sanitize reason input
             const sanitizedReason = sanitizeInput(reason) || 'No reason provided';
-
             // TODO: Send to backend API
             // For now, store in localStorage
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
@@ -1567,7 +1549,7 @@
             
             logSecurityEvent('block_date', { date: date });
 
-            // Update calendar picker to disable blocked date
+            // Update calendar picker to disable blocked date (date is now in YYYY-MM-DD format)
             const fp = flatpickr("#block-date");
             fp.config.disable.push(date);
             fp.set('disable', fp.config.disable);
@@ -1591,7 +1573,12 @@
             }
 
             container.innerHTML = blockedDates.map(item => {
-                const dateObj = new Date(item.date);
+                // Parse date string to avoid timezone issues
+                const dateParts = item.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const dateObj = new Date(year, month, day);
                 const formattedDate = formatDateMMDDYYYY(dateObj);
                 // Sanitize date and reason to prevent XSS
                 const safeDate = escapeHtml(item.date);
@@ -1601,15 +1588,50 @@
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
                             <span class="date-badge">${safeFormattedDate}</span>
-                            ${safeReason ? `<div style="color: var(--text-dark); font-size: 0.95rem; text-align: left;">${safeReason}</div>` : ''}
+                            ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
                         </div>
-                        <button class="btn btn-danger" onclick="unblockDate('${safeDate}')">Unblock</button>
+                        <div class="blocked-date-actions">
+                            <button class="btn btn-secondary" onclick="editBlockedDate('${safeDate}')">Edit</button>
+                            <button class="btn btn-danger" onclick="unblockDate('${safeDate}')">Remove</button>
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Unblock date - Enhanced with security
+        // Edit blocked date
+        function editBlockedDate(date) {
+            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+            const blockedDate = blockedDates.find(item => item.date === date);
+            
+            if (!blockedDate) return;
+
+            // Pre-populate the form with existing values
+            // Convert YYYY-MM-DD to mm-dd-yyyy for display
+            const dateParts = blockedDate.date.split('-');
+            const formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+            document.getElementById('block-date').value = formattedDate;
+            document.getElementById('block-reason').value = blockedDate.reason || '';
+            
+            // Remove the old blocked date (will be re-added when form is submitted)
+            const filtered = blockedDates.filter(item => item.date !== date);
+            localStorage.setItem('blocked_dates', JSON.stringify(filtered));
+            
+            // Update calendar picker to remove the old date
+            const fp = flatpickr("#block-date");
+            fp.config.disable = fp.config.disable.filter(d => d !== date);
+            fp.set('disable', fp.config.disable);
+
+            // Refresh display and calendar
+            displayBlockedDates();
+            generateCalendar();
+            
+            // Scroll to the form
+            document.getElementById('block-date-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('block-date').focus();
+        }
+
+        // Remove blocked date - Enhanced with security
         function unblockDate(date) {
             // Validate token before allowing action
             if (!validateToken()) {
@@ -1622,7 +1644,7 @@
                 return;
             }
             
-            if (!confirm('Are you sure you want to unblock date?')) return;
+            if (!confirm('Are you sure you want to remove this blocked date?')) return;
 
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
             const filtered = blockedDates.filter(item => item.date !== date);
@@ -1738,11 +1760,18 @@
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy for display
-            const dateObj = new Date(dateStr + 'T00:00:00'); // Add time to avoid timezone issues
-            const formattedDate = formatDateMMDDYYYY(dateObj);
+            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy
+            // Parse directly from string to avoid any timezone conversion issues
+            const dateParts = dateStr.split('-');
+            const year = dateParts[0];
+            const month = dateParts[1];
+            const day = dateParts[2];
+            
+            // Format as mm-dd-yyyy directly without Date object conversion
+            const formattedDate = `${month}-${day}-${year}`;
+            
+            // Set the input value directly - don't use flatpickr.setDate as it may cause date conversion issues
             document.getElementById('block-date').value = formattedDate;
-            datePicker.setDate(dateStr, false); // false = don't trigger onChange, dateStr is YYYY-MM-DD for flatpickr
         }
 
         // Load bookings
@@ -1790,20 +1819,45 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            let filteredBookings = bookings;
+            // Filter bookings by current DJ's username
+            const currentUsername = localStorage.getItem('dj_user');
+            let filteredBookings = bookings.filter(b => b.djUser === currentUsername || !b.djUser);
+            
             if (filter === 'upcoming') {
-                filteredBookings = bookings.filter(b => new Date(b.date) >= today);
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const bookingDate = new Date(year, month, day);
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate >= today;
+                });
             } else if (filter === 'past') {
-                filteredBookings = bookings.filter(b => new Date(b.date) < today);
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const bookingDate = new Date(year, month, day);
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate < today;
+                });
             }
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>No bookings found</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>No projects found</p></div>';
                 return;
             }
 
             container.innerHTML = filteredBookings.map(booking => {
-                const bookingDate = new Date(booking.date);
+                // Parse date string to avoid timezone issues
+                const dateParts = booking.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const bookingDate = new Date(year, month, day);
+                bookingDate.setHours(0, 0, 0, 0);
                 const isUpcoming = bookingDate >= today;
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
                 const showReminder = isUpcoming && daysUntil <= 14;
@@ -1841,6 +1895,12 @@
                                 <span class="booking-detail-label">Location</span>
                                 <span class="booking-detail-value">${safeLocation}</span>
                             </div>
+                            ${booking.payout ? `
+                            <div class="booking-detail-item">
+                                <span class="booking-detail-label">Payout</span>
+                                <span class="booking-detail-value" style="color: var(--success-color); font-weight: bold;">$${booking.payout}</span>
+                            </div>
+                            ` : ''}
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Contact</span>
                                 <span class="booking-detail-value">${safeEmail}<br>${safePhone}</span>
@@ -1923,7 +1983,17 @@
             reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
             
             container.innerHTML = reviews.map(review => {
-                const reviewDate = new Date(review.date);
+                // Parse date string to avoid timezone issues
+                let reviewDate;
+                if (typeof review.date === 'string' && review.date.includes('-')) {
+                    const dateParts = review.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    reviewDate = new Date(year, month, day);
+                } else {
+                    reviewDate = new Date(review.date);
+                }
                 const formattedDate = formatDateMMDDYYYY(reviewDate);
                 
                 // Generate star rating display
