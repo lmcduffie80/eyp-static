@@ -62,20 +62,6 @@
             z-index: 100;
         }
 
-        .sidebar-logo {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: opacity 0.2s ease;
-        }
-
-        .sidebar-logo:hover {
-            opacity: 0.8;
-        }
-
         .sidebar-nav {
             list-style: none;
             padding: 0;
@@ -553,9 +539,12 @@
     <div class="dashboard-wrapper">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
-            <div class="sidebar-logo" onclick="switchTab('djs')">
-            </div>
             <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link active" onclick="switchTab('djs')" id="nav-djs">
+                        <span>Home</span>
+                    </a>
+                </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="switchTab('bookings')" id="nav-bookings">
                         <span>Projects</span>
@@ -569,12 +558,6 @@
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="switchTab('calendar')" id="nav-calendar">
                         <span>Calendar</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a class="sidebar-nav-link">
-                        <span>Lead capture</span>
-                        <span class="sidebar-nav-arrow">▼</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -848,19 +831,13 @@
                 link.classList.remove('active');
             });
             
-            // Map tab names to navigation IDs (djs tab no longer has nav link, default to first active)
+            // Map tab names to navigation IDs
             const navMap = {
+                'djs': 'nav-djs',
                 'bookings': 'nav-bookings',
                 'calendar': 'nav-calendar',
                 'users': 'nav-users'
             };
-            
-            // If djs tab, don't highlight any nav item since Home was removed
-            if (tabName === 'djs') {
-                document.querySelectorAll('.sidebar-nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-            }
             
             const navId = navMap[tabName];
             if (navId) {
