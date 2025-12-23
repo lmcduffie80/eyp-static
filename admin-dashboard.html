@@ -1716,10 +1716,11 @@
                         }
                     }
                     
-                    // Validate that the date column actually looks like it contains dates by checking first few data rows
+                    // Validate that the date column actually looks like it contains dates by checking first few data rows (starting at row 6)
                     let dateColumnValid = false;
                     let sampleDateValue = '';
-                    for (let i = 1; i < Math.min(4, lines.length); i++) {
+                    const startRow = 6; // Skip first 5 data rows, start at row 6 (0-indexed: row 0 is header, rows 1-5 are skipped)
+                    for (let i = startRow; i < Math.min(startRow + 3, lines.length); i++) {
                         const testValues = parseRow(lines[i]);
                         if (testValues.length > dateIndex && testValues[dateIndex]) {
                             const testDate = testValues[dateIndex].trim();
@@ -1737,7 +1738,7 @@
                         return;
                     }
                     
-                    // Parse data rows
+                    // Parse data rows (skip first 5 data rows, start at row 6)
                     const existingBookings = getAllBookings();
                     const newBookings = [];
                     let importedCount = 0;
@@ -1746,11 +1747,18 @@
                         notEnoughColumns: 0,
                         missingFields: 0,
                         invalidDate: 0,
-                        duplicate: 0
+                        duplicate: 0,
+                        skippedRows: 0
                     };
                     const invalidDateExamples = []; // Store examples of invalid dates
+                    const startRow = 6; // Skip first 5 data rows (rows 1-5), start processing at row 6
                     
-                    for (let i = 1; i < lines.length; i++) {
+                    // Skip first 5 data rows
+                    if (lines.length > startRow) {
+                        skipReasons.skippedRows = startRow - 1; // Rows 1-5 are skipped (row 0 is header)
+                    }
+                    
+                    for (let i = startRow; i < lines.length; i++) {
                         const values = parseRow(lines[i]);
                         console.log(`Row ${i}:`, values);
                         
