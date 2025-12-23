@@ -1012,12 +1012,25 @@
             window.location.href = 'dj-login.html';
         }
 
-        // Initialize calendar picker
-        flatpickr("#block-date", {
-            dateFormat: "Y-m-d",
+        // Initialize calendar picker - format as mm-dd-yyyy
+        const datePicker = flatpickr("#block-date", {
+            dateFormat: "m-d-Y",
             minDate: "today",
             disable: []
         });
+
+        // Date formatting helper function - formats date as mm-dd-yyyy
+        function formatDateMMDDYYYY(date) {
+            if (!date) return '';
+            const dateObj = date instanceof Date ? date : new Date(date);
+            if (isNaN(dateObj.getTime())) return '';
+            
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            
+            return `${month}-${day}-${year}`;
+        }
 
         // Load user data
         function loadDJUserInfo() {
@@ -1202,12 +1215,20 @@
         // Block date form submission
         document.getElementById('block-date-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const date = document.getElementById('block-date').value;
-            const reason = document.getElementById('block-reason').value;
+            let date = document.getElementById('block-date').value.trim();
+            const reason = document.getElementById('block-reason').value.trim();
 
             if (!date) {
                 alert('Please select a date');
                 return;
+            }
+
+            // Convert mm-dd-yyyy format to YYYY-MM-DD for storage (standard format)
+            // Check if date is in mm-dd-yyyy format
+            const mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;
+            if (mmddyyyyRegex.test(date)) {
+                const dateParts = date.split('-');
+                date = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Convert to YYYY-MM-DD
             }
 
             // TODO: Send to backend API
@@ -1220,7 +1241,7 @@
             });
             localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
 
-            // Update calendar picker to disable blocked date
+            // Update calendar picker to disable blocked date (date is now in YYYY-MM-DD format)
             const fp = flatpickr("#block-date");
             fp.config.disable.push(date);
             fp.set('disable', fp.config.disable);
@@ -1244,21 +1265,18 @@
             }
 
             container.innerHTML = blockedDates.map(item => {
-                const dateObj = new Date(item.date);
-                const formattedDate = dateObj.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                // Parse date string to avoid timezone issues
+                const dateParts = item.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const dateObj = new Date(year, month, day);
+                const formattedDate = formatDateMMDDYYYY(dateObj);
                 return `
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
-                            <span class="date-badge">${item.date}</span>
-                            <div>
-                                <strong>${formattedDate}</strong>
-                                ${item.reason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${item.reason}</div>` : ''}
-                            </div>
+                            <span class="date-badge">${formattedDate}</span>
+                            ${item.reason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${item.reason}</div>` : ''}
                         </div>
                         <div class="blocked-date-actions">
                             <button class="btn btn-secondary" onclick="editBlockedDate('${item.date}')">Edit</button>
@@ -1277,12 +1295,11 @@
             if (!blockedDate) return;
 
             // Pre-populate the form with existing values
-            document.getElementById('block-date').value = blockedDate.date;
+            // Convert YYYY-MM-DD to mm-dd-yyyy for display
+            const dateParts = blockedDate.date.split('-');
+            const formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+            document.getElementById('block-date').value = formattedDate;
             document.getElementById('block-reason').value = blockedDate.reason || '';
-            
-            // Update flatpickr with the date
-            const fp = flatpickr("#block-date");
-            fp.setDate(blockedDate.date, false);
             
             // Remove the old blocked date (will be re-added when form is submitted)
             const filtered = blockedDates.filter(item => item.date !== date);
@@ -1407,8 +1424,18 @@
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            document.getElementById('block-date').value = dateStr;
-            datePicker.setDate(dateStr);
+            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy
+            // Parse directly from string to avoid any timezone conversion issues
+            const dateParts = dateStr.split('-');
+            const year = dateParts[0];
+            const month = dateParts[1];
+            const day = dateParts[2];
+            
+            // Format as mm-dd-yyyy directly without Date object conversion
+            const formattedDate = `${month}-${day}-${year}`;
+            
+            // Set the input value directly - don't use flatpickr.setDate as it may cause date conversion issues
+            document.getElementById('block-date').value = formattedDate;
         }
 
         // Load bookings
@@ -1469,17 +1496,18 @@
             }
 
             container.innerHTML = filteredBookings.map(booking => {
-                const bookingDate = new Date(booking.date);
+                // Parse date string to avoid timezone issues
+                const dateParts = booking.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const bookingDate = new Date(year, month, day);
+                bookingDate.setHours(0, 0, 0, 0);
                 const isUpcoming = bookingDate >= today;
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
                 const showReminder = isUpcoming && daysUntil <= 14;
 
-                const formattedDate = bookingDate.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+                const formattedDate = formatDateMMDDYYYY(bookingDate);
 
                 return `
                     <div class="booking-card ${isUpcoming ? 'upcoming' : 'past'}">
@@ -1587,12 +1615,18 @@
             reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
             
             container.innerHTML = reviews.map(review => {
-                const reviewDate = new Date(review.date);
-                const formattedDate = reviewDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+                // Parse date string to avoid timezone issues
+                let reviewDate;
+                if (typeof review.date === 'string' && review.date.includes('-')) {
+                    const dateParts = review.date.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    reviewDate = new Date(year, month, day);
+                } else {
+                    reviewDate = new Date(review.date);
+                }
+                const formattedDate = formatDateMMDDYYYY(reviewDate);
                 
                 // Generate star rating display
                 const fullStars = '★'.repeat(Math.floor(review.rating));
