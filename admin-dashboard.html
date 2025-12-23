@@ -823,25 +823,80 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const csv = e.target.result;
-                    const lines = csv.split('\n').filter(line => line.trim());
+                    let csv = e.target.result;
+                    
+                    // Remove BOM (Byte Order Mark) if present
+                    if (csv.charCodeAt(0) === 0xFEFF) {
+                        csv = csv.slice(1);
+                    }
+                    
+                    // Handle different line endings (Windows \r\n, Mac \r, Unix \n)
+                    const lines = csv.split(/\r?\n|\r/).filter(line => line.trim());
                     
                     if (lines.length < 2) {
                         showCSVMessage('CSV file must have at least a header row and one data row.', 'error');
                         return;
                     }
                     
-                    // Parse header row - use proper CSV parsing to handle quoted headers
-                    const headerValues = parseCSVLine(lines[0]);
-                    const headers = headerValues.map(h => h.trim().toLowerCase());
+                    console.log('First line of CSV:', JSON.stringify(lines[0]));
+                    console.log('First 3 lines:', lines.slice(0, 3));
+                    
+                    // Parse header row - try multiple methods
+                    let headerValues = [];
+                    let headers = [];
+                    
+                    // Method 1: Try proper CSV parsing (handles quoted values)
+                    try {
+                        headerValues = parseCSVLine(lines[0]);
+                        headers = headerValues.map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
+                    } catch (e) {
+                        console.warn('CSV parsing failed, trying simple split:', e);
+                    }
+                    
+                    // Method 2: If that fails or returns empty, try simple comma split
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        console.log('Trying simple comma split for headers');
+                        headerValues = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+                        headers = headerValues.map(h => h.toLowerCase());
+                    }
+                    
+                    // Method 3: Try tab-separated (TSV)
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        console.log('Trying tab-separated for headers');
+                        headerValues = lines[0].split('\t').map(h => h.trim().replace(/^["']|["']$/g, ''));
+                        headers = headerValues.map(h => h.toLowerCase());
+                    }
+                    
+                    // Method 4: Try semicolon-separated (common in European Excel exports)
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        console.log('Trying semicolon-separated for headers');
+                        headerValues = lines[0].split(';').map(h => h.trim().replace(/^["']|["']$/g, ''));
+                        headers = headerValues.map(h => h.toLowerCase());
+                    }
+                                                        
                     console.log('CSV Headers (parsed):', headers);
-                    console.log('CSV Headers (raw):', headerValues);
+                    console.log('CSV Headers (raw, cleaned):', headerValues);
+                    
+                    // Check if headers are empty
+                    if (headers.length === 0 || headers.every(h => !h)) {
+                        showCSVMessage(`Could not parse CSV headers. First line of file: "${lines[0].substring(0, 200)}...". Please ensure the first row contains column names: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        return;
+                    }
+                    
+                    // Store the separator for use in data parsing
+                    let csvSeparator = ',';
+                    if (lines[0].includes('\t') && !lines[0].includes(',')) {
+                        csvSeparator = '\t';
+                    } else if (lines[0].includes(';') && !lines[0].includes(',')) {
+                        csvSeparator = ';';
+                    }
+                    console.log('Detected CSV separator:', csvSeparator);
                     
                     // Find column indices (flexible matching) - be more specific to avoid wrong matches
                     const djNameIndex = findColumnIndex(headers, ['dj name', 'djname']);
-                    const dateIndex = findColumnIndex(headers, ['date of project', 'date']);
+                    const dateIndex = findColumnIndex(headers, ['date of project', 'date of project', 'date']);
                     const projectNameIndex = findColumnIndex(headers, ['project name', 'projectname', 'project']);
-                    const locationIndex = findColumnIndex(headers, ['location for venue', 'location for venue', 'location', 'venue location']);
+                    const locationIndex = findColumnIndex(headers, ['location for venue', 'location', 'venue location']);
                     const payoutIndex = findColumnIndex(headers, ['payout']);
                     
                     console.log('Column indices:', { 
@@ -850,26 +905,52 @@
                         projectNameIndex, 
                         locationIndex, 
                         payoutIndex,
+                        'All headers': headerValues,
                         'headers found': {
-                            djName: headers[djNameIndex],
-                            date: headers[dateIndex],
-                            projectName: headers[projectNameIndex],
-                            location: headers[locationIndex],
-                            payout: headers[payoutIndex]
+                            djName: dateIndex !== -1 ? headerValues[djNameIndex] : 'NOT FOUND',
+                            date: dateIndex !== -1 ? headerValues[dateIndex] : 'NOT FOUND',
+                            projectName: projectNameIndex !== -1 ? headerValues[projectNameIndex] : 'NOT FOUND',
+                            location: locationIndex !== -1 ? headerValues[locationIndex] : 'NOT FOUND',
+                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND'
                         }
                     });
                     
                     if (djNameIndex === -1 || dateIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
-                        showCSVMessage(`CSV must contain these columns: DJ Name, Date of Project, Project name, and Location for venue. Found headers: ${headerValues.join(', ')}`, 'error');
+                        const missing = [];
+                        if (djNameIndex === -1) missing.push('DJ Name');
+                        if (dateIndex === -1) missing.push('Date of Project');
+                        if (projectNameIndex === -1) missing.push('Project name');
+                        if (locationIndex === -1) missing.push('Location for venue');
+                        
+                        showCSVMessage(`CSV is missing required columns: ${missing.join(', ')}. Found headers: "${headerValues.join('", "')}". Please ensure your CSV has columns: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
                         return;
+                    }
+                    
+                    // Create a helper function that uses the detected separator
+                    function parseRow(line) {
+                        if (csvSeparator === '\t') {
+                            return line.split('\t').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                        } else if (csvSeparator === ';') {
+                            return line.split(';').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                        } else {
+                            // Try proper CSV parsing first for comma-separated
+                            try {
+                                return parseCSVLine(line);
+                            } catch (e) {
+                                // Fallback to simple split
+                                return line.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                            }
+                        }
                     }
                     
                     // Validate that the date column actually looks like it contains dates by checking first few data rows
                     let dateColumnValid = false;
+                    let sampleDateValue = '';
                     for (let i = 1; i < Math.min(4, lines.length); i++) {
-                        const testValues = parseCSVLine(lines[i]);
-                        if (testValues[dateIndex]) {
+                        const testValues = parseRow(lines[i]);
+                        if (testValues.length > dateIndex && testValues[dateIndex]) {
                             const testDate = testValues[dateIndex].trim();
+                            sampleDateValue = testDate;
                             // Check if it looks like a date (contains numbers and separators)
                             if (/\d/.test(testDate) && (/[\/\-\.]/.test(testDate) || /^\d{4}/.test(testDate))) {
                                 dateColumnValid = true;
@@ -879,7 +960,7 @@
                     }
                     
                     if (!dateColumnValid) {
-                        showCSVMessage(`Warning: The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex]}") doesn't appear to contain date values. Please check your CSV column headers match exactly: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
+                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex] || 'empty'}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
                         return;
                     }
                     
@@ -897,7 +978,7 @@
                     const invalidDateExamples = []; // Store examples of invalid dates
                     
                     for (let i = 1; i < lines.length; i++) {
-                        const values = parseCSVLine(lines[i]);
+                        const values = parseRow(lines[i]);
                         console.log(`Row ${i}:`, values);
                         
                         if (values.length < Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1) {
