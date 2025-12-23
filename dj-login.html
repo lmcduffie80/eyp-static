@@ -201,9 +201,8 @@
         }
 
         .forgot-password-link {
-            text-align: right;
-            margin-top: -0.75rem;
-            margin-bottom: 1rem;
+            text-align: center;
+            margin-top: 1rem;
         }
 
         .forgot-password-link a {
@@ -260,12 +259,13 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required autocomplete="current-password">
-                <div class="forgot-password-link">
-                    <a href="#" onclick="showResetPassword(); return false;">Forgot Password?</a>
-                </div>
             </div>
 
             <button type="submit" class="login-button">Sign In</button>
+            
+            <div class="forgot-password-link">
+                <a href="#" onclick="showResetPassword(); return false;">Forgot Password?</a>
+            </div>
         </form>
 
         <!-- Reset Password Form -->
