@@ -380,6 +380,7 @@
                                 <th>Event Type</th>
                                 <th>Time</th>
                                 <th>Location</th>
+                                <th>Payout</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -760,7 +761,7 @@
             const container = document.getElementById('all-bookings-container');
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<tr><td colspan="7" class="empty-state">No bookings found</td></tr>';
+                container.innerHTML = '<tr><td colspan="8" class="empty-state">No bookings found</td></tr>';
                 return;
             }
 
@@ -773,6 +774,15 @@
                     year: 'numeric' 
                 });
 
+                // Format payout - remove any existing $ signs and add one
+                let formattedPayout = '-';
+                if (booking.payout) {
+                    const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                    if (payoutValue) {
+                        formattedPayout = '$' + parseFloat(payoutValue).toFixed(2);
+                    }
+                }
+
                 return `
                     <tr>
                         <td>${formattedDate}</td>
@@ -781,6 +791,7 @@
                         <td>${booking.eventType}</td>
                         <td>${booking.time}</td>
                         <td>${booking.location}</td>
+                        <td>${formattedPayout}</td>
                         <td><span class="badge ${isUpcoming ? 'badge-upcoming' : 'badge-past'}">${isUpcoming ? 'Upcoming' : 'Past'}</span></td>
                     </tr>
                 `;
