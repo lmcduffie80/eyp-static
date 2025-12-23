@@ -344,6 +344,10 @@
                 <h3>Blocked Dates</h3>
                 <div class="stat-value" id="total-blocked">0</div>
             </div>
+            <div class="stat-card" onclick="navigateToTab('users')">
+                <h3>Total Users</h3>
+                <div class="stat-value" id="total-users">0</div>
+            </div>
         </div>
 
         <!-- Tabs -->
@@ -901,9 +905,11 @@
             const container = document.getElementById('djs-container');
 
             // Update stats
+            const admins = getAllAdmins();
             document.getElementById('total-djs').textContent = djs.length;
             document.getElementById('active-bookings').textContent = bookings.filter(b => new Date(b.date) >= new Date()).length;
             document.getElementById('total-blocked').textContent = blockedDates.length;
+            document.getElementById('total-users').textContent = djs.length + admins.length;
 
             if (djs.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No DJs registered yet</p></div>';
