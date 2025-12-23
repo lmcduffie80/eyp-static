@@ -570,7 +570,7 @@
         document.getElementById('reset-password-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const usernameOrEmail = document.getElementById('reset-username').value.trim();
+            const email = document.getElementById('reset-email').value.trim();
             const errorMessage = document.getElementById('error-message');
             const successMessage = document.getElementById('success-message');
 
@@ -581,25 +581,31 @@
             successMessage.textContent = '';
 
             // Validation
-            if (!usernameOrEmail) {
-                errorMessage.textContent = 'Please enter your username or email address.';
+            if (!email) {
+                errorMessage.textContent = 'Please enter your email address.';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorMessage.textContent = 'Please enter a valid email address.';
                 errorMessage.classList.add('show');
                 return;
             }
 
             // TODO: Replace with actual API call to reset password
             // In production, you would:
-            // 1. Send username/email to backend API
-            // 2. Verify user exists
+            // 1. Send email to backend API
+            // 2. Verify user exists with that email
             // 3. Generate reset token
             // 4. Send password reset email with token
             // 5. Return success/error
 
             // For development: check if user exists in localStorage
             const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const user = existingUsers.find(u => 
-                u.username === usernameOrEmail || u.email === usernameOrEmail
-            );
+            const user = existingUsers.find(u => u.email === email);
 
             if (user) {
                 // In production, this would send an email
@@ -608,10 +614,10 @@
                 // Store reset token (in production, this would be sent via email)
                 const resetToken = 'reset_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('password_reset_token_' + user.username, resetToken);
-                localStorage.setItem('password_reset_email_' + user.username, user.email || usernameOrEmail);
+                localStorage.setItem('password_reset_email_' + user.username, email);
                 
                 // Show success message
-                successMessage.textContent = 'If an account exists with that username or email, password reset instructions have been sent. Please check your email.';
+                successMessage.textContent = 'If an account exists with that email, password reset instructions have been sent. Please check your email.';
                 successMessage.classList.add('show');
 
                 // Clear form
@@ -620,7 +626,7 @@
                 // In production: The email would contain a link to a reset page with the token
                 // For now, show a message about checking email
                 console.log('Reset token for ' + user.username + ': ' + resetToken);
-                console.log('In production, an email would be sent to: ' + (user.email || usernameOrEmail));
+                console.log('In production, an email would be sent to: ' + email);
 
                 // Optionally, after 3 seconds, go back to login
                 setTimeout(() => {
@@ -629,7 +635,7 @@
             } else {
                 // Don't reveal if user exists (security best practice)
                 // Show same success message even if user doesn't exist
-                successMessage.textContent = 'If an account exists with that username or email, password reset instructions have been sent. Please check your email.';
+                successMessage.textContent = 'If an account exists with that email, password reset instructions have been sent. Please check your email.';
                 successMessage.classList.add('show');
 
                 // Clear form
@@ -649,7 +655,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username: usernameOrEmail })
+                body: JSON.stringify({ email: email })
             })
             .then(response => response.json())
             .then(data => {
@@ -661,7 +667,7 @@
                     }, 3000);
                 } else {
                     // Don't reveal if user exists
-                    successMessage.textContent = 'If an account exists with that username or email, password reset instructions have been sent.';
+                    successMessage.textContent = 'If an account exists with that email, password reset instructions have been sent.';
                     successMessage.classList.add('show');
                     setTimeout(() => {
                         hideResetPassword();
