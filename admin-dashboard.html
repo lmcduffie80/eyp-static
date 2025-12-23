@@ -910,8 +910,14 @@
             
             if (filterPayout) {
                 filteredBookings = filteredBookings.filter(b => {
-                    const payoutStr = b.payout ? '$' + b.payout : '-';
-                    return payoutStr.toLowerCase().includes(filterPayout);
+                    let payoutStr = '-';
+                    if (b.payout) {
+                        const payoutValue = String(b.payout).replace(/[$,]/g, '').trim();
+                        if (payoutValue) {
+                            payoutStr = '$' + parseFloat(payoutValue).toFixed(2);
+                        }
+                    }
+                    return payoutStr.toLowerCase().includes(filterPayout.toLowerCase());
                 });
             }
 
@@ -973,6 +979,15 @@
 
             container.innerHTML = filteredBookings.map(booking => {
                 const formattedDate = formatDateMMDDYYYY(booking.date);
+                
+                // Format payout - remove any existing $ signs and add one
+                let formattedPayout = '-';
+                if (booking.payout) {
+                    const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                    if (payoutValue) {
+                        formattedPayout = '$' + parseFloat(payoutValue).toFixed(2);
+                    }
+                }
 
                 return `
                     <tr>
@@ -980,7 +995,7 @@
                         <td>${formattedDate}</td>
                         <td>${booking.eventType}</td>
                         <td>${booking.location}</td>
-                        <td>${booking.payout ? '$' + booking.payout : '-'}</td>
+                        <td>${formattedPayout}</td>
                     </tr>
                 `;
             }).join('');
