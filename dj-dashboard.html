@@ -528,8 +528,10 @@
 
         .blocked-date-info {
             display: flex;
-            gap: 1rem;
+            flex-direction: column;
+            gap: 0.75rem;
             align-items: center;
+            flex: 1;
         }
 
         .date-badge {
@@ -1586,10 +1588,7 @@
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
                             <span class="date-badge">${safeFormattedDate}</span>
-                            <div>
-                                <strong>${safeFormattedDate}</strong>
-                                ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
-                            </div>
+                            ${safeReason ? `<div style="color: var(--text-dark); font-size: 0.95rem; text-align: center;">${safeReason}</div>` : ''}
                         </div>
                         <button class="btn btn-danger" onclick="unblockDate('${safeDate}')">Unblock</button>
                     </div>
