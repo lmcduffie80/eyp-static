@@ -56,6 +56,16 @@
             width: auto;
         }
 
+        .dashboard-header a {
+            display: inline-block;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .dashboard-header a:hover {
+            opacity: 0.8;
+        }
+
         .header-actions {
             display: flex;
             gap: 1rem;
@@ -305,7 +315,9 @@
 <body>
     <div class="dashboard-header">
         <h1>
-            <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
+            <a href="index.html">
+                <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
+            </a>
             Admin Dashboard
         </h1>
         <div class="header-actions">
@@ -477,8 +489,49 @@
             }
         }
 
+        // Initialize default DJs if they don't exist
+        function initializeDJs() {
+            const djs = getAllDJs();
+            const defaultDJs = [
+                {
+                    username: 'Will Luke',
+                    email: 'willluke@externallyyoursproductions.com',
+                    password: 'willluke123', // Should be hashed in production
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    username: 'Stephen Kena',
+                    email: 'stephenkena@externallyyoursproductions.com',
+                    password: 'stephenkena123', // Should be hashed in production
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    username: 'Gavin McDuffie',
+                    email: 'gavinmcduffie@externallyyoursproductions.com',
+                    password: 'gavinmcduffie123', // Should be hashed in production
+                    createdAt: new Date().toISOString()
+                }
+            ];
+
+            let updated = false;
+            defaultDJs.forEach(defaultDJ => {
+                const exists = djs.find(dj => dj.username === defaultDJ.username || dj.email === defaultDJ.email);
+                if (!exists) {
+                    djs.push(defaultDJ);
+                    updated = true;
+                }
+            });
+
+            if (updated) {
+                localStorage.setItem('dj_users', JSON.stringify(djs));
+            }
+        }
+
         // Initialize super user on page load
         initializeSuperUser();
+        
+        // Initialize default DJs on page load
+        initializeDJs();
 
         // Load admin name
         const adminUser = localStorage.getItem('admin_user') || 'Admin';
@@ -875,6 +928,49 @@
                     <div><span style="background: var(--accent-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">Today</span></div>
                 </div>
             `;
+
+            // Blocked Dates List with DJ names
+            if (filteredBlocked.length > 0) {
+                calendarHTML += `
+                    <div style="margin-top: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Blocked Dates</h3>
+                        <div style="display: grid; gap: 0.75rem;">
+                `;
+                
+                // Sort blocked dates by date
+                filteredBlocked.sort((a, b) => {
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
+                    return dateA - dateB;
+                });
+                
+                filteredBlocked.forEach(blockedDate => {
+                    const dateParts = blockedDate.date.split('-');
+                    const dateObj = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+                    const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                    
+                    calendarHTML += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px; border-left: 4px solid var(--warning-color);">
+                            <div>
+                                <div style="font-weight: bold; color: var(--primary-color);">${formattedDate}</div>
+                                ${blockedDate.reason ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${blockedDate.reason}</div>` : ''}
+                            </div>
+                            <div style="font-weight: 600; color: var(--text-dark);">
+                                ${blockedDate.djUser || 'Unassigned'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                calendarHTML += `
+                        </div>
+                    </div>
+                `;
+            }
 
             document.getElementById('master-calendar-container').innerHTML = calendarHTML;
         }
