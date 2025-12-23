@@ -1369,9 +1369,16 @@
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy for display
-            const dateObj = new Date(dateStr + 'T00:00:00'); // Add time to avoid timezone issues
+            // dateStr is in YYYY-MM-DD format, parse it directly to avoid timezone issues
+            const dateParts = dateStr.split('-');
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed
+            const day = parseInt(dateParts[2], 10);
+            
+            // Create date object using local timezone
+            const dateObj = new Date(year, month, day);
             const formattedDate = formatDateMMDDYYYY(dateObj);
+            
             document.getElementById('block-date').value = formattedDate;
             datePicker.setDate(dateStr, false); // Set internal date, false = don't trigger onChange
         }
