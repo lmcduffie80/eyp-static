@@ -325,7 +325,7 @@
                 <div class="stat-value" id="total-djs">0</div>
             </div>
             <div class="stat-card">
-                <h3>Active Bookings</h3>
+                <h3>Active Projects</h3>
                 <div class="stat-value" id="active-bookings">0</div>
             </div>
             <div class="stat-card">
@@ -341,7 +341,7 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab-button active" onclick="switchTab('djs')">All DJs</button>
-            <button class="tab-button" onclick="switchTab('bookings')">All Bookings</button>
+            <button class="tab-button" onclick="switchTab('bookings')">All Projects</button>
             <button class="tab-button" onclick="switchTab('calendar')">Master Calendar</button>
             <button class="tab-button" onclick="switchTab('users')">User Management</button>
         </div>
@@ -360,7 +360,7 @@
         <div id="bookings-tab" class="tab-content">
             <!-- CSV Import Section -->
             <div class="section-card" style="margin-bottom: 2rem;">
-                <h2>Import Bookings from CSV</h2>
+                <h2>Import Projects from CSV</h2>
                 <p style="color: var(--text-light); margin-bottom: 1rem;">
                     Upload a CSV file with columns: DJ Name, Date of Project, Project name, Location for venue, Payout
                 </p>
@@ -374,7 +374,7 @@
             </div>
             
             <div class="section-card">
-                <h2>All Bookings</h2>
+                <h2>All Projects</h2>
                 <div class="filter-controls">
                     <select id="booking-filter-dj" onchange="filterAllBookings()">
                         <option value="">All DJs</option>
@@ -397,7 +397,7 @@
                             </tr>
                         </thead>
                         <tbody id="all-bookings-container">
-                            <!-- Bookings will be populated here -->
+                            <!-- Projects will be populated here -->
                         </tbody>
                     </table>
                 </div>
@@ -407,7 +407,7 @@
         <!-- Calendar Tab -->
         <div id="calendar-tab" class="tab-content">
             <div class="section-card">
-                <h2>Master Calendar - All Blocked Dates & Bookings</h2>
+                <h2>Master Calendar - All Blocked Dates & Projects</h2>
                 <div class="filter-controls">
                     <select id="calendar-filter-dj" onchange="generateMasterCalendar()">
                         <option value="">All DJs</option>
@@ -735,7 +735,7 @@
                             <div class="dj-stats">
                                 <span>📅 ${upcomingBookings.length} Upcoming</span>
                                 <span>🚫 ${djBlocked.length} Blocked</span>
-                                <span>📋 ${djBookings.length} Total Bookings</span>
+                                <span>📋 ${djBookings.length} Total Projects</span>
                             </div>
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem;">
@@ -773,7 +773,7 @@
             const container = document.getElementById('all-bookings-container');
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" class="empty-state">No bookings found</td></tr>';
+                container.innerHTML = '<tr><td colspan="5" class="empty-state">No projects found</td></tr>';
                 return;
             }
 
@@ -808,8 +808,15 @@
             const file = fileInput.files[0];
             const messageEl = document.getElementById('csv-import-message');
             
+            // Helper function to show CSV import messages
+            function showCSVMessage(message, type) {
+                messageEl.textContent = message;
+                messageEl.style.display = 'inline';
+                messageEl.style.color = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+            }
+            
             if (!file) {
-                showMessage('Please select a CSV file to import.', 'error');
+                showCSVMessage('Please select a CSV file to import.', 'error');
                 return;
             }
             
@@ -820,12 +827,13 @@
                     const lines = csv.split('\n').filter(line => line.trim());
                     
                     if (lines.length < 2) {
-                        showMessage('CSV file must have at least a header row and one data row.', 'error');
+                        showCSVMessage('CSV file must have at least a header row and one data row.', 'error');
                         return;
                     }
                     
                     // Parse header row
                     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    console.log('CSV Headers:', headers);
                     
                     // Find column indices (flexible matching)
                     const djNameIndex = findColumnIndex(headers, ['dj name', 'djname', 'dj', 'name']);
@@ -834,8 +842,10 @@
                     const locationIndex = findColumnIndex(headers, ['location for venue', 'location', 'venue', 'venue location']);
                     const payoutIndex = findColumnIndex(headers, ['payout', 'payment', 'amount', 'fee']);
                     
+                    console.log('Column indices:', { djNameIndex, dateIndex, projectNameIndex, locationIndex, payoutIndex });
+                    
                     if (djNameIndex === -1 || dateIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
-                        showMessage('CSV must contain: DJ Name, Date of Project, Project name, and Location for venue columns.', 'error');
+                        showCSVMessage(`CSV must contain: DJ Name, Date of Project, Project name, and Location for venue columns. Found headers: ${headers.join(', ')}`, 'error');
                         return;
                     }
                     
@@ -847,19 +857,24 @@
                     
                     for (let i = 1; i < lines.length; i++) {
                         const values = parseCSVLine(lines[i]);
+                        console.log(`Row ${i}:`, values);
                         
                         if (values.length < Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1) {
+                            console.log(`Row ${i} skipped: Not enough columns (${values.length} found, need at least ${Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1})`);
                             skippedCount++;
                             continue;
                         }
                         
-                        const djName = values[djNameIndex].trim();
-                        const dateStr = values[dateIndex].trim();
-                        const projectName = values[projectNameIndex].trim();
-                        const location = values[locationIndex].trim();
-                        const payout = payoutIndex !== -1 ? values[payoutIndex].trim() : '';
+                        const djName = values[djNameIndex] ? values[djNameIndex].trim() : '';
+                        const dateStr = values[dateIndex] ? values[dateIndex].trim() : '';
+                        const projectName = values[projectNameIndex] ? values[projectNameIndex].trim() : '';
+                        const location = values[locationIndex] ? values[locationIndex].trim() : '';
+                        const payout = payoutIndex !== -1 && values[payoutIndex] ? values[payoutIndex].trim() : '';
+                        
+                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payout });
                         
                         if (!djName || !dateStr || !projectName || !location) {
+                            console.log(`Row ${i} skipped: Missing required fields`);
                             skippedCount++;
                             continue;
                         }
@@ -867,6 +882,7 @@
                         // Convert date to YYYY-MM-DD format
                         const formattedDate = convertDateToYYYYMMDD(dateStr);
                         if (!formattedDate) {
+                            console.log(`Row ${i} skipped: Invalid date format: ${dateStr}`);
                             skippedCount++;
                             continue;
                         }
@@ -900,37 +916,43 @@
                         
                         newBookings.push(booking);
                         importedCount++;
+                        console.log(`Row ${i} imported successfully:`, booking);
                     }
+                    
+                    console.log(`Import complete: ${importedCount} imported, ${skippedCount} skipped`);
                     
                     // Merge with existing bookings
                     const allBookings = [...existingBookings, ...newBookings];
                     localStorage.setItem('dj_bookings', JSON.stringify(allBookings));
+                    console.log('Total bookings in localStorage:', allBookings.length);
                     
                     // Show success message
-                    messageEl.style.display = 'inline';
-                    messageEl.style.color = 'var(--success-color)';
-                    messageEl.textContent = `Successfully imported ${importedCount} booking(s)${skippedCount > 0 ? `, skipped ${skippedCount} duplicate(s) or invalid row(s)` : ''}.`;
-                    
-                    // Clear file input
-                    fileInput.value = '';
-                    
-                    // Refresh displays
-                    filterAllBookings();
-                    loadAllDJs();
-                    
-                    // Hide message after 5 seconds
-                    setTimeout(() => {
-                        messageEl.style.display = 'none';
-                    }, 5000);
+                    if (importedCount > 0) {
+                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skippedCount > 0 ? `, skipped ${skippedCount} duplicate(s) or invalid row(s)` : ''}.`, 'success');
+                        
+                        // Clear file input
+                        fileInput.value = '';
+                        
+                        // Refresh displays
+                        filterAllBookings();
+                        loadAllDJs();
+                        
+                        // Hide message after 5 seconds
+                        setTimeout(() => {
+                            messageEl.style.display = 'none';
+                        }, 5000);
+                    } else {
+                        showCSVMessage(`No projects imported. ${skippedCount > 0 ? `Skipped ${skippedCount} row(s).` : 'Please check your CSV file format.'}`, 'error');
+                    }
                     
                 } catch (error) {
                     console.error('CSV import error:', error);
-                    showMessage('Error importing CSV file: ' + error.message, 'error');
+                    showCSVMessage('Error importing CSV file: ' + error.message, 'error');
                 }
             };
             
             reader.onerror = function() {
-                showMessage('Error reading CSV file.', 'error');
+                showCSVMessage('Error reading CSV file.', 'error');
             };
             
             reader.readAsText(file);
@@ -939,7 +961,12 @@
         // Helper function to find column index (case-insensitive, flexible matching)
         function findColumnIndex(headers, possibleNames) {
             for (const name of possibleNames) {
-                const index = headers.findIndex(h => h.includes(name) || name.includes(h));
+                const nameLower = name.toLowerCase();
+                const index = headers.findIndex(h => {
+                    const hLower = h.toLowerCase();
+                    // Exact match or contains match (but check both directions to avoid false positives)
+                    return hLower === nameLower || hLower.includes(nameLower) || nameLower.includes(hLower);
+                });
                 if (index !== -1) return index;
             }
             return -1;
@@ -1094,7 +1121,7 @@
             calendarHTML += `
                 <div style="margin-top: 2rem; display: flex; gap: 2rem; font-size: 0.9rem;">
                     <div><span style="background: var(--warning-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">🚫</span> Blocked</div>
-                    <div><span style="background: var(--success-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">📅</span> Booking</div>
+                    <div><span style="background: var(--success-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">📅</span> Project</div>
                     <div><span style="background: var(--accent-color); padding: 0.25rem 0.5rem; border-radius: 3px; margin-right: 0.5rem;">Today</span></div>
                 </div>
             `;

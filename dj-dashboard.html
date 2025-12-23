@@ -547,7 +547,7 @@
             font-weight: bold;
         }
 
-        /* Bookings Section */
+        /* Projects Section */
         .bookings-section {
             background: var(--secondary-color);
             border-radius: 10px;
@@ -972,10 +972,10 @@
             </div>
         </div>
 
-        <!-- Bookings Section - Always Visible -->
+        <!-- Projects Section - Always Visible -->
         <div class="bookings-section">
             <div class="bookings-header">
-                <h2>Current Bookings</h2>
+                <h2>Current Projects</h2>
                 <div class="bookings-filter">
                     <button class="filter-btn active" onclick="filterBookings('all')">All</button>
                     <button class="filter-btn" onclick="filterBookings('upcoming')">Upcoming</button>
@@ -983,7 +983,7 @@
                 </div>
             </div>
             <div id="bookings-container" class="bookings-list">
-                <!-- Bookings will be populated here -->
+                <!-- Projects will be populated here -->
             </div>
         </div>
 
@@ -1510,7 +1510,7 @@
             }
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>No bookings found</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>No projects found</p></div>';
                 return;
             }
 
