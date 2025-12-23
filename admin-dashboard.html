@@ -831,21 +831,55 @@
                         return;
                     }
                     
-                    // Parse header row
-                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-                    console.log('CSV Headers:', headers);
+                    // Parse header row - use proper CSV parsing to handle quoted headers
+                    const headerValues = parseCSVLine(lines[0]);
+                    const headers = headerValues.map(h => h.trim().toLowerCase());
+                    console.log('CSV Headers (parsed):', headers);
+                    console.log('CSV Headers (raw):', headerValues);
                     
-                    // Find column indices (flexible matching)
-                    const djNameIndex = findColumnIndex(headers, ['dj name', 'djname', 'dj', 'name']);
-                    const dateIndex = findColumnIndex(headers, ['date of project', 'date', 'project date', 'event date']);
-                    const projectNameIndex = findColumnIndex(headers, ['project name', 'projectname', 'project', 'event type', 'eventtype']);
-                    const locationIndex = findColumnIndex(headers, ['location for venue', 'location', 'venue', 'venue location']);
-                    const payoutIndex = findColumnIndex(headers, ['payout', 'payment', 'amount', 'fee']);
+                    // Find column indices (flexible matching) - be more specific to avoid wrong matches
+                    const djNameIndex = findColumnIndex(headers, ['dj name', 'djname']);
+                    const dateIndex = findColumnIndex(headers, ['date of project', 'date']);
+                    const projectNameIndex = findColumnIndex(headers, ['project name', 'projectname', 'project']);
+                    const locationIndex = findColumnIndex(headers, ['location for venue', 'location for venue', 'location', 'venue location']);
+                    const payoutIndex = findColumnIndex(headers, ['payout']);
                     
-                    console.log('Column indices:', { djNameIndex, dateIndex, projectNameIndex, locationIndex, payoutIndex });
+                    console.log('Column indices:', { 
+                        djNameIndex, 
+                        dateIndex, 
+                        projectNameIndex, 
+                        locationIndex, 
+                        payoutIndex,
+                        'headers found': {
+                            djName: headers[djNameIndex],
+                            date: headers[dateIndex],
+                            projectName: headers[projectNameIndex],
+                            location: headers[locationIndex],
+                            payout: headers[payoutIndex]
+                        }
+                    });
                     
                     if (djNameIndex === -1 || dateIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
-                        showCSVMessage(`CSV must contain: DJ Name, Date of Project, Project name, and Location for venue columns. Found headers: ${headers.join(', ')}`, 'error');
+                        showCSVMessage(`CSV must contain these columns: DJ Name, Date of Project, Project name, and Location for venue. Found headers: ${headerValues.join(', ')}`, 'error');
+                        return;
+                    }
+                    
+                    // Validate that the date column actually looks like it contains dates by checking first few data rows
+                    let dateColumnValid = false;
+                    for (let i = 1; i < Math.min(4, lines.length); i++) {
+                        const testValues = parseCSVLine(lines[i]);
+                        if (testValues[dateIndex]) {
+                            const testDate = testValues[dateIndex].trim();
+                            // Check if it looks like a date (contains numbers and separators)
+                            if (/\d/.test(testDate) && (/[\/\-\.]/.test(testDate) || /^\d{4}/.test(testDate))) {
+                                dateColumnValid = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!dateColumnValid) {
+                        showCSVMessage(`Warning: The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex]}") doesn't appear to contain date values. Please check your CSV column headers match exactly: DJ Name, Date of Project, Project name, Location for venue, Payout`, 'error');
                         return;
                     }
                     
@@ -1001,15 +1035,24 @@
         
         // Helper function to find column index (case-insensitive, flexible matching)
         function findColumnIndex(headers, possibleNames) {
+            // First try exact matches (case-insensitive)
             for (const name of possibleNames) {
+                const nameLower = name.toLowerCase();
+                const exactIndex = headers.findIndex(h => h.toLowerCase() === nameLower);
+                if (exactIndex !== -1) return exactIndex;
+            }
+            
+            // Then try contains matches (but be more careful - prefer longer matches)
+            for (const name of possibleNames.sort((a, b) => b.length - a.length)) {
                 const nameLower = name.toLowerCase();
                 const index = headers.findIndex(h => {
                     const hLower = h.toLowerCase();
-                    // Exact match or contains match (but check both directions to avoid false positives)
-                    return hLower === nameLower || hLower.includes(nameLower) || nameLower.includes(hLower);
+                    // Check if header contains the name or vice versa
+                    return hLower.includes(nameLower) || nameLower.includes(hLower);
                 });
                 if (index !== -1) return index;
             }
+            
             return -1;
         }
         
