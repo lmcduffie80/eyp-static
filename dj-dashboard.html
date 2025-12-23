@@ -1293,10 +1293,12 @@
         }
         
         // Initialize calendar picker
-        flatpickr("#block-date", {
-            dateFormat: "Y-m-d",
+        const datePicker = flatpickr("#block-date", {
+            dateFormat: "m-d-Y",
             minDate: "today",
-            disable: []
+            disable: [],
+            altInput: false,
+            altFormat: "m-d-Y"
         });
 
         // Load user data
@@ -1515,7 +1517,7 @@
                 return;
             }
             
-            const date = document.getElementById('block-date').value.trim();
+            let date = document.getElementById('block-date').value.trim();
             const reason = document.getElementById('block-reason').value.trim();
 
             if (!date) {
@@ -1523,13 +1525,18 @@
                 return;
             }
 
-            // Validate date format (YYYY-MM-DD)
-            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            // Validate date format (mm-dd-yyyy)
+            const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
             if (!dateRegex.test(date)) {
                 alert('Invalid date format');
                 logSecurityEvent('invalid_input', { field: 'date', value: date });
                 return;
             }
+
+            // Convert mm-dd-yyyy to YYYY-MM-DD for storage (standard format)
+            const dateParts = date.split('-');
+            const dateForStorage = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`;
+            date = dateForStorage; // Use converted date for storage
 
             // Sanitize reason input
             const sanitizedReason = sanitizeInput(reason) || 'No reason provided';
@@ -1725,8 +1732,11 @@
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
-            document.getElementById('block-date').value = dateStr;
-            datePicker.setDate(dateStr);
+            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy
+            const dateObj = new Date(dateStr);
+            const formattedDate = formatDateMMDDYYYY(dateObj);
+            document.getElementById('block-date').value = formattedDate;
+            datePicker.setDate(dateStr, false); // false = don't trigger onChange
         }
 
         // Load bookings
