@@ -424,8 +424,8 @@
         }
 
         .calendar-day.blocked {
-            background: var(--warning-color);
-            color: var(--primary-color);
+            background: var(--primary-color);
+            color: var(--secondary-color);
             font-weight: bold;
         }
 
@@ -447,7 +447,7 @@
         }
 
         .calendar-day.blocked .calendar-day-indicator {
-            background: var(--primary-color);
+            background: var(--secondary-color);
         }
 
         .calendar-day.has-booking .calendar-day-indicator {
@@ -534,8 +534,8 @@
 
         .date-badge {
             padding: 0.25rem 0.75rem;
-            background: var(--warning-color);
-            color: var(--primary-color);
+            background: var(--primary-color);
+            color: var(--secondary-color);
             border-radius: 20px;
             font-size: 0.9rem;
             font-weight: bold;
@@ -1585,7 +1585,7 @@
                 return `
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
-                            <span class="date-badge">${safeDate}</span>
+                            <span class="date-badge">${safeFormattedDate}</span>
                             <div>
                                 <strong>${safeFormattedDate}</strong>
                                 ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
