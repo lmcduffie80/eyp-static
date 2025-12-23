@@ -1410,9 +1410,8 @@
             // Format as mm-dd-yyyy directly without Date object conversion
             const formattedDate = `${month}-${day}-${year}`;
             
+            // Set the input value directly - don't use flatpickr.setDate as it may cause date conversion issues
             document.getElementById('block-date').value = formattedDate;
-            // Update flatpickr internal date without triggering onChange
-            datePicker.setDate(dateStr, false);
         }
 
         // Load bookings
