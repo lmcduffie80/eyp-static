@@ -339,7 +339,7 @@
             margin-bottom: 2rem;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
             .calendars-container {
                 grid-template-columns: 1fr;
             }
@@ -528,8 +528,8 @@
 
         .blocked-date-info {
             display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
+            flex-direction: row;
+            gap: 1rem;
             align-items: center;
             flex: 1;
         }
@@ -1588,7 +1588,7 @@
                     <div class="blocked-date-item">
                         <div class="blocked-date-info">
                             <span class="date-badge">${safeFormattedDate}</span>
-                            ${safeReason ? `<div style="color: var(--text-dark); font-size: 0.95rem; text-align: center;">${safeReason}</div>` : ''}
+                            ${safeReason ? `<div style="color: var(--text-dark); font-size: 0.95rem; text-align: left;">${safeReason}</div>` : ''}
                         </div>
                         <button class="btn btn-danger" onclick="unblockDate('${safeDate}')">Unblock</button>
                     </div>
