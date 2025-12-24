@@ -1292,9 +1292,6 @@
             <span id="header-user-name" style="font-size: 1.5rem; font-weight: 500;">DJ User</span>
         </h1>
         <div class="header-actions">
-            <div style="text-align: right; margin-right: 1rem;">
-                <div id="user-email" style="font-size: 0.75rem; color: #ccc;"></div>
-            </div>
             <div class="user-profile-menu">
                 <div class="profile-icon" id="profile-icon" onclick="toggleProfileDropdown()">
                     <span id="profile-initials">DJ</span>
@@ -1771,17 +1768,8 @@
                 if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
                 if (headerUserName) headerUserName.textContent = displayName;
                 
-                // Show email if available
-                const emailDiv = document.getElementById('user-email');
-                if (currentDJ.email && emailDiv) {
-                    emailDiv.textContent = currentDJ.email;
-                } else if (emailDiv) {
-                    emailDiv.textContent = '';
-                }
-                
                 // Update dropdown menu
                 document.getElementById('dropdown-name').textContent = displayName;
-                document.getElementById('dropdown-email').textContent = currentDJ.email || '';
                 
                 // Update profile icon with initials
                 updateProfileIcon(displayName);
@@ -1798,14 +1786,8 @@
                 if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
                 if (headerUserName) headerUserName.textContent = currentUsername;
                 
-                const emailDiv = document.getElementById('user-email');
-                if (emailDiv) {
-                    emailDiv.textContent = '';
-                }
-                
                 // Update dropdown menu
                 document.getElementById('dropdown-name').textContent = currentUsername;
-                document.getElementById('dropdown-email').textContent = '';
                 
                 // Update profile icon with initials
                 updateProfileIcon(currentUsername);
