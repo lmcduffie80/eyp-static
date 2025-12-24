@@ -2692,10 +2692,32 @@
                 generateCalendar();
                 displayBlockedDates();
             } else if (sectionName === 'projects') {
-                if (typeof loadBookings === 'function') loadBookings();
+                // Check if a filter was passed (from URL or function parameter)
+                const urlParams = new URLSearchParams(window.location.search);
+                const filter = urlParams.get('filter') || null;
+                if (typeof loadBookings === 'function') loadBookings(filter);
             } else if (sectionName === 'reviews') {
                 if (typeof loadReviews === 'function') loadReviews();
             }
+        }
+
+        // Navigate to next booking (projects filtered to upcoming)
+        function goToNextBooking() {
+            showSection('projects');
+            // Small delay to ensure section is loaded, then filter to upcoming
+            setTimeout(() => {
+                // Set the filter button to active
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.textContent.toLowerCase().includes('upcoming')) {
+                        btn.classList.add('active');
+                    }
+                });
+                // Load bookings with upcoming filter
+                if (typeof loadBookings === 'function') {
+                    loadBookings('upcoming');
+                }
+            }, 100);
         }
 
         // Update dashboard statistics
