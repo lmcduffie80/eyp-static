@@ -1584,7 +1584,8 @@
                 document.getElementById('new-lastname').value = nameParts.slice(1).join(' ') || '';
             }
             
-            document.getElementById('new-email').value = user.email;
+            document.getElementById('new-email').value = user.email || '';
+            document.getElementById('new-phone').value = user.phone || '';
             document.getElementById('new-password').value = ''; // Don't populate password
             document.getElementById('new-user-type').value = userType;
             document.getElementById('new-password').required = false;
