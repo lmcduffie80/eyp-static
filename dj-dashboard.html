@@ -2044,7 +2044,7 @@
                 }
             } else {
                 const newUser = {
-                    username: currentUsername,
+                    username: username,
                     email: email,
                     phone: phone,
                     name: name || '',
@@ -2055,6 +2055,8 @@
                 if (window.tempProfilePicture) {
                     window.tempProfilePicture = null;
                 }
+                // Update localStorage dj_user with new username
+                localStorage.setItem('dj_user', username);
             }
             
             // Save updated users list
