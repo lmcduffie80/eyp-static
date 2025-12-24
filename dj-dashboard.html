@@ -3669,47 +3669,48 @@
             const nextBookingElement = document.getElementById('next-booking-stat');
             if (upcomingBookings.length > 0) {
                 const nextBooking = upcomingBookings[0];
-                let formattedDate = '';
+                let formattedDate = 'Invalid date';
                 
-                // Try to parse the date in various formats
                 try {
                     let dateStr = nextBooking.date;
                     if (!dateStr) {
                         formattedDate = 'Invalid date';
-                    } else if (dateStr instanceof Date) {
-                        // Already a Date object
+                    } else {
+                        // Use the formatDateMMDDYYYY helper which handles Date objects, ISO strings, etc.
+                        // It will try to parse any string format
                         formattedDate = formatDateMMDDYYYY(dateStr);
-                    } else if (typeof dateStr === 'string') {
-                        // Handle string dates
-                        // First, try to normalize ISO format strings
-                        if (dateStr.includes('T')) {
-                            // Extract date part before 'T'
-                            dateStr = dateStr.split('T')[0];
-                        }
                         
-                        // Try to parse as YYYY-MM-DD format
-                        if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            const dateParts = dateStr.split('-');
-                            const year = parseInt(dateParts[0], 10);
-                            const month = parseInt(dateParts[1], 10) - 1;
-                            const day = parseInt(dateParts[2], 10);
-                            const dateObj = new Date(year, month, day);
-                            formattedDate = formatDateMMDDYYYY(dateObj);
-                        } else {
-                            // Try to parse with Date constructor (handles various formats)
-                            const dateObj = new Date(dateStr);
-                            if (!isNaN(dateObj.getTime())) {
+                        // If formatDateMMDDYYYY returns empty, the date couldn't be parsed
+                        // Try to manually parse the string
+                        if (!formattedDate && typeof dateStr === 'string') {
+                            // Handle malformed formats like "04-11T00:00:00.000Z-2026"
+                            // Extract year from the end if present
+                            const yearMatch = dateStr.match(/-(\d{4})$/);
+                            const monthDayMatch = dateStr.match(/^(\d{2})-(\d{2})/);
+                            
+                            if (yearMatch && monthDayMatch) {
+                                const year = parseInt(yearMatch[1], 10);
+                                const month = parseInt(monthDayMatch[1], 10) - 1;
+                                const day = parseInt(monthDayMatch[2], 10);
+                                const dateObj = new Date(year, month, day);
                                 formattedDate = formatDateMMDDYYYY(dateObj);
                             } else {
-                                formattedDate = dateStr; // Fallback to raw string if can't parse
+                                // Try one more time with Date constructor
+                                const dateObj = new Date(dateStr);
+                                if (!isNaN(dateObj.getTime())) {
+                                    formattedDate = formatDateMMDDYYYY(dateObj);
+                                }
                             }
                         }
-                    } else {
-                        formattedDate = String(dateStr);
                     }
                 } catch (error) {
                     console.error('Error formatting next booking date:', error, nextBooking.date);
                     formattedDate = nextBooking.date ? String(nextBooking.date) : 'Invalid date';
+                }
+                
+                // If we still don't have a formatted date, show a safe fallback
+                if (!formattedDate || formattedDate === 'Invalid date') {
+                    formattedDate = 'Date unavailable';
                 }
                 
                 nextBookingElement.textContent = formattedDate;
