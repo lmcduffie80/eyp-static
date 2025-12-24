@@ -2010,15 +2010,11 @@
                 card.classList.remove('active');
             });
 
-            // For revenue and total-revenue, just show all bookings (no special filter)
+            // For revenue and total-revenue, just update stats (don't navigate)
             if (filterType === 'revenue' || filterType === 'total-revenue') {
                 currentStatusFilter = null;
-                // Switch to bookings tab if not already there
-                if (!document.getElementById('bookings-tab').classList.contains('active')) {
-                    switchTab('bookings');
-                } else {
-                    filterAllBookings();
-                }
+                // Just update the dashboard stats, don't navigate to bookings tab
+                updateDashboardStats();
                 return;
             }
 
