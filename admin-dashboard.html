@@ -2603,7 +2603,7 @@
             await filterAllBookings();
         }
 
-        // Helper function to parse date consistently (handles Date objects, ISO strings, YYYY-MM-DD strings)
+        // Helper function to parse date consistently (always as local date to avoid timezone issues)
         function parseBookingDate(dateValue) {
             if (!dateValue) return null;
             
@@ -2614,19 +2614,26 @@
             
             // If it's a string
             if (typeof dateValue === 'string') {
-                // Handle ISO format (e.g., "2025-04-10T00:00:00.000Z")
-                if (dateValue.includes('T')) {
-                    return new Date(dateValue);
+                // Handle YYYY-MM-DD format - parse as local date to avoid timezone issues
+                if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = dateValue.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                    const day = parseInt(parts[2], 10);
+                    return new Date(year, month, day); // Creates local date (no timezone shift)
                 }
-                
-                // Handle YYYY-MM-DD format
-                const parts = dateValue.split('-');
-                if (parts.length === 3) {
-                    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                // Handle ISO format (e.g., "2025-04-10T00:00:00.000Z") - extract date part and parse as local
+                if (dateValue.includes('T')) {
+                    const datePart = dateValue.split('T')[0];
+                    const parts = datePart.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    return new Date(year, month, day); // Creates local date
                 }
             }
             
-            // Fallback: try to create Date object
+            // Fallback: try to create Date object (may still have timezone issues, but better than nothing)
             const date = new Date(dateValue);
             return isNaN(date.getTime()) ? null : date;
         }
@@ -2793,26 +2800,32 @@
                 return;
             }
 
-            // Date formatting helper function - formats date as mm-dd-yyyy
+            // Date formatting helper function - formats date as mm-dd-yyyy (parses as local date)
             function formatDateMMDDYYYY(dateStr) {
                 if (!dateStr) return '';
                 
-                // Handle Date objects
                 let date;
                 if (dateStr instanceof Date) {
                     date = dateStr;
                 } else if (typeof dateStr === 'string') {
-                    // Handle ISO format strings (e.g., "2025-04-10T00:00:00.000Z")
-                    if (dateStr.includes('T')) {
-                        date = new Date(dateStr);
+                    // Handle YYYY-MM-DD format - parse as local date to avoid timezone issues
+                    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = dateStr.split('-');
+                        const year = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                        const day = parseInt(parts[2], 10);
+                        date = new Date(year, month, day); // Creates local date (no timezone shift)
+                    } else if (dateStr.includes('T')) {
+                        // Handle ISO format - extract date part and parse as local
+                        const datePart = dateStr.split('T')[0];
+                        const parts = datePart.split('-');
+                        const year = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1;
+                        const day = parseInt(parts[2], 10);
+                        date = new Date(year, month, day); // Creates local date
                     } else {
-                        // Handle YYYY-MM-DD format
-                        const dateParts = dateStr.split('-');
-                        if (dateParts.length === 3) {
-                            date = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
-                        } else {
-                            return dateStr; // Return as-is if can't parse
-                        }
+                        // Try to parse as-is (fallback)
+                        date = new Date(dateStr);
                     }
                 } else {
                     return dateStr; // Return as-is if not a string or Date
