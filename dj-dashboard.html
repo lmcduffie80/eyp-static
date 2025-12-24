@@ -2764,41 +2764,51 @@
         }
 
         // Confirm and block the date
-        function confirmBlockDate(dateStr) {
+        async function confirmBlockDate(dateStr) {
             const reasonTextarea = document.getElementById('block-reason');
             const reason = reasonTextarea ? reasonTextarea.value.trim() : '';
             
             // Sanitize reason input
             const sanitizedReason = reason ? reason.replace(/[<>]/g, '') : 'No reason provided';
             
-            // Get DJ user info to store full name
-            const currentUsername = localStorage.getItem('dj_user');
-            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
-            const djName = currentDJ && currentDJ.firstName && currentDJ.lastName 
-                ? `${currentDJ.firstName} ${currentDJ.lastName}` 
-                : (currentUsername || 'DJ User');
-            
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
-            
-            // Add blocked date with DJ name
-            blockedDates.push({
-                date: dateStr,
-                reason: sanitizedReason,
-                djUser: djName, // Store DJ's full name for admin dashboard display
-                blockedBy: currentUsername || 'DJ User', // Keep username for backward compatibility
-                blockedAt: new Date().toISOString()
-            });
-            
-            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
-            
-            logSecurityEvent('block_date', { date: dateStr, reason: sanitizedReason });
-            
-            // Close modal first
-            closeBlockDateConfirmModal();
-            
-            // Refresh entire page
-            window.location.reload();
+            try {
+                // Get DJ user info from API to get full name
+                const currentUsername = localStorage.getItem('dj_user');
+                if (!currentUsername) {
+                    alert('Error: Please log in again.');
+                    return;
+                }
+                
+                // Get current DJ user info from API
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                const djName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                    : (currentUsername || 'DJ User');
+                
+                // Create blocked date via API
+                await apiCreateBlockedDate({
+                    djUser: djName,
+                    date: dateStr,
+                    reason: sanitizedReason || null,
+                    blockedBy: currentUsername || djName
+                });
+                
+                logSecurityEvent('block_date', { date: dateStr, reason: sanitizedReason });
+                
+                // Close modal first
+                closeBlockDateConfirmModal();
+                
+                // Refresh entire page to show the new blocked date
+                window.location.reload();
+            } catch (error) {
+                console.error('Error blocking date:', error);
+                alert(`Failed to block date: ${error.message || 'Unknown error'}. Please try again.`);
+            }
         }
 
         // Show block date message (success or error)
