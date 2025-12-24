@@ -1781,7 +1781,13 @@
                     })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('HoneyBook sync response:', data);
 
                 if (data.success && data.projects && data.projects.length > 0) {
                     // Import the projects
@@ -1791,6 +1797,13 @@
                     let skippedCount = 0;
 
                     data.projects.forEach((project, index) => {
+                        // Validate required fields
+                        if (!project.date || !project.eventType) {
+                            console.warn('Skipping project with missing required fields:', project);
+                            skippedCount++;
+                            return;
+                        }
+
                         // Check if project already exists
                         const exists = existingBookings.some(b => 
                             b.djUser === project.djUser && 
@@ -1799,7 +1812,7 @@
                         );
 
                         if (!exists) {
-                            project.id = project.id || Date.now() + index;
+                            project.id = project.id || `hb_${Date.now()}_${index}`;
                             newBookings.push(project);
                             importedCount++;
                         } else {
@@ -1818,11 +1831,12 @@
                     filterAllBookings();
                     loadAllDJs();
                 } else {
-                    showImportMessage('No projects found to sync. Make sure your Zapier webhook is configured and has sent data.', 'error');
+                    const message = data.message || 'No projects found to sync.';
+                    showImportMessage(`${message} Make sure your Zapier webhook is configured and has sent data. Check the Vercel function logs for details.`, 'error');
                 }
             } catch (error) {
                 console.error('HoneyBook sync error:', error);
-                showImportMessage('Error syncing from HoneyBook: ' + error.message + '. Please check your API endpoint configuration.', 'error');
+                showImportMessage('Error syncing from HoneyBook: ' + error.message + '. Please check your API endpoint configuration and Vercel function logs.', 'error');
             }
         }
 
