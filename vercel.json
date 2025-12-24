@@ -1,13 +1,7 @@
 {
-  "rewrites": [
-    {
-      "source": "/dj-portal",
-      "destination": "/dj-login.html"
-    },
-    {
-      "source": "/dj-portal/",
-      "destination": "/dj-login.html"
+  "functions": {
+    "api/send-dj-reminder.js": {
+      "runtime": "nodejs18.x"
     }
-  ]
+  }
 }
-
