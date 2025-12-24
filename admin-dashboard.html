@@ -1442,6 +1442,7 @@
                     djs[userIndex].firstName = firstName;
                     djs[userIndex].lastName = lastName;
                     djs[userIndex].email = email;
+                    djs[userIndex].phone = phone || '';
                     // Keep username for backward compatibility (set to full name)
                     djs[userIndex].username = `${firstName} ${lastName}`;
                     if (password) {
