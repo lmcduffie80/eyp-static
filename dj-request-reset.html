@@ -294,8 +294,15 @@
             submitButton.textContent = 'Sending...';
 
             try {
+                // Determine API URL based on environment
+                // Use full URL if running locally (file://) or on deployed site
+                const isLocalFile = window.location.protocol === 'file:';
+                const apiUrl = isLocalFile 
+                    ? 'https://eyp-static.vercel.app/api/dj-reset-password'
+                    : '/api/dj-reset-password';
+                
                 // Call API to send reset password email
-                const response = await fetch('/api/dj-reset-password', {
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
