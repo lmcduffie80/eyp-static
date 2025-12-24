@@ -66,6 +66,7 @@
             padding: 0;
             margin: 0;
             flex: 1;
+            padding-top: 5rem; /* Move menu options down two rows */
         }
 
         .sidebar-nav-item {
@@ -595,11 +596,12 @@
         <!-- Main Content Area -->
         <div class="main-content">
             <div class="dashboard-header">
-                <h1>
+                <h1 style="margin-left: 2rem;">
                     Admin Dashboard
                 </h1>
                 <div class="header-actions">
                     <div style="text-align: right; margin-right: 1rem;">
+                        <div id="welcome-message" style="font-size: 1rem; font-weight: 500; margin-bottom: 0.25rem;">Welcome</div>
                         <div style="font-size: 0.85rem; opacity: 0.9;">Administrator</div>
                         <div id="admin-name" style="font-weight: bold; font-size: 1.1rem;">Admin</div>
                     </div>
@@ -959,9 +961,13 @@
         // Initialize super user on page load
         initializeSuperUser();
 
-        // Load admin name
+        // Load admin name and display welcome message
         const adminUser = localStorage.getItem('admin_user') || 'Admin';
         document.getElementById('admin-name').textContent = adminUser;
+        
+        // Extract first name for welcome message
+        const firstName = adminUser.split(' ')[0]; // Get first word (first name)
+        document.getElementById('welcome-message').textContent = `Welcome, ${firstName}`;
 
         // Tab switching
         function switchTab(tabName) {
