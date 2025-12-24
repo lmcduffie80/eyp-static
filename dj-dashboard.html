@@ -1302,8 +1302,6 @@
                     </div>
                     <ul class="profile-dropdown-menu">
                         <li><a href="#" onclick="toggleAccountSettings(); return false;">Account Settings</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
                     </ul>
                     <div class="profile-dropdown-account" id="profile-account-form">
                         <h3>Account Information</h3>
@@ -1332,6 +1330,9 @@
                                 <button type="button" class="btn btn-secondary" onclick="cancelAccountFromDropdown()">Cancel</button>
                             </div>
                         </form>
+                    </div>
+                    <div class="profile-dropdown-footer" style="border-top: 1px solid #e0e0e0; padding-top: 0.75rem; margin-top: 0.75rem;">
+                        <a href="#" onclick="logout(); return false;" style="display: block; padding: 0.75rem 1rem; color: var(--text-dark); text-decoration: none; transition: background 0.2s ease; font-size: 0.95rem; text-align: center;">Logout</a>
                     </div>
                 </div>
             </div>
