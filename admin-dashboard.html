@@ -2182,6 +2182,12 @@
         let blockedDatesCache = null;
         let blockedDatesCacheTime = null;
         
+        // Function to clear blocked dates cache (call after create/delete)
+        function clearBlockedDatesCache() {
+            blockedDatesCache = null;
+            blockedDatesCacheTime = null;
+        }
+        
         async function getAllBlockedDates() {
             // Use cache if available and recent
             const now = Date.now();
