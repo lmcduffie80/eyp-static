@@ -694,31 +694,13 @@
                 // Store username - prefer username field, fallback to firstName + lastName for consistency
                 const storedUsername = user.username || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '');
                 localStorage.setItem('dj_user', storedUsername);
+                console.log('Login successful! Redirecting to dashboard...');
                 window.location.href = 'dj-dashboard.html';
             } else {
-                // Try API call if localStorage fails
-                fetch('/api/dj-login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        localStorage.setItem('dj_token', data.token);
-                        localStorage.setItem('dj_user', data.user);
-                        window.location.href = 'dj-dashboard.html';
-                    } else {
-                        errorMessage.textContent = data.message || 'Invalid username or password.';
-                        errorMessage.classList.add('show');
-                    }
-                })
-                .catch(error => {
-                    errorMessage.textContent = 'Invalid username or password.';
-                    errorMessage.classList.add('show');
-                });
+                console.log('No matching user found in localStorage');
+                // Don't try API call - it doesn't exist and causes 404 errors
+                errorMessage.textContent = 'Invalid username or password. Please check your credentials and try again.';
+                errorMessage.classList.add('show');
             }
         });
 
