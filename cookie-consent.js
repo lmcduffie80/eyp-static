@@ -63,7 +63,7 @@ const CookieConsent = {
             ">
                 <div style="flex: 1; min-width: 250px;">
                     <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem;">
-                        🍪 We Use Cookies
+                        We Use Cookies
                     </div>
                     <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.9); line-height: 1.5;">
                         We use cookies to analyze website traffic and improve your experience. 
