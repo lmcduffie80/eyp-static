@@ -1875,16 +1875,15 @@
                             ${upcomingBookings.length > 0 ? `
                             <button class="send-reminder-btn" 
                                     data-dj-name="${djDisplayName.replace(/"/g, '&quot;')}" 
-                                    data-dj-phone="${(dj.phone || '').replace(/"/g, '&quot;')}" 
+                                    data-dj-email="${(dj.email || '').replace(/"/g, '&quot;')}" 
                                     data-booking-count="${upcomingBookings.length}"
                                     style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">
-                                📱 Send Reminder
+                                ✉️ Send Email Reminder
                             </button>
                             ` : ''}
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
                             <div>Email: ${dj.email}</div>
-                            ${dj.phone ? `<div>Phone: ${dj.phone}</div>` : ''}
                             <div>Member since: ${new Date(dj.createdAt).toLocaleDateString()}</div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
@@ -1910,7 +1909,7 @@
                 `;
             }).join('');
 
-            // Store bookings data for SMS reminders (global variable for easy access)
+            // Store bookings data for email reminders (global variable for easy access)
             window.djBookingsData = {};
             djs.forEach(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
@@ -1929,9 +1928,9 @@
             container.querySelectorAll('.send-reminder-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const djName = this.getAttribute('data-dj-name');
-                    const djPhone = this.getAttribute('data-dj-phone');
+                    const djEmail = this.getAttribute('data-dj-email');
                     const bookings = window.djBookingsData[djName] || [];
-                    sendDJReminder(djName, djPhone, bookings);
+                    sendDJEmailReminder(djName, djEmail, bookings);
                 });
             });
 
@@ -3024,29 +3023,29 @@
             }, 5000);
         }
 
-        // Send DJ reminder SMS
-        async function sendDJReminder(djName, djPhone, bookings) {
-            if (!djPhone) {
-                showToast('This DJ does not have a phone number on file. Please add a phone number in User Management first.', 'error');
+        // Send DJ reminder email
+        async function sendDJEmailReminder(djName, djEmail, bookings) {
+            if (!djEmail) {
+                showToast('This DJ does not have an email address on file. Please add an email address in User Management first.', 'error');
                 return;
             }
 
-            if (!confirm(`Send SMS reminder to ${djName} about ${bookings.length} upcoming booking${bookings.length > 1 ? 's' : ''}?`)) {
+            if (!confirm(`Send email reminder to ${djName} (${djEmail}) about ${bookings.length} upcoming booking${bookings.length > 1 ? 's' : ''}?`)) {
                 return;
             }
 
             // Show loading message
-            showToast(`Sending SMS reminder to ${djName}...`, 'info');
+            showToast(`Sending email reminder to ${djName}...`, 'info');
 
             try {
-                const response = await fetch('/api/send-dj-reminder', {
+                const response = await fetch('/api/send-dj-email-reminder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         djName: djName,
-                        djPhone: djPhone,
+                        djEmail: djEmail,
                         bookings: bookings
                     })
                 });
@@ -3066,12 +3065,12 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast(`✅ SMS reminder sent successfully to ${djName}! They should receive it shortly.`, 'success');
+                    showToast(`✅ Email reminder sent successfully to ${djName}! They should receive it shortly.`, 'success');
                 } else {
-                    showToast(`❌ Failed to send SMS: ${data.message}`, 'error');
+                    showToast(`❌ Failed to send email: ${data.message}`, 'error');
                 }
             } catch (error) {
-                console.error('Send reminder error:', error);
+                console.error('Send email reminder error:', error);
                 
                 // More detailed error message
                 let errorMessage = error.message;
@@ -3079,7 +3078,7 @@
                     errorMessage = 'Cannot reach the API endpoint. Please check: 1) The function is deployed, 2) You\'re on the correct domain, 3) Check browser console for details.';
                 }
                 
-                showToast(`❌ Error sending SMS reminder: ${errorMessage}`, 'error');
+                showToast(`❌ Error sending email reminder: ${errorMessage}`, 'error');
             }
         }
 
