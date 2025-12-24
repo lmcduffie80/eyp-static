@@ -784,6 +784,93 @@
             </div>
         </div>
 
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Website Analytics</h2>
+                    <div style="display: flex; gap: 1rem;">
+                        <select id="analytics-time-range" onchange="loadAnalytics()" style="padding: 0.5rem 1rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                            <option value="365">Last Year</option>
+                            <option value="all">All Time</option>
+                        </select>
+                        <button onclick="clearAnalyticsData()" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Clear Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analytics Overview Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 10px;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Total Visits</div>
+                        <div style="font-size: 2.5rem; font-weight: 700;" id="total-visits">0</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem; border-radius: 10px;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Page Views</div>
+                        <div style="font-size: 2.5rem; font-weight: 700;" id="total-page-views">0</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 10px;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Unique Visitors</div>
+                        <div style="font-size: 2.5rem; font-weight: 700;" id="unique-visitors">0</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 1.5rem; border-radius: 10px;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Avg. Session</div>
+                        <div style="font-size: 2.5rem; font-weight: 700;" id="avg-session-duration">0m</div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts Grid -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <!-- Visits Over Time Chart -->
+                    <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 10px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Visits Over Time</h3>
+                        <div id="visits-chart" style="height: 300px; display: flex; align-items: flex-end; gap: 0.5rem; padding: 1rem 0;">
+                            <!-- Chart bars will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- Top Pages -->
+                    <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 10px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Top Pages</h3>
+                        <div id="top-pages-list">
+                            <!-- Top pages will be listed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Analytics -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Traffic Sources -->
+                    <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 10px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Traffic Sources</h3>
+                        <div id="traffic-sources-list">
+                            <!-- Traffic sources will be listed here -->
+                        </div>
+                    </div>
+
+                    <!-- Device Types -->
+                    <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 10px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Device Types</h3>
+                        <div id="device-types-list">
+                            <!-- Device types will be listed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div style="margin-top: 2rem; background: var(--bg-light); padding: 1.5rem; border-radius: 10px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Recent Activity</h3>
+                    <div id="recent-activity-list" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Recent activity will be listed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- User Management Tab -->
         <div id="users-tab" class="tab-content">
             <div class="section-card">
@@ -1089,6 +1176,10 @@
                 .slice(0, 5);
 
             const container = document.getElementById('top-pages-list');
+            if (!container) {
+                console.error('Top pages list container not found');
+                return;
+            }
             if (topPages.length === 0) {
                 container.innerHTML = '<p style="color: var(--text-light);">No page views yet</p>';
                 return;
@@ -1150,6 +1241,10 @@
 
             const total = visits.length;
             const container = document.getElementById('device-types-list');
+            if (!container) {
+                console.error('Device types list container not found');
+                return;
+            }
             container.innerHTML = Object.entries(devices)
                 .filter(([_, count]) => count > 0)
                 .sort((a, b) => b[1] - a[1])
@@ -1172,6 +1267,10 @@
         // Generate recent activity
         function generateRecentActivity(visits) {
             const container = document.getElementById('recent-activity-list');
+            if (!container) {
+                console.error('Recent activity list container not found');
+                return;
+            }
             if (visits.length === 0) {
                 container.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No recent activity</p>';
                 return;
