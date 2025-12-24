@@ -1250,15 +1250,6 @@
                     </div>
                     <div class="stat-value" id="total-revenue-stat">$0.00</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <h3>
-                            <span class="stat-icon">📊</span>
-                            Previous Year Revenue
-                        </h3>
-                    </div>
-                    <div class="stat-value" id="previous-year-revenue-stat">$0.00</div>
-                </div>
                 <div class="stat-card" onclick="showSection('projects')" style="cursor: pointer;">
                     <div class="stat-card-header">
                         <h3>
@@ -2752,12 +2743,9 @@
             const totalBookings = upcomingBookingsForStats.length;
             document.getElementById('total-bookings-stat').textContent = totalBookings;
             
-            // Calculate total revenue (only DJ payout from upcoming bookings) and previous year revenue
+            // Calculate total revenue (only DJ payout from upcoming bookings)
             // Only use payout field for upcoming bookings
             let totalRevenue = 0;
-            let previousYearRevenue = 0;
-            const currentYear = new Date().getFullYear();
-            const previousYear = currentYear - 1;
             
             // Only calculate revenue from upcoming bookings using payout field
             upcomingBookingsForStats.forEach(booking => {
@@ -2770,20 +2758,6 @@
                 }
             });
             
-            // Calculate previous year revenue from all bookings (past bookings are fine for historical data)
-            djBookings.forEach(booking => {
-                // Check if booking is from previous year
-                if (booking.date && booking.payout) {
-                    const dateParts = booking.date.split('-');
-                    const bookingYear = parseInt(dateParts[0], 10);
-                    if (bookingYear === previousYear) {
-                        const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
-                        const payoutAmount = parseFloat(payoutValue) || 0;
-                        previousYearRevenue += payoutAmount;
-                    }
-                }
-            });
-            
             // Format revenue with commas
             const formattedRevenue = totalRevenue.toLocaleString('en-US', {
                 style: 'currency',
@@ -2792,18 +2766,6 @@
                 maximumFractionDigits: 2
             });
             document.getElementById('total-revenue-stat').textContent = formattedRevenue;
-            
-            // Format previous year revenue with commas
-            const formattedPreviousYearRevenue = previousYearRevenue.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            const previousYearElement = document.getElementById('previous-year-revenue-stat');
-            if (previousYearElement) {
-                previousYearElement.textContent = formattedPreviousYearRevenue;
-            }
             
             // Find next booking date
             const today = new Date();
