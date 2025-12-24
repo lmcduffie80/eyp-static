@@ -61,7 +61,7 @@ const CookieConsent = {
                 gap: 1rem;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             ">
-                <div style="flex: 1; min-width: 250px;">
+                <div style="flex: 1; min-width: 250px; text-align: center;">
                     <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem;">
                         We Use Cookies
                     </div>
