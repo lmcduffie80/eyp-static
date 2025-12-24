@@ -1976,9 +1976,11 @@
             
             logSecurityEvent('edit_blocked_date', { date: date, reason: sanitizedReason });
 
-            // Refresh display and calendar
+            // Refresh display and calendars
             displayBlockedDates();
+            displayBlockedDatesPage();
             generateCalendar();
+            generateCalendarPage();
             closeBlockedDateModal();
         }
 
