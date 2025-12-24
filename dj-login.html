@@ -478,18 +478,31 @@
                     console.log('Initialized Stephen Kena user');
                 }
                 
-                // Save all users
-                if (usersUpdated) {
-                    localStorage.setItem('dj_users', JSON.stringify(existingUsers));
-                    console.log('Saved users to localStorage:', existingUsers.length, 'total users');
-                }
+                // Always save users (in case localStorage was cleared or corrupted)
+                localStorage.setItem('dj_users', JSON.stringify(existingUsers));
+                console.log('Initialized default users. Total users:', existingUsers.length);
+                console.log('Users in localStorage:', existingUsers.map(u => ({ 
+                    username: u.username, 
+                    email: u.email, 
+                    firstName: u.firstName, 
+                    lastName: u.lastName 
+                })));
             } catch (error) {
                 console.error('Error initializing default users:', error);
             }
         }
 
         // Initialize default users on page load
-        initializeDefaultUsers();
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeDefaultUsers();
+        });
+        // Also run immediately in case DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            // DOMContentLoaded hasn't fired yet, the event listener above will handle it
+        } else {
+            // DOMContentLoaded already fired, initialize now
+            initializeDefaultUsers();
+        }
 
         // Toggle between login and signup forms
         function toggleMode() {
