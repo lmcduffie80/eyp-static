@@ -2423,25 +2423,22 @@
             
             logSecurityEvent('block_date', { date: dateStr, reason: sanitizedReason });
             
-            // Close modal
+            // Close modal first
             closeBlockDateConfirmModal();
             
-            // Refresh calendars and blocked dates lists immediately
+            // Refresh calendars and blocked dates lists immediately (so new date appears right away)
             generateCalendar();
             generateCalendarPage();
-            displayBlockedDates(); // Refresh dashboard blocked dates list
+            displayBlockedDates(); // Refresh dashboard blocked dates list - this shows the new blocked date
             displayBlockedDatesPage(); // Refresh calendar page blocked dates list
             
-            // Show brief success message, then close automatically
-            showBlockDateMessage('Date has been blocked successfully!', 'success');
-            
-            // Scroll to blocked dates list if it exists (to show the newly added date)
+            // Scroll to blocked dates list to show the newly added date
             setTimeout(() => {
                 const blockedDatesList = document.querySelector('.blocked-dates-list');
                 if (blockedDatesList) {
-                    blockedDatesList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    blockedDatesList.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-            }, 300);
+            }, 100);
         }
 
         // Show block date message (success or error)
