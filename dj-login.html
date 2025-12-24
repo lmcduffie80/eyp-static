@@ -309,6 +309,28 @@
     <script>
         let isSignupMode = false;
 
+        // Initialize admin user if it doesn't exist
+        function initializeAdminUser() {
+            const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const adminExists = existingUsers.find(u => u.username === 'admin' || u.email === 'admin');
+            
+            if (!adminExists) {
+                const adminUser = {
+                    username: 'admin',
+                    email: 'admin@externallyyours.com',
+                    password: 'admin123', // In production, this should be hashed!
+                    firstName: 'Admin',
+                    lastName: 'User',
+                    createdAt: new Date().toISOString()
+                };
+                existingUsers.push(adminUser);
+                localStorage.setItem('dj_users', JSON.stringify(existingUsers));
+            }
+        }
+
+        // Initialize admin user on page load
+        initializeAdminUser();
+
         // Toggle between login and signup forms
         function toggleMode() {
             isSignupMode = !isSignupMode;
