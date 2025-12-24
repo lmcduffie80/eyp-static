@@ -587,7 +587,9 @@
             if (user) {
                 // Store authentication token (in production, use httpOnly cookies)
                 localStorage.setItem('dj_token', 'dev_token_' + Date.now());
-                localStorage.setItem('dj_user', user.username);
+                // Store username - prefer username field, fallback to firstName + lastName for consistency
+                const storedUsername = user.username || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '');
+                localStorage.setItem('dj_user', storedUsername);
                 window.location.href = 'dj-dashboard.html';
             } else {
                 // Try API call if localStorage fails
