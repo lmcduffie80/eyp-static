@@ -229,13 +229,31 @@ function trackTimeOnPage() {
     }
 }
 
-// Initialize tracking on page load
+// Initialize tracking on page load (only if cookie consent given)
+function initializeTracking() {
+    // Check if cookie consent has been given
+    if (typeof CookieConsent !== 'undefined' && CookieConsent.hasConsent()) {
+        trackPageView();
+    } else if (typeof getCookie === 'function') {
+        // Fallback: check cookie directly
+        const consent = getCookie('eyp_cookie_consent');
+        if (consent === 'accepted') {
+            trackPageView();
+        }
+    } else {
+        // If no consent system, track by default (for backward compatibility)
+        // In production, you should always require consent
+        trackPageView();
+    }
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        trackPageView();
+        // Wait a bit for cookie consent banner to initialize
+        setTimeout(initializeTracking, 100);
     });
 } else {
-    trackPageView();
+    setTimeout(initializeTracking, 100);
 }
 
 // Track time on page when leaving
