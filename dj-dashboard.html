@@ -2073,13 +2073,8 @@
             // Close modal first
             closeBlockDateConfirmModal();
             
-            // Refresh calendars immediately (so the blocked indicator is removed right away)
-            generateCalendar();
-            generateCalendarPage();
-            
-            // Refresh blocked dates lists
-            displayBlockedDates();
-            displayBlockedDatesPage();
+            // Refresh entire page
+            window.location.reload();
         }
 
         // Calendar state
