@@ -1899,8 +1899,12 @@
                 return bookingDate >= today;
             });
 
+            // Determine which bookings to use for revenue calculation
+            // If uncompleted filter is active, only use uncompleted bookings
+            const revenueBookings = currentStatusFilter === 'uncompleted' ? uncompletedBookings : bookings;
+
             // Calculate DJ revenue (sum of all payouts to DJs)
-            const djRevenue = bookings.reduce((sum, booking) => {
+            const djRevenue = revenueBookings.reduce((sum, booking) => {
                 if (booking.payout) {
                     const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
                     return sum + (parseFloat(payoutValue) || 0);
@@ -1909,7 +1913,7 @@
             }, 0);
 
             // Calculate total revenue (use totalRevenue field if available, otherwise use payout)
-            const totalRevenue = bookings.reduce((sum, booking) => {
+            const totalRevenue = revenueBookings.reduce((sum, booking) => {
                 // Use totalRevenue field if it exists, otherwise fall back to payout
                 const revenueSource = booking.totalRevenue || booking.payout;
                 if (revenueSource) {
