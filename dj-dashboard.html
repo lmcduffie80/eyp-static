@@ -1265,6 +1265,39 @@
                     <div class="stat-value" id="next-booking-stat" style="font-size: 1.25rem;">No upcoming bookings</div>
                 </div>
             </div>
+
+            <!-- Calendar Widget -->
+            <div class="calendar-section" style="margin-top: 2rem;">
+                <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Calendar & Schedule</h2>
+                
+                <div class="calendar-widget">
+                    <div class="calendar-widget-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
+                        <h3 id="calendar-month-year">January 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                    </div>
+                    <div id="calendar-grid-container">
+                        <!-- Calendar grid will be generated here -->
+                    </div>
+                </div>
+
+                <form class="block-date-form" id="block-date-form" style="margin-top: 1.5rem;">
+                    <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar to block it" required readonly>
+                    <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
+                    <button type="submit" class="btn btn-primary">Block Date</button>
+                </form>
+
+                <!-- Booking Details Modal -->
+                <div id="booking-details-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: white; border-radius: 10px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+                        <button onclick="closeBookingDetails()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">&times;</button>
+                        <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Booking Details</h2>
+                        <div id="booking-details-content">
+                            <!-- Booking details will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Calendar Section -->
@@ -1838,9 +1871,9 @@
             fp.config.disable.push(date);
             fp.set('disable', fp.config.disable);
 
-            // Refresh blocked dates list and calendars
+            // Refresh blocked dates list and calendar
             displayBlockedDates();
-            generateAllCalendars();
+            generateCalendar();
 
             // Clear form
             document.getElementById('block-date-form').reset();
@@ -1942,7 +1975,7 @@
             fp.set('disable', fp.config.disable);
 
             displayBlockedDates();
-            generateAllCalendars();
+            generateCalendar();
         }
 
         // Calendar state
@@ -1999,16 +2032,23 @@
                 if (dateObj.getTime() === today.getTime()) {
                     classes += ' today';
                 }
-                if (blockedDates.includes(dateStr)) {
+                
+                const hasBooking = bookingsByDate[dateStr] && bookingsByDate[dateStr].length > 0;
+                const isBlocked = blockedDates.includes(dateStr);
+                
+                if (isBlocked) {
                     classes += ' blocked';
-                } else if (bookings.includes(dateStr)) {
+                } else if (hasBooking) {
                     classes += ' has-booking';
                 }
 
+                // Determine onclick behavior: show booking details if has booking, otherwise select for blocking
+                const onclickAction = hasBooking ? `showBookingDetails('${dateStr}')` : `selectCalendarDate('${dateStr}')`;
+
                 calendarHTML += `
-                    <div class="${classes}" onclick="selectCalendarDate('${dateStr}')">
+                    <div class="${classes}" onclick="${onclickAction}">
                         <span class="calendar-day-number">${day}</span>
-                        ${(blockedDates.includes(dateStr) || bookings.includes(dateStr)) ? '<span class="calendar-day-indicator"></span>' : ''}
+                        ${(isBlocked || hasBooking) ? '<span class="calendar-day-indicator"></span>' : ''}
                     </div>
                 `;
             }
@@ -2021,26 +2061,101 @@
             }
 
             calendarHTML += '</div>';
-            document.getElementById(`calendar-grid-container-${monthOffset}`).innerHTML = calendarHTML;
+            const container = document.getElementById('calendar-grid-container');
+            if (container) {
+                container.innerHTML = calendarHTML;
+            }
         }
 
-        // Generate all three calendars
-        function generateAllCalendars() {
-            generateCalendar(0); // Current month
-            generateCalendar(1); // Next month
-            generateCalendar(2); // Month + 2
-        }
-
-        // Navigate calendar months (updates all three calendars)
+        // Navigate calendar months
         function previousMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            generateAllCalendars();
+            generateCalendar();
         }
 
         function nextMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            generateAllCalendars();
+            generateCalendar();
         }
+
+        // Show booking details modal
+        function showBookingDetails(dateStr) {
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            
+            // Build possible matching names
+            const possibleNames = [currentUsername];
+            if (currentDJ) {
+                if (currentDJ.firstName && currentDJ.lastName) {
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+                }
+                if (currentDJ.username && currentDJ.username !== currentUsername) {
+                    possibleNames.push(currentDJ.username);
+                }
+            }
+            
+            // Get bookings for this date
+            const allBookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+            const bookingsForDate = allBookings.filter(b => {
+                if (!b.djUser || b.date !== dateStr) return false;
+                return possibleNames.includes(b.djUser);
+            });
+            
+            if (bookingsForDate.length === 0) return;
+            
+            const modal = document.getElementById('booking-details-modal');
+            const content = document.getElementById('booking-details-content');
+            
+            // Format date for display
+            const dateParts = dateStr.split('-');
+            const formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+            
+            content.innerHTML = bookingsForDate.map(booking => {
+                const safeClientName = escapeHtml(booking.clientName || '');
+                const safeEventType = escapeHtml(booking.eventType || '');
+                const safeTime = escapeHtml(booking.time || '');
+                const safeLocation = escapeHtml(booking.location || '');
+                const safeEmail = escapeHtml(booking.contactEmail || '');
+                const safePhone = escapeHtml(booking.contactPhone || '');
+                const safeNotes = booking.notes ? escapeHtml(booking.notes) : '';
+                const payout = booking.payout ? String(booking.payout).replace(/\$/g, '') : '';
+                
+                return `
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e0e0e0;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">${safeClientName}</h3>
+                        <p style="color: var(--text-light); margin-bottom: 1rem;"><strong>Date:</strong> ${escapeHtml(formattedDate)}</p>
+                        <div style="display: grid; gap: 0.75rem;">
+                            <div><strong>Event Type:</strong> ${safeEventType}</div>
+                            ${safeTime ? `<div><strong>Time:</strong> ${safeTime}</div>` : ''}
+                            ${safeLocation ? `<div><strong>Location:</strong> ${safeLocation}</div>` : ''}
+                            ${payout ? `<div><strong>Payout:</strong> <span style="color: var(--success-color); font-weight: bold;">$${payout}</span></div>` : ''}
+                            ${safeEmail ? `<div><strong>Email:</strong> ${safeEmail}</div>` : ''}
+                            ${safePhone ? `<div><strong>Phone:</strong> ${safePhone}</div>` : ''}
+                            ${safeNotes ? `<div style="margin-top: 0.5rem;"><strong>Notes:</strong> ${safeNotes}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            modal.style.display = 'flex';
+        }
+
+        // Close booking details modal
+        function closeBookingDetails() {
+            const modal = document.getElementById('booking-details-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('booking-details-modal');
+            if (modal && event.target === modal) {
+                closeBookingDetails();
+            }
+        });
 
         // Select date from calendar widget
         function selectCalendarDate(dateStr) {
@@ -2439,8 +2554,9 @@
             // Load section-specific content
             if (sectionName === 'dashboard') {
                 updateDashboardStats();
+                generateCalendar();
             } else if (sectionName === 'calendar') {
-                if (typeof generateAllCalendars === 'function') generateAllCalendars();
+                if (typeof generateCalendar === 'function') generateCalendar();
                 if (typeof displayBlockedDates === 'function') displayBlockedDates();
             } else if (sectionName === 'projects') {
                 if (typeof loadBookings === 'function') loadBookings();
@@ -2546,7 +2662,7 @@
             showSection('dashboard');
             // Pre-load data
             updateDashboardStats();
-            if (typeof generateAllCalendars === 'function') generateAllCalendars();
+            if (typeof generateCalendar === 'function') generateCalendar();
             if (typeof displayBlockedDates === 'function') displayBlockedDates();
             if (typeof loadBookings === 'function') loadBookings();
             if (typeof loadReviews === 'function') loadReviews();
