@@ -187,6 +187,97 @@
             background: #f0f0f0;
         }
 
+        /* Mobile Hamburger Menu */
+        .mobile-hamburger-menu {
+            position: relative;
+            display: none;
+        }
+
+        .hamburger-btn {
+            background: transparent;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hamburger-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .hamburger-menu-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--primary-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .hamburger-menu-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .hamburger-menu-item {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .hamburger-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .hamburger-menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding-left: 2rem;
+        }
+
+        .hamburger-menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-weight: 500;
+            border-left: 3px solid white;
+        }
+
+        .hamburger-menu-item span {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .hamburger-menu-icon {
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
         /* Main Container */
         .dashboard-container {
             flex: 1;
@@ -344,6 +435,13 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: var(--primary-color);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .dj-name:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
         }
 
         .dj-stats {
@@ -482,12 +580,6 @@
             }
         }
         
-        @media (max-width: 768px) {
-            .column-filters {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .bookings-table tr:hover {
             background: var(--bg-light);
         }
@@ -551,8 +643,30 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
+            /* Column filters */
+            .column-filters {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Hide sidebar by default on mobile - move it off-screen */
+            .dashboard-wrapper .sidebar {
+                width: 260px !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                height: 100vh !important;
+                transform: translateX(-100%) !important;
+                z-index: 101 !important;
+            }
+
+            .dashboard-wrapper .sidebar.open {
+                transform: translateX(0) !important;
+            }
+            
+            /* Ensure main content takes full width on mobile */
+            .dashboard-wrapper .main-content {
+                width: 100% !important;
+                margin-left: 0 !important;
             }
 
             .sidebar-nav-link {
@@ -565,8 +679,9 @@
             }
 
             .dashboard-header {
-                flex-direction: column;
+                flex-direction: row;
                 gap: 1rem;
+                padding: 1rem;
             }
 
             .bookings-table {
@@ -576,6 +691,49 @@
             .bookings-table th,
             .bookings-table td {
                 padding: 0.5rem;
+            }
+
+            /* Show hamburger menu on mobile */
+            .header-actions .mobile-hamburger-menu {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            
+            /* Make sure hamburger button is visible */
+            .header-actions .mobile-hamburger-menu .hamburger-btn {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+
+            /* Hide old mobile menu button since we have the new hamburger menu dropdown */
+            .mobile-menu-btn {
+                display: none;
+            }
+
+            /* Adjust header actions for mobile */
+            .header-actions {
+                gap: 0.5rem;
+            }
+
+            .header-actions > div:first-child {
+                display: none; /* Hide admin name text on very small screens */
+            }
+
+            .logout-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-header h1 {
+                font-size: 1.2rem;
+            }
+
+            .dashboard-header h1 span:last-child {
+                display: none; /* Hide welcome message on very small screens */
             }
         }
         @keyframes slideIn {
@@ -656,6 +814,44 @@
                     <div style="text-align: right; margin-right: 1rem;">
                         <div style="font-size: 0.85rem; opacity: 0.9;">Administrator</div>
                         <div id="admin-name" style="font-weight: bold; font-size: 1.1rem;">Admin</div>
+                    </div>
+                    <!-- Mobile Hamburger Menu -->
+                    <div class="mobile-hamburger-menu">
+                        <button class="hamburger-btn" onclick="toggleHamburgerMenu()" aria-label="Toggle menu">
+                            ☰
+                        </button>
+                        <div class="hamburger-menu-dropdown" id="hamburger-menu-dropdown">
+                            <a class="hamburger-menu-item active" onclick="switchTab('djs'); toggleHamburgerMenu();" id="hamburger-nav-djs">
+                                <span>
+                                    <span class="hamburger-menu-icon">🏠</span>
+                                    <span>Home</span>
+                                </span>
+                            </a>
+                            <a class="hamburger-menu-item" onclick="switchTab('bookings'); toggleHamburgerMenu();" id="hamburger-nav-bookings">
+                                <span>
+                                    <span class="hamburger-menu-icon">📋</span>
+                                    <span>Projects</span>
+                                </span>
+                            </a>
+                            <a class="hamburger-menu-item" onclick="switchTab('users'); toggleHamburgerMenu();" id="hamburger-nav-users">
+                                <span>
+                                    <span class="hamburger-menu-icon">👥</span>
+                                    <span>Users</span>
+                                </span>
+                            </a>
+                            <a class="hamburger-menu-item" onclick="switchTab('calendar'); toggleHamburgerMenu();" id="hamburger-nav-calendar">
+                                <span>
+                                    <span class="hamburger-menu-icon">📅</span>
+                                    <span>Calendar</span>
+                                </span>
+                            </a>
+                            <a class="hamburger-menu-item" onclick="switchTab('analytics'); toggleHamburgerMenu();" id="hamburger-nav-analytics">
+                                <span>
+                                    <span class="hamburger-menu-icon">📊</span>
+                                    <span>Analytics</span>
+                                </span>
+                            </a>
+                        </div>
                     </div>
                     <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
@@ -1208,6 +1404,31 @@
             }
         }
 
+        // Toggle hamburger menu
+        function toggleHamburgerMenu() {
+            const dropdown = document.getElementById('hamburger-menu-dropdown');
+            const btn = document.querySelector('.hamburger-btn');
+            if (dropdown && btn) {
+                dropdown.classList.toggle('show');
+                btn.classList.toggle('active');
+            }
+        }
+
+        // Close hamburger menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
+            const dropdown = document.getElementById('hamburger-menu-dropdown');
+            const btn = document.querySelector('.hamburger-btn');
+            
+            if (hamburgerMenu && dropdown && btn && dropdown.classList.contains('show')) {
+                // Check if click is outside the hamburger menu
+                if (!hamburgerMenu.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                    btn.classList.remove('active');
+                }
+            }
+        });
+
         // Check if we're on mobile
         function isMobile() {
             return window.innerWidth <= 768;
@@ -1220,6 +1441,11 @@
                 link.classList.remove('active');
             });
             
+            // Update hamburger menu navigation
+            document.querySelectorAll('.hamburger-menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
             // Map tab names to navigation IDs
             const navMap = {
                 'djs': 'nav-djs',
@@ -1229,11 +1455,28 @@
                 'analytics': 'nav-analytics'
             };
             
+            // Map tab names to hamburger menu IDs
+            const hamburgerNavMap = {
+                'djs': 'hamburger-nav-djs',
+                'bookings': 'hamburger-nav-bookings',
+                'calendar': 'hamburger-nav-calendar',
+                'users': 'hamburger-nav-users',
+                'analytics': 'hamburger-nav-analytics'
+            };
+            
             const navId = navMap[tabName];
             if (navId) {
                 const navLink = document.getElementById(navId);
                 if (navLink) {
                     navLink.classList.add('active');
+                }
+            }
+            
+            const hamburgerNavId = hamburgerNavMap[tabName];
+            if (hamburgerNavId) {
+                const hamburgerNavLink = document.getElementById(hamburgerNavId);
+                if (hamburgerNavLink) {
+                    hamburgerNavLink.classList.add('active');
                 }
             }
 
@@ -1246,6 +1489,13 @@
             // Close sidebar on mobile after selection
             if (isMobile()) {
                 closeSidebar();
+                // Also close hamburger menu if open
+                const dropdown = document.getElementById('hamburger-menu-dropdown');
+                const btn = document.querySelector('.hamburger-btn');
+                if (dropdown && btn && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                    btn.classList.remove('active');
+                }
             }
 
             if (tabName === 'calendar') {
@@ -2391,10 +2641,13 @@
                     return dateStr;
                 };
                 
+                // Escape DJ name for use in HTML attribute (escape single quotes and double quotes)
+                const escapedDJName = djDisplayName.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                const escapedDJNameForJS = djDisplayName.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, "\\\"");
                 return `
                     <div class="dj-card">
                         <div class="dj-card-header">
-                            <div class="dj-name">${djDisplayName}</div>
+                            <div class="dj-name" onclick="filterByDJ('${escapedDJNameForJS}')" title="Click to view all projects for ${escapedDJName}">${djDisplayName}</div>
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
                             <div>Username: ${dj.username || 'No username'}</div>
@@ -2655,6 +2908,91 @@
                 }, 100);
             } else {
                 await filterAllBookings();
+            }
+        }
+
+        // Filter by DJ name click (from All DJs Overview)
+        async function filterByDJ(djName) {
+            try {
+                console.log('filterByDJ called with:', djName);
+                
+                if (!djName) {
+                    console.error('filterByDJ: djName is empty');
+                    return;
+                }
+                
+                // Clear any status filter
+                currentStatusFilter = null;
+                
+                // Remove active class from all stat cards
+                document.querySelectorAll('.stat-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                
+                // Switch to bookings tab if not already there
+                const bookingsTab = document.getElementById('bookings-tab');
+                if (!bookingsTab || !bookingsTab.classList.contains('active')) {
+                    console.log('Switching to bookings tab...');
+                    await switchTab('bookings');
+                    // Give it a moment for the tab to render
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // Get filter elements
+                const djFilterSelect = document.getElementById('booking-filter-dj');
+                const timeFilterSelect = document.getElementById('booking-filter-time');
+                const yearFilterSelect = document.getElementById('booking-filter-year');
+                
+                if (!djFilterSelect) {
+                    console.error('filterByDJ: booking-filter-dj element not found');
+                    return;
+                }
+                
+                // Get bookings to find matching DJ name
+                const bookings = await getAllBookings();
+                const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
+                console.log('Available DJs in bookings:', uniqueDJs);
+                
+                // Find exact or case-insensitive match
+                let matchingDJName = djName;
+                if (!uniqueDJs.includes(djName)) {
+                    const match = uniqueDJs.find(dj => dj.toLowerCase() === djName.toLowerCase());
+                    if (match) {
+                        matchingDJName = match;
+                        console.log('Matched DJ name:', match, 'from input:', djName);
+                    } else {
+                        console.warn('DJ name not found in bookings. Input:', djName, 'Available:', uniqueDJs);
+                        alert(`DJ "${djName}" not found in bookings. Available DJs: ${uniqueDJs.join(', ')}`);
+                        return; // Exit early if no match found
+                    }
+                }
+                
+                // Clear other filters first
+                if (timeFilterSelect) timeFilterSelect.value = '';
+                if (yearFilterSelect) yearFilterSelect.value = '';
+                
+                // Always populate dropdown to ensure the value we want to set is available
+                djFilterSelect.innerHTML = '<option value="">All DJs</option>' + 
+                    uniqueDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+                
+                // Set the DJ filter value
+                djFilterSelect.value = matchingDJName;
+                console.log('Set DJ filter to:', matchingDJName, 'Current value:', djFilterSelect.value);
+                
+                // Verify the value was set
+                if (djFilterSelect.value !== matchingDJName) {
+                    console.error('Failed to set DJ filter value. Expected:', matchingDJName, 'Got:', djFilterSelect.value);
+                    // Try setting it again after a brief delay
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    djFilterSelect.value = matchingDJName;
+                }
+                
+                // Now call filterAllBookings which will preserve this value and apply the filter
+                await filterAllBookings();
+                console.log('Filter applied, current DJ filter value:', djFilterSelect.value);
+            } catch (error) {
+                console.error('Error in filterByDJ:', error);
+                alert('Error filtering by DJ: ' + error.message);
             }
         }
 
