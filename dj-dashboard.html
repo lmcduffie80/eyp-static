@@ -3105,12 +3105,12 @@
             }
 
             container.innerHTML = filteredBookings.map(booking => {
-                // Parse date string to avoid timezone issues
-                const dateParts = booking.date.split('-');
-                const year = parseInt(dateParts[0], 10);
-                const month = parseInt(dateParts[1], 10) - 1;
-                const day = parseInt(dateParts[2], 10);
-                const bookingDate = new Date(year, month, day);
+                // Parse date using the helper function
+                const bookingDate = parseBookingDate(booking.date);
+                if (!bookingDate) {
+                    // Skip bookings with invalid dates
+                    return '';
+                }
                 bookingDate.setHours(0, 0, 0, 0);
                 const isUpcoming = bookingDate >= today;
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
