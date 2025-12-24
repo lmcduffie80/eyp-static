@@ -2202,11 +2202,17 @@
             }
         }
 
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         document.addEventListener('click', function(event) {
-            const modal = document.getElementById('booking-details-modal');
-            if (modal && event.target === modal) {
+            const bookingModal = document.getElementById('booking-details-modal');
+            const blockedDateModal = document.getElementById('blocked-date-modal');
+            
+            if (bookingModal && event.target === bookingModal) {
                 closeBookingDetails();
+            }
+            
+            if (blockedDateModal && event.target === blockedDateModal) {
+                closeBlockedDateModal();
             }
         });
 
