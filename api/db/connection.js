@@ -1,7 +1,5 @@
 // Database connection helper for AWS RDS Postgres with IAM authentication
-// This works with both Vercel Postgres and AWS RDS via Vercel
-
-import { sql as vercelSql } from '@vercel/postgres';
+// This works with AWS RDS via Vercel using IAM authentication
 
 // Check which connection method to use
 const useVercelPostgres = !!process.env.POSTGRES_URL;
@@ -48,6 +46,8 @@ async function initAWSSigner() {
 
 /**
  * Get AWS RDS connection pool
+ * Creates a new pool if needed, or returns existing one
+ * Note: Auth tokens expire after 15 minutes, but pg Pool handles reconnection
  */
 async function getAWSPool() {
     await initAWSSigner();
@@ -63,12 +63,11 @@ async function getAWSPool() {
             password: authToken,
             port: Number(process.env.PGPORT || 5432),
             ssl: { rejectUnauthorized: false },
+            // Connection pool settings
+            max: 1, // Serverless functions - use 1 connection per instance
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 10000,
         });
-    } else if (awsPool && awsSigner) {
-        // Refresh auth token (tokens expire after 15 minutes)
-        const authToken = await awsSigner.getAuthToken();
-        // Note: pg Pool doesn't support changing password after creation,
-        // but tokens are valid for 15 minutes, so we'll recreate if needed
     }
     
     return awsPool;
@@ -103,6 +102,7 @@ function convertTemplateToQuery(queryParts, ...values) {
 export default async function sql(queryParts, ...values) {
     // If we have POSTGRES_URL, use @vercel/postgres (simpler)
     if (useVercelPostgres) {
+        const { sql: vercelSql } = await import("@vercel/postgres");
         return await vercelSql(queryParts, ...values);
     }
 
