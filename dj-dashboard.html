@@ -1982,22 +1982,55 @@
         let currentCalendarDate = new Date();
         currentCalendarDate.setDate(1); // Start at first day of month
 
-        // Generate calendar widget for a specific month offset (0 = current, 1 = next, 2 = month+2)
-        function generateCalendar(monthOffset = 0) {
-            const targetDate = new Date(currentCalendarDate);
-            targetDate.setMonth(targetDate.getMonth() + monthOffset);
-            
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth();
+        // Generate single calendar widget
+        function generateCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
             
             // Update header
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"];
-            document.getElementById(`calendar-month-year-${monthOffset}`).textContent = `${monthNames[month]} ${year}`;
+            const headerElement = document.getElementById('calendar-month-year');
+            if (headerElement) {
+                headerElement.textContent = `${monthNames[month]} ${year}`;
+            }
 
-            // Get blocked dates and bookings
+            // Get blocked dates
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]').map(b => b.date);
-            const bookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]').map(b => b.date);
+            
+            // Get bookings for current DJ
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            
+            // Build possible matching names
+            const possibleNames = [currentUsername];
+            if (currentDJ) {
+                if (currentDJ.firstName && currentDJ.lastName) {
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+                }
+                if (currentDJ.username && currentDJ.username !== currentUsername) {
+                    possibleNames.push(currentDJ.username);
+                }
+            }
+            
+            // Filter bookings for current DJ
+            const allBookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+            const djBookings = allBookings.filter(b => {
+                if (!b.djUser) return false;
+                return possibleNames.includes(b.djUser);
+            });
+            
+            // Create a map of date to bookings for quick lookup
+            const bookingsByDate = {};
+            djBookings.forEach(booking => {
+                if (booking.date) {
+                    if (!bookingsByDate[booking.date]) {
+                        bookingsByDate[booking.date] = [];
+                    }
+                    bookingsByDate[booking.date].push(booking);
+                }
+            });
 
             // Get first day of month and number of days
             const firstDay = new Date(year, month, 1).getDay();
