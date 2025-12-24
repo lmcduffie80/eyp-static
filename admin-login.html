@@ -257,6 +257,58 @@
     </div>
 
     <script>
+        // Initialize default admin users on page load
+        function initializeAdminUsers() {
+            try {
+                const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+                let usersUpdated = false;
+                
+                // Initialize super user (admin)
+                const adminExists = adminUsers.find(u => 
+                    (u.username && u.username.toLowerCase() === 'admin') || 
+                    (u.email && u.email.toLowerCase() === 'admin@externallyyoursproductions.com')
+                );
+                if (!adminExists) {
+                    adminUsers.push({
+                        username: 'admin',
+                        password: 'admin123', // In production, this should be hashed
+                        email: 'admin@externallyyoursproductions.com',
+                        isSuperUser: true,
+                        createdAt: new Date().toISOString()
+                    });
+                    usersUpdated = true;
+                    console.log('Initialized admin user');
+                }
+                
+                // Initialize lee admin user
+                const leeExists = adminUsers.find(u => 
+                    (u.username && u.username.toLowerCase() === 'lee') || 
+                    (u.email && u.email.toLowerCase() === 'lee@externallyyoursproductions.com')
+                );
+                if (!leeExists) {
+                    adminUsers.push({
+                        username: 'lee',
+                        password: 'admin123', // In production, this should be hashed
+                        email: 'lee@externallyyoursproductions.com',
+                        isSuperUser: false,
+                        createdAt: new Date().toISOString()
+                    });
+                    usersUpdated = true;
+                    console.log('Initialized lee admin user');
+                }
+                
+                if (usersUpdated) {
+                    localStorage.setItem('admin_users', JSON.stringify(adminUsers));
+                    console.log('Admin users initialized:', adminUsers.length, 'total users');
+                }
+            } catch (error) {
+                console.error('Error initializing admin users:', error);
+            }
+        }
+
+        // Initialize admin users on page load
+        initializeAdminUsers();
+
         // Admin login form handling
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -279,47 +331,6 @@
             // TODO: Replace with actual admin authentication API call
             // For development: check against localStorage
             const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
-            
-            // Initialize default admin users if they don't exist
-            let usersUpdated = false;
-            
-            // Initialize super user (admin)
-            const adminExists = adminUsers.find(u => 
-                (u.username && u.username.toLowerCase() === 'admin') || 
-                (u.email && u.email.toLowerCase() === 'admin@externallyyoursproductions.com')
-            );
-            if (!adminExists) {
-                adminUsers.push({
-                    username: 'admin',
-                    password: 'admin123', // In production, this should be hashed
-                    email: 'admin@externallyyoursproductions.com',
-                    isSuperUser: true,
-                    createdAt: new Date().toISOString()
-                });
-                usersUpdated = true;
-                console.log('Initialized admin user');
-            }
-            
-            // Initialize lee admin user
-            const leeExists = adminUsers.find(u => 
-                (u.username && u.username.toLowerCase() === 'lee') || 
-                (u.email && u.email.toLowerCase() === 'lee@externallyyoursproductions.com')
-            );
-            if (!leeExists) {
-                adminUsers.push({
-                    username: 'lee',
-                    password: 'admin123', // In production, this should be hashed
-                    email: 'lee@externallyyoursproductions.com',
-                    isSuperUser: false,
-                    createdAt: new Date().toISOString()
-                });
-                usersUpdated = true;
-                console.log('Initialized lee admin user');
-            }
-            
-            if (usersUpdated) {
-                localStorage.setItem('admin_users', JSON.stringify(adminUsers));
-            }
 
             // Case-insensitive username OR email comparison, exact password match
             const admin = adminUsers.find(u => {
