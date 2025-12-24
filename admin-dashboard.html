@@ -2691,10 +2691,32 @@
                             continue;
                         }
                         
+                        // Normalize DJ name to match user format (firstName + lastName)
+                        // Try to match DJ name from CSV to existing DJ users
+                        const allDJs = getAllDJs();
+                        let normalizedDJName = djName.trim();
+                        
+                        // Try to find matching DJ user by name
+                        const matchingDJ = allDJs.find(dj => {
+                            const djFullName = dj.firstName && dj.lastName ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                            // Case-insensitive match
+                            return djFullName.toLowerCase() === djName.toLowerCase().trim() ||
+                                   dj.username.toLowerCase() === djName.toLowerCase().trim() ||
+                                   (dj.firstName && dj.firstName.toLowerCase() === djName.toLowerCase().trim()) ||
+                                   (dj.lastName && dj.lastName.toLowerCase() === djName.toLowerCase().trim());
+                        });
+                        
+                        // Use the normalized name from DJ user if found, otherwise use the CSV value
+                        if (matchingDJ) {
+                            normalizedDJName = matchingDJ.firstName && matchingDJ.lastName 
+                                ? `${matchingDJ.firstName} ${matchingDJ.lastName}` 
+                                : matchingDJ.username;
+                        }
+                        
                         // Create booking object
                         const booking = {
                             id: Date.now() + i, // Simple ID generation
-                            djUser: djName,
+                            djUser: normalizedDJName, // Use normalized name to match DJ user format
                             date: formattedDate,
                             eventType: projectName,
                             location: location,
