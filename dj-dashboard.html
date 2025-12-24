@@ -1292,6 +1292,17 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Blocked Date Edit Modal -->
+                <div id="blocked-date-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: white; border-radius: 10px; padding: 2rem; max-width: 500px; width: 90%; position: relative;">
+                        <button onclick="closeBlockedDateModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">&times;</button>
+                        <h2 style="color: var(--primary-color); margin-bottom: 1rem;" id="blocked-date-modal-title">Edit Blocked Date</h2>
+                        <div id="blocked-date-modal-content">
+                            <!-- Modal content will be populated here -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1839,33 +1850,127 @@
             }).join('');
         }
 
-        // Edit blocked date
-        function editBlockedDate(date) {
+        // Open edit blocked date modal
+        function openEditBlockedDateModal(date) {
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
             const blockedDate = blockedDates.find(item => item.date === date);
             
             if (!blockedDate) return;
 
-            // Prompt for new reason
-            const newReason = prompt('Enter a new reason for blocking this date (optional):', blockedDate.reason || '');
+            // Parse and format date for display
+            const dateParts = blockedDate.date.split('-');
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1;
+            const day = parseInt(dateParts[2], 10);
+            const dateObj = new Date(year, month, day);
+            const formattedDate = formatDateMMDDYYYY(dateObj);
+
+            const modal = document.getElementById('blocked-date-modal');
+            const title = document.getElementById('blocked-date-modal-title');
+            const content = document.getElementById('blocked-date-modal-content');
+
+            title.textContent = 'Edit Blocked Date';
+            content.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">Date: ${escapeHtml(formattedDate)}</div>
+                    <label for="edit-reason" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">Reason:</label>
+                    <textarea id="edit-reason" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Enter reason (optional)">${escapeHtml(blockedDate.reason || '')}</textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeBlockedDateModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Cancel</button>
+                    <button onclick="saveEditedBlockedDate('${escapeHtml(blockedDate.date)}')" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Save Changes</button>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        // Open delete blocked date modal
+        function openDeleteBlockedDateModal(date) {
+            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+            const blockedDate = blockedDates.find(item => item.date === date);
             
-            // If user cancelled, do nothing
-            if (newReason === null) {
+            if (!blockedDate) return;
+
+            // Parse and format date for display
+            const dateParts = blockedDate.date.split('-');
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1;
+            const day = parseInt(dateParts[2], 10);
+            const dateObj = new Date(year, month, day);
+            const formattedDate = formatDateMMDDYYYY(dateObj);
+
+            const modal = document.getElementById('blocked-date-modal');
+            const title = document.getElementById('blocked-date-modal-title');
+            const content = document.getElementById('blocked-date-modal-content');
+
+            title.textContent = 'Delete Blocked Date';
+            content.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <p style="color: var(--text-dark); margin-bottom: 0.5rem;">Are you sure you want to delete this blocked date?</p>
+                    <div style="font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">Date: ${escapeHtml(formattedDate)}</div>
+                    ${blockedDate.reason ? `<div style="color: var(--text-light); font-size: 0.9rem;">Reason: ${escapeHtml(blockedDate.reason)}</div>` : ''}
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeBlockedDateModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Cancel</button>
+                    <button onclick="confirmDeleteBlockedDate('${escapeHtml(blockedDate.date)}')" class="btn btn-danger" style="padding: 0.75rem 1.5rem;">Delete</button>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        // Close blocked date modal
+        function closeBlockedDateModal() {
+            const modal = document.getElementById('blocked-date-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Save edited blocked date
+        function saveEditedBlockedDate(date) {
+            // Validate token before allowing action
+            if (!validateToken()) {
                 return;
             }
+
+            const reasonInput = document.getElementById('edit-reason');
+            const newReason = reasonInput ? reasonInput.value.trim() : '';
+
+            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+            const blockedDateIndex = blockedDates.findIndex(item => item.date === date);
             
-            // Update the blocked date with new reason
-            const filtered = blockedDates.filter(item => item.date !== date);
-            filtered.push({
-                ...blockedDate,
-                reason: newReason ? newReason.trim().replace(/[<>]/g, '') : 'No reason provided',
+            if (blockedDateIndex === -1) {
+                alert('Blocked date not found.');
+                closeBlockedDateModal();
+                return;
+            }
+
+            // Sanitize reason
+            const sanitizedReason = newReason.replace(/[<>]/g, '') || 'No reason provided';
+
+            // Update the blocked date
+            blockedDates[blockedDateIndex] = {
+                ...blockedDates[blockedDateIndex],
+                reason: sanitizedReason,
                 blockedAt: new Date().toISOString()
-            });
-            localStorage.setItem('blocked_dates', JSON.stringify(filtered));
+            };
+
+            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
+            
+            logSecurityEvent('edit_blocked_date', { date: date, reason: sanitizedReason });
 
             // Refresh display and calendar
             displayBlockedDates();
             generateCalendar();
+            closeBlockedDateModal();
+        }
+
+        // Confirm and delete blocked date
+        function confirmDeleteBlockedDate(date) {
+            unblockDate(date);
+            closeBlockedDateModal();
         }
 
         // Remove blocked date - Enhanced with security
@@ -2548,6 +2653,7 @@
             if (sectionName === 'dashboard') {
                 updateDashboardStats();
                 generateCalendar();
+                displayBlockedDates();
             } else if (sectionName === 'calendar') {
                 if (typeof generateCalendar === 'function') generateCalendar();
                 if (typeof displayBlockedDates === 'function') displayBlockedDates();
