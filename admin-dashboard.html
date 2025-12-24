@@ -1426,12 +1426,49 @@
                 return sum;
             }, 0);
 
+            // Format number with thousand separators
+            function formatCurrency(amount) {
+                return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
             // Update stat values
             document.getElementById('total-projects').textContent = bookings.length;
             document.getElementById('completed-projects').textContent = completedBookings.length;
             document.getElementById('uncompleted-projects').textContent = uncompletedBookings.length;
-            document.getElementById('dj-revenue').textContent = '$' + djRevenue.toFixed(2);
-            document.getElementById('total-revenue').textContent = '$' + totalRevenue.toFixed(2);
+            document.getElementById('dj-revenue').textContent = formatCurrency(djRevenue);
+            document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
+        }
+
+        // Update revenue stats based on filtered bookings
+        function updateRevenueStats(filteredBookings) {
+            // Calculate DJ revenue (sum of all payouts to DJs)
+            const djRevenue = filteredBookings.reduce((sum, booking) => {
+                if (booking.payout) {
+                    const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                    return sum + (parseFloat(payoutValue) || 0);
+                }
+                return sum;
+            }, 0);
+
+            // Calculate total revenue (use totalRevenue field if available, otherwise use payout)
+            const totalRevenue = filteredBookings.reduce((sum, booking) => {
+                // Use totalRevenue field if it exists, otherwise fall back to payout
+                const revenueSource = booking.totalRevenue || booking.payout;
+                if (revenueSource) {
+                    const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
+                    return sum + (parseFloat(revenueValue) || 0);
+                }
+                return sum;
+            }, 0);
+
+            // Format number with thousand separators
+            function formatCurrency(amount) {
+                return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            // Update revenue stat values
+            document.getElementById('dj-revenue').textContent = formatCurrency(djRevenue);
+            document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
         }
 
         // Filter by stat card click
