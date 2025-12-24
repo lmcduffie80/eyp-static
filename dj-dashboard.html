@@ -1846,21 +1846,22 @@
             
             if (!blockedDate) return;
 
-            // Pre-populate the form with existing values
-            // Convert YYYY-MM-DD to mm-dd-yyyy for display
-            const dateParts = blockedDate.date.split('-');
-            const formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
-            document.getElementById('block-date').value = formattedDate;
-            document.getElementById('block-reason').value = blockedDate.reason || '';
+            // Prompt for new reason
+            const newReason = prompt('Enter a new reason for blocking this date (optional):', blockedDate.reason || '');
             
-            // Remove the old blocked date (will be re-added when form is submitted)
+            // If user cancelled, do nothing
+            if (newReason === null) {
+                return;
+            }
+            
+            // Update the blocked date with new reason
             const filtered = blockedDates.filter(item => item.date !== date);
+            filtered.push({
+                ...blockedDate,
+                reason: newReason ? newReason.trim().replace(/[<>]/g, '') : 'No reason provided',
+                blockedAt: new Date().toISOString()
+            });
             localStorage.setItem('blocked_dates', JSON.stringify(filtered));
-            
-            // Update calendar picker to remove the old date
-            const fp = flatpickr("#block-date");
-            fp.config.disable = fp.config.disable.filter(d => d !== date);
-            fp.set('disable', fp.config.disable);
 
             // Refresh display and calendar
             displayBlockedDates();
