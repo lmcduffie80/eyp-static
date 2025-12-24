@@ -608,93 +608,91 @@
             </div>
 
             <div class="dashboard-container">
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card" onclick="filterByStat('all')" id="stat-card-all">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">📅</span>
-                        Total Projects
-                    </h3>
-                    <span class="stat-info-icon" title="Click to view all projects">ℹ️</span>
-                </div>
-                <div class="stat-value" id="total-projects">0</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('completed')" id="stat-card-completed">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">✅</span>
-                        Completed
-                    </h3>
-                    <span class="stat-info-icon" title="Click to filter completed projects">ℹ️</span>
-                </div>
-                <div class="stat-value" id="completed-projects">0</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('uncompleted')" id="stat-card-uncompleted">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">⏳</span>
-                        Uncompleted
-                    </h3>
-                    <span class="stat-info-icon" title="Click to filter uncompleted projects">ℹ️</span>
-                </div>
-                <div class="stat-value" id="uncompleted-projects">0</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('revenue')" id="stat-card-revenue">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">💰</span>
-                        DJ Revenue
-                    </h3>
-                    <span class="stat-info-icon" title="Click to view revenue details">ℹ️</span>
-                </div>
-                <div class="stat-value" id="dj-revenue">$0.00</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('total-revenue')" id="stat-card-total-revenue">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">💵</span>
-                        Total Revenue
-                    </h3>
-                    <span class="stat-info-icon" title="Click to view total revenue details">ℹ️</span>
-                </div>
-                <div class="stat-value" id="total-revenue">$0.00</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('blocked-dates')" id="stat-card-blocked-dates">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">🚫</span>
-                        Blocked Dates
-                    </h3>
-                    <span class="stat-info-icon" title="Click to view all blocked dates">ℹ️</span>
-                </div>
-                <div class="stat-value" id="blocked-dates-count">0</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('revenue-2025')" id="stat-card-revenue-2025">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">💰</span>
-                        2025 Revenue
-                    </h3>
-                    <span class="stat-info-icon" title="Click to view 2025 revenue details">ℹ️</span>
-                </div>
-                <div class="stat-value" id="revenue-2025">$0.00</div>
-            </div>
-            <div class="stat-card" onclick="filterByStat('revenue-2026')" id="stat-card-revenue-2026">
-                <div class="stat-card-header">
-                    <h3>
-                        <span class="stat-icon">💰</span>
-                        2026 Revenue
-                    </h3>
-                    <span class="stat-info-icon" title="Click to view 2026 revenue details">ℹ️</span>
-                </div>
-                <div class="stat-value" id="revenue-2026">$0.00</div>
-            </div>
-        </div>
-
-
         <!-- DJs Tab -->
         <div id="djs-tab" class="tab-content active">
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card" onclick="filterByStat('all')" id="stat-card-all">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">📅</span>
+                            Total Projects
+                        </h3>
+                        <span class="stat-info-icon" title="Click to view all projects">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="total-projects">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('completed')" id="stat-card-completed">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">✅</span>
+                            Completed
+                        </h3>
+                        <span class="stat-info-icon" title="Click to filter completed projects">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="completed-projects">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('uncompleted')" id="stat-card-uncompleted">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">⏳</span>
+                            Uncompleted
+                        </h3>
+                        <span class="stat-info-icon" title="Click to filter uncompleted projects">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="uncompleted-projects">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('revenue')" id="stat-card-revenue">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">💰</span>
+                            DJ Revenue
+                        </h3>
+                        <span class="stat-info-icon" title="Click to view revenue details">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="dj-revenue">$0.00</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('total-revenue')" id="stat-card-total-revenue">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">💵</span>
+                            Total Revenue
+                        </h3>
+                        <span class="stat-info-icon" title="Click to view total revenue details">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="total-revenue">$0.00</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('blocked-dates')" id="stat-card-blocked-dates">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">🚫</span>
+                            Blocked Dates
+                        </h3>
+                        <span class="stat-info-icon" title="Click to view all blocked dates">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="blocked-dates-count">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('revenue-2025')" id="stat-card-revenue-2025">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">💰</span>
+                            2025 Revenue
+                        </h3>
+                        <span class="stat-info-icon" title="Click to view 2025 revenue details">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="revenue-2025">$0.00</div>
+                </div>
+                <div class="stat-card" onclick="filterByStat('revenue-2026')" id="stat-card-revenue-2026">
+                    <div class="stat-card-header">
+                        <h3>
+                            <span class="stat-icon">💰</span>
+                            2026 Revenue
+                        </h3>
+                        <span class="stat-info-icon" title="Click to view 2026 revenue details">ℹ️</span>
+                    </div>
+                    <div class="stat-value" id="revenue-2026">$0.00</div>
+                </div>
+            </div>
             <div class="section-card">
                 <h2>All DJs Overview</h2>
                 <div id="djs-container" class="dj-list">
