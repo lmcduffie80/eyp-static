@@ -2202,7 +2202,7 @@
                             ${booking.payout ? `
                             <div class="booking-detail-item">
                                 <span class="booking-detail-label">Payout</span>
-                                <span class="booking-detail-value" style="color: var(--success-color); font-weight: bold;">$${booking.payout}</span>
+                                <span class="booking-detail-value" style="color: var(--success-color); font-weight: bold;">$${String(booking.payout).replace(/\$/g, '')}</span>
                             </div>
                             ` : ''}
                             <div class="booking-detail-item">
