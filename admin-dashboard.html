@@ -1558,6 +1558,7 @@
             const originalUserType = document.getElementById('edit-original-usertype').value;
                     const firstName = document.getElementById('new-firstname').value.trim();
                     const lastName = document.getElementById('new-lastname').value.trim();
+                    let username = document.getElementById('new-username').value.trim();
                     const email = document.getElementById('new-email').value.trim();
                     const phone = document.getElementById('new-phone').value.trim();
                     const password = document.getElementById('new-password').value;
@@ -1571,6 +1572,17 @@
             }
             if (lastName.length < 1) {
                 showMessage('Last name is required.', 'error');
+                return;
+            }
+            
+            // For admin users, username is the same as firstName
+            if (userType === 'admin') {
+                username = firstName;
+            }
+            
+            // Validate username
+            if (!username || username.length < 3) {
+                showMessage('Username is required and must be at least 3 characters long.', 'error');
                 return;
             }
 
@@ -1780,10 +1792,24 @@
             
             document.getElementById('new-email').value = user.email || '';
             document.getElementById('new-phone').value = user.phone || '';
+            document.getElementById('new-username').value = user.username || (userType === 'dj' ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : (user.username || firstName));
             document.getElementById('new-password').value = ''; // Don't populate password
             document.getElementById('new-user-type').value = userType;
             document.getElementById('new-password').required = false;
             document.getElementById('password-hint').style.display = 'block';
+            
+            // Update form UI based on user type
+            const usernameInput = document.getElementById('new-username');
+            const usernameHint = document.getElementById('username-hint');
+            if (userType === 'admin') {
+                usernameInput.readOnly = true;
+                usernameInput.style.background = '#f5f5f5';
+                usernameHint.style.display = 'block';
+            } else {
+                usernameInput.readOnly = false;
+                usernameInput.style.background = 'white';
+                usernameHint.style.display = 'none';
+            }
             
             // Update form UI
             document.getElementById('user-form-title').textContent = 'Edit User';
