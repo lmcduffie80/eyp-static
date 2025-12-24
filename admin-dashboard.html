@@ -1722,21 +1722,34 @@
                     // Validate that the date column actually looks like it contains dates by checking first few data rows (starting at row 6)
                     let dateColumnValid = false;
                     let sampleDateValue = '';
-                    for (let i = startRow; i < Math.min(startRow + 3, lines.length); i++) {
-                        const testValues = parseRow(lines[i]);
-                        if (testValues.length > dateIndex && testValues[dateIndex]) {
-                            const testDate = testValues[dateIndex].trim();
-                            sampleDateValue = testDate;
-                            // Check if it looks like a date (contains numbers and separators)
-                            if (/\d/.test(testDate) && (/[\/\-\.]/.test(testDate) || /^\d{4}/.test(testDate))) {
-                                dateColumnValid = true;
-                                break;
+                    
+                    // Only validate if we have enough rows after skipping
+                    if (lines.length > startRow && dateIndex !== -1) {
+                        for (let i = startRow; i < Math.min(startRow + 10, lines.length); i++) {
+                            const testValues = parseRow(lines[i]);
+                            if (testValues.length > dateIndex && testValues[dateIndex]) {
+                                const testDate = testValues[dateIndex].trim();
+                                // Skip empty values
+                                if (!testDate) continue;
+                                sampleDateValue = testDate;
+                                // Check if it looks like a date (contains numbers and separators)
+                                if (/\d/.test(testDate) && (/[\/\-\.]/.test(testDate) || /^\d{4}/.test(testDate))) {
+                                    dateColumnValid = true;
+                                    break;
+                                }
                             }
                         }
+                    } else if (dateIndex === -1) {
+                        // Date column not found - this will be caught by the required columns check
+                        dateColumnValid = true; // Let the required columns check handle this
+                    } else {
+                        // Not enough rows to validate
+                        dateColumnValid = true; // Skip validation if not enough rows
                     }
                     
-                    if (!dateColumnValid) {
-                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${headerValues[dateIndex] || 'empty'}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
+                    if (!dateColumnValid && sampleDateValue) {
+                        const dateHeaderName = headerValues[dateIndex] || 'Date of Project';
+                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${dateHeaderName}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers and that row 6 (after skipping first 5 rows) contains valid date data. Expected columns: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
                         return;
                     }
                     
