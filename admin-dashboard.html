@@ -3431,6 +3431,20 @@
             const blockedDates = await getAllBlockedDates();
             const bookings = await getAllBookings();
             const selectedDJ = document.getElementById('calendar-filter-dj').value;
+            
+            // Populate DJ dropdown with unique DJs from bookings and blocked dates
+            const allDJs = [...new Set([
+                ...bookings.map(b => b.djUser).filter(dj => dj),
+                ...blockedDates.map(bd => bd.djUser).filter(dj => dj)
+            ])].sort();
+            const djSelect = document.getElementById('calendar-filter-dj');
+            const currentValue = djSelect.value;
+            djSelect.innerHTML = '<option value="">All DJs</option>' + 
+                allDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+            // Restore selected value
+            if (currentValue) {
+                djSelect.value = currentValue;
+            }
 
             let filteredBlocked = blockedDates;
             let filteredBookings = bookings;
