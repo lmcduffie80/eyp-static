@@ -2373,7 +2373,11 @@
                     </div>
                 `;
 
-            modal.style.display = 'flex';
+                modal.style.display = 'flex';
+            } catch (error) {
+                console.error('Error opening edit blocked date modal:', error);
+                alert('Error loading blocked date information.');
+            }
         }
 
         // Open delete blocked date modal
