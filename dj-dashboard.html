@@ -3069,6 +3069,36 @@
                 });
             }
 
+            // Helper function to parse booking date consistently
+            function parseBookingDate(dateValue) {
+                if (!dateValue) return null;
+                if (dateValue instanceof Date) return dateValue;
+                if (typeof dateValue === 'string') {
+                    // Handle ISO format (e.g., "2025-04-10T00:00:00.000Z")
+                    if (dateValue.includes('T')) {
+                        return new Date(dateValue);
+                    }
+                    // Handle YYYY-MM-DD format
+                    const parts = dateValue.split('-');
+                    if (parts.length === 3) {
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    }
+                }
+                // Fallback: try to create Date object
+                const date = new Date(dateValue);
+                return isNaN(date.getTime()) ? null : date;
+            }
+            
+            // Sort bookings by date (earliest first)
+            filteredBookings.sort((a, b) => {
+                const dateA = parseBookingDate(a.date);
+                const dateB = parseBookingDate(b.date);
+                if (!dateA && !dateB) return 0;
+                if (!dateA) return 1; // Put dates without valid dates at the end
+                if (!dateB) return -1;
+                return dateA.getTime() - dateB.getTime(); // Ascending order (earliest first)
+            });
+
             if (filteredBookings.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>No projects found</p></div>';
                 return;
