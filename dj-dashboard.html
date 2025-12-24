@@ -2426,16 +2426,22 @@
             // Close modal
             closeBlockDateConfirmModal();
             
-            // Refresh calendars to show blocked date
+            // Refresh calendars and blocked dates lists immediately
             generateCalendar();
             generateCalendarPage();
+            displayBlockedDates(); // Refresh dashboard blocked dates list
+            displayBlockedDatesPage(); // Refresh calendar page blocked dates list
             
-            // Refresh blocked dates lists
-            displayBlockedDates();
-            displayBlockedDatesPage();
-            
-            // Show success message
+            // Show brief success message, then close automatically
             showBlockDateMessage('Date has been blocked successfully!', 'success');
+            
+            // Scroll to blocked dates list if it exists (to show the newly added date)
+            setTimeout(() => {
+                const blockedDatesList = document.querySelector('.blocked-dates-list');
+                if (blockedDatesList) {
+                    blockedDatesList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 300);
         }
 
         // Show block date message (success or error)
