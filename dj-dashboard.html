@@ -1308,37 +1308,52 @@
 
         <!-- Calendar Section -->
         <div id="calendar-section" class="section-container calendar-section">
-            <div class="calendar-header">
-                <div>
-                    <h2>Calendar & Block Dates</h2>
-                    <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 0.25rem;" id="dj-welcome-message">Welcome back!</p>
-                </div>
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Calendar & Schedule</h2>
+                <p style="color: var(--text-light);">View your bookings and manage blocked dates.</p>
             </div>
-            
-            <!-- Visual Calendar Widget -->
-            <div class="calendars-container">
-                <div class="calendar-widget">
+
+            <!-- Calendar Widget (15% smaller) -->
+            <div class="calendars-container" style="display: flex; justify-content: center;">
+                <div class="calendar-widget" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -15%;">
                     <div class="calendar-widget-header">
-                        <button class="calendar-nav-btn" onclick="previousMonth()">← Prev</button>
-                        <h3 id="calendar-month-year">January 2025</h3>
-                        <button class="calendar-nav-btn" onclick="nextMonth()">Next →</button>
+                        <button class="calendar-nav-btn" onclick="previousMonthCalendarPage()">← Prev</button>
+                        <h3 id="calendar-month-year-page">January 2025</h3>
+                        <button class="calendar-nav-btn" onclick="nextMonthCalendarPage()">Next →</button>
                     </div>
-                    <div id="calendar-grid-container">
+                    <div id="calendar-grid-container-page">
                         <!-- Calendar grid will be generated here -->
                     </div>
                 </div>
             </div>
 
-            <form class="block-date-form" id="block-date-form">
-                <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar above" required readonly>
-                <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
-                <button type="submit" class="btn btn-primary">Block Date</button>
-            </form>
-
-            <div class="blocked-dates-list">
+            <!-- Blocked Dates List -->
+            <div class="blocked-dates-list" style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Blocked Dates</h3>
-                <div id="blocked-dates-container">
+                <div id="blocked-dates-container-page">
                     <!-- Blocked dates will be populated here -->
+                </div>
+            </div>
+
+            <!-- Booking Details Modal for Calendar Page -->
+            <div id="booking-details-modal-page" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 10px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button onclick="closeBookingDetailsPage()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">&times;</button>
+                    <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Booking Details</h2>
+                    <div id="booking-details-content-page">
+                        <!-- Booking details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blocked Date Edit Modal for Calendar Page -->
+            <div id="blocked-date-modal-page" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 10px; padding: 2rem; max-width: 500px; width: 90%; position: relative;">
+                    <button onclick="closeBlockedDateModalPage()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">&times;</button>
+                    <h2 style="color: var(--primary-color); margin-bottom: 1rem;" id="blocked-date-modal-title-page">Edit Blocked Date</h2>
+                    <div id="blocked-date-modal-content-page">
+                        <!-- Modal content will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -2206,6 +2221,8 @@
         document.addEventListener('click', function(event) {
             const bookingModal = document.getElementById('booking-details-modal');
             const blockedDateModal = document.getElementById('blocked-date-modal');
+            const bookingModalPage = document.getElementById('booking-details-modal-page');
+            const blockedDateModalPage = document.getElementById('blocked-date-modal-page');
             
             if (bookingModal && event.target === bookingModal) {
                 closeBookingDetails();
@@ -2213,6 +2230,14 @@
             
             if (blockedDateModal && event.target === blockedDateModal) {
                 closeBlockedDateModal();
+            }
+            
+            if (bookingModalPage && event.target === bookingModalPage) {
+                closeBookingDetailsPage();
+            }
+            
+            if (blockedDateModalPage && event.target === blockedDateModalPage) {
+                closeBlockedDateModalPage();
             }
         });
 
@@ -2270,8 +2295,13 @@
             
             logSecurityEvent('block_date', { date: dateStr, reason: sanitizedReason });
             
-            // Refresh calendar to show blocked date
+            // Refresh calendars to show blocked date
             generateCalendar();
+            generateCalendarPage();
+            
+            // Refresh blocked dates lists
+            displayBlockedDates();
+            displayBlockedDatesPage();
             
             // Show success message
             alert(`Date has been blocked successfully.`);
@@ -2661,8 +2691,8 @@
                 generateCalendar();
                 displayBlockedDates();
             } else if (sectionName === 'calendar') {
-                if (typeof generateCalendar === 'function') generateCalendar();
-                if (typeof displayBlockedDates === 'function') displayBlockedDates();
+                if (typeof generateCalendarPage === 'function') generateCalendarPage();
+                if (typeof displayBlockedDatesPage === 'function') displayBlockedDatesPage();
             } else if (sectionName === 'projects') {
                 if (typeof loadBookings === 'function') loadBookings();
             } else if (sectionName === 'reviews') {
