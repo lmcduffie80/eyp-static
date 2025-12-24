@@ -2077,6 +2077,11 @@
             // Update revenue stats when filter changes (especially for uncompleted)
             updateDashboardStats();
 
+            // Clear time filter dropdown when status filter is applied
+            if (currentStatusFilter === 'uncompleted' || currentStatusFilter === 'completed') {
+                document.getElementById('booking-filter-time').value = '';
+            }
+
             // Switch to bookings tab if not already there
             if (!document.getElementById('bookings-tab').classList.contains('active')) {
                 switchTab('bookings');
