@@ -2755,7 +2755,8 @@
                 calendarHTML += `
                     <div class="${classes}" onclick="${onclickAction}">
                         <span class="calendar-day-number">${day}</span>
-                        ${(isBlocked || hasBooking) ? '<span class="calendar-day-indicator"></span>' : ''}
+                        ${hasBooking ? '<span class="calendar-day-indicator" style="background: var(--success-color); width: 8px; height: 8px; border-radius: 50%; margin-top: 2px; display: block;"></span>' : ''}
+                        ${isBlocked ? '<span class="calendar-day-indicator" style="background: var(--secondary-color); width: 8px; height: 8px; border-radius: 50%; margin-top: 2px; display: block;"></span>' : ''}
                     </div>
                 `;
             }
