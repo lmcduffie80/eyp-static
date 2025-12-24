@@ -2665,7 +2665,27 @@
         function loadReviews() {
             const currentUsername = localStorage.getItem('dj_user');
             const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
-            const djReviews = allReviews.filter(review => review.djUsername === currentUsername);
+            
+            // Filter reviews by DJ username (exact match)
+            let djReviews = allReviews.filter(review => review.djUsername === currentUsername);
+            
+            // Also include reviews where the comment mentions the DJ's first name
+            // This is a fallback for reviews that may not have been properly synced
+            if (currentUsername) {
+                const djUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+                const currentDJ = djUsers.find(dj => dj.username === currentUsername);
+                if (currentDJ && currentDJ.firstName) {
+                    const firstNamePattern = new RegExp(`\\b${currentDJ.firstName}\\b`, 'i');
+                    const additionalReviews = allReviews.filter(review => {
+                        // Don't include reviews already matched by username
+                        if (review.djUsername === currentUsername) return false;
+                        // Check if comment mentions the DJ's first name
+                        const commentText = (review.comment || '').toLowerCase();
+                        return firstNamePattern.test(commentText);
+                    });
+                    djReviews = [...djReviews, ...additionalReviews];
+                }
+            }
             
             displayReviews(djReviews);
             updateReviewStats(djReviews);
