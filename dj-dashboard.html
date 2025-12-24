@@ -1081,9 +1081,17 @@
         </div>
     </div>
 
-    <div class="dashboard-container">
-        <!-- Calendar Section - Always Visible -->
-        <div class="calendar-section">
+            <div class="dashboard-container">
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section-container active">
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Welcome Back!</h2>
+                <p style="color: var(--text-light);">View your upcoming projects, calendar, and reviews using the navigation menu.</p>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div id="calendar-section" class="section-container calendar-section">
             <div class="calendar-header">
                 <div>
                     <h2>Calendar & Block Dates</h2>
@@ -1119,8 +1127,8 @@
             </div>
         </div>
 
-        <!-- Projects Section - Always Visible -->
-        <div class="bookings-section">
+        <!-- Projects Section -->
+        <div id="projects-section" class="section-container bookings-section">
             <div class="bookings-header">
                 <h2>Current Projects</h2>
                 <div class="bookings-filter">
@@ -1135,7 +1143,7 @@
         </div>
 
         <!-- Reviews Section -->
-        <div class="reviews-section">
+        <div id="reviews-section" class="section-container reviews-section">
             <div class="reviews-header">
                 <h2>Customer Reviews</h2>
                 <div class="reviews-stats" id="reviews-stats">
