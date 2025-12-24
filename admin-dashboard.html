@@ -1022,6 +1022,48 @@
 
         // Initialize super user on page load
         initializeSuperUser();
+        
+        // Sync existing bookings with DJ user names (normalize djUser field)
+        function syncBookingsWithDJUsers() {
+            const bookings = getAllBookings();
+            const djs = getAllDJs();
+            let updated = false;
+            
+            const updatedBookings = bookings.map(booking => {
+                if (!booking.djUser) return booking;
+                
+                // Try to find matching DJ user
+                const matchingDJ = djs.find(dj => {
+                    const djFullName = dj.firstName && dj.lastName ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                    // Case-insensitive match
+                    return djFullName.toLowerCase() === booking.djUser.toLowerCase().trim() ||
+                           dj.username.toLowerCase() === booking.djUser.toLowerCase().trim() ||
+                           (dj.firstName && dj.firstName.toLowerCase() === booking.djUser.toLowerCase().trim()) ||
+                           (dj.lastName && dj.lastName.toLowerCase() === booking.djUser.toLowerCase().trim());
+                });
+                
+                if (matchingDJ) {
+                    const normalizedName = matchingDJ.firstName && matchingDJ.lastName 
+                        ? `${matchingDJ.firstName} ${matchingDJ.lastName}` 
+                        : matchingDJ.username;
+                    
+                    if (booking.djUser !== normalizedName) {
+                        updated = true;
+                        return { ...booking, djUser: normalizedName };
+                    }
+                }
+                
+                return booking;
+            });
+            
+            if (updated) {
+                localStorage.setItem('dj_bookings', JSON.stringify(updatedBookings));
+                console.log('Synced bookings with DJ user names');
+            }
+        }
+        
+        // Sync bookings on page load
+        syncBookingsWithDJUsers();
 
         // Load admin name and display welcome message
         const adminUser = localStorage.getItem('admin_user') || 'Admin';
