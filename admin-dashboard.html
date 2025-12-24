@@ -1731,6 +1731,9 @@
                     </tr>
                 `;
             }).join('');
+            
+            // Update revenue stats based on filtered bookings
+            updateRevenueStats(filteredBookings);
         }
 
         // CSV Import function
