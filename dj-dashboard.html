@@ -3369,6 +3369,47 @@
                 console.log('Added Gavin\'s review to dj_reviews');
             }
         }
+
+        // Manually add Stephen's review from the website if it doesn't exist
+        function addStephenReviewIfNeeded() {
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const stephenReviewText = "Stephen was absolutely phenomenal at our wedding! He created an unforgettable atmosphere that had our guests dancing all night long. Stephen's attention to detail, professionalism, and ability to read the crowd was incredible. He seamlessly mixed the perfect songs that kept everyone on the dance floor. Our wedding reception wouldn't have been the same without Stephen's amazing DJ skills. Highly recommend Stephen for any event!";
+            
+            // Check if this review already exists
+            const reviewExists = allReviews.some(r => 
+                r.djUsername === 'Stephen Kena' && 
+                r.comment && 
+                r.comment.includes("Stephen was absolutely phenomenal at our wedding")
+            );
+            
+            if (!reviewExists) {
+                // Create hash for ID
+                let hash = 0;
+                const idString = stephenReviewText.substring(0, 100) + 'Stephen Kena';
+                for (let i = 0; i < idString.length; i++) {
+                    const char = idString.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                const reviewId = `web_${Math.abs(hash)}_Stephen_Kena`;
+                
+                const newReview = {
+                    id: reviewId,
+                    djUsername: 'Stephen Kena',
+                    clientName: 'Website Review',
+                    rating: 5,
+                    comment: stephenReviewText,
+                    eventName: 'DJ Entertainment',
+                    date: '2025-01-01',
+                    createdAt: new Date().toISOString(),
+                    source: 'website'
+                };
+                
+                allReviews.push(newReview);
+                localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
+                console.log('Added Stephen\'s review to dj_reviews');
+            }
+        }
     </script>
 </body>
 </html>
