@@ -1999,10 +1999,10 @@
             closeBlockedDateModal();
         }
 
-        // Confirm and delete blocked date
+        // Confirm and delete blocked date (redirects to confirmation modal)
         function confirmDeleteBlockedDate(date) {
-            unblockDate(date);
             closeBlockedDateModal();
+            openDeleteBlockedDateConfirmModal(date);
         }
 
         // Open delete blocked date confirmation modal
