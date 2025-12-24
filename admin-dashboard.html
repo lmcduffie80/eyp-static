@@ -2346,13 +2346,48 @@
                     nextBooking = upcomingBookings[0];
                 }
 
-                // Format date for display (MM-DD-YYYY)
+                // Format date for display (MM-DD-YYYY) - handles various date formats including malformed ISO strings
                 const formatDate = (dateStr) => {
                     if (!dateStr) return '';
-                    const parts = dateStr.split('-');
-                    if (parts.length === 3) {
+                    
+                    // Handle malformed ISO strings like "04-11T00:00:00.000Z-2026"
+                    if (typeof dateStr === 'string' && dateStr.includes('T') && dateStr.includes('-')) {
+                        // Try to extract date parts from malformed format
+                        // Pattern: MM-DDTHH:mm:ss.sssZ-YYYY
+                        const malformedMatch = dateStr.match(/^(\d{2})-(\d{2})T.*-(\d{4})$/);
+                        if (malformedMatch) {
+                            const [, month, day, year] = malformedMatch;
+                            return `${month}-${day}-${year}`;
+                        }
+                        
+                        // Try to extract date part from ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)
+                        const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                        if (isoMatch) {
+                            const [, year, month, day] = isoMatch;
+                            return `${month}-${day}-${year}`;
+                        }
+                    }
+                    
+                    // Handle YYYY-MM-DD format
+                    if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = dateStr.split('-');
                         return `${parts[1]}-${parts[2]}-${parts[0]}`;
                     }
+                    
+                    // Try to parse as Date object and format
+                    try {
+                        const dateObj = parseBookingDate(dateStr);
+                        if (dateObj && !isNaN(dateObj.getTime())) {
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const year = dateObj.getFullYear();
+                            return `${month}-${day}-${year}`;
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing date:', dateStr, e);
+                    }
+                    
+                    // Fallback: return as-is if we can't parse it
                     return dateStr;
                 };
                 
