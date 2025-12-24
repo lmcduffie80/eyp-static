@@ -2553,6 +2553,41 @@
             filterAllBookings();
         }
 
+        // Helper function to parse date consistently (handles Date objects, ISO strings, YYYY-MM-DD strings)
+        function parseBookingDate(dateValue) {
+            if (!dateValue) return null;
+            
+            // If it's already a Date object
+            if (dateValue instanceof Date) {
+                return dateValue;
+            }
+            
+            // If it's a string
+            if (typeof dateValue === 'string') {
+                // Handle ISO format (e.g., "2025-04-10T00:00:00.000Z")
+                if (dateValue.includes('T')) {
+                    return new Date(dateValue);
+                }
+                
+                // Handle YYYY-MM-DD format
+                const parts = dateValue.split('-');
+                if (parts.length === 3) {
+                    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                }
+            }
+            
+            // Fallback: try to create Date object
+            const date = new Date(dateValue);
+            return isNaN(date.getTime()) ? null : date;
+        }
+        
+        // Helper function to get year from date value
+        function getYearFromDate(dateValue) {
+            const date = parseBookingDate(dateValue);
+            if (!date) return null;
+            return date.getFullYear().toString();
+        }
+
         // Filter and display all bookings
         async function filterAllBookings() {
             const bookings = await getAllBookings();
@@ -2574,10 +2609,7 @@
             }
 
             // Populate Year dropdown with unique years from bookings
-            const uniqueYears = [...new Set(bookings.map(b => {
-                const dateParts = b.date.split('-');
-                return dateParts[0]; // Get year from YYYY-MM-DD format
-            }).filter(y => y))].sort((a, b) => parseInt(b) - parseInt(a)); // Sort descending (newest first)
+            const uniqueYears = [...new Set(bookings.map(b => getYearFromDate(b.date)).filter(y => y))].sort((a, b) => parseInt(b) - parseInt(a)); // Sort descending (newest first)
             const yearSelect = document.getElementById('booking-filter-year');
             const currentYearValue = yearSelect.value;
             yearSelect.innerHTML = '<option value="">All Years</option>' + 
@@ -2592,24 +2624,32 @@
             // Apply status filter (from stat card click) - takes priority over time dropdown
             if (currentStatusFilter === 'completed') {
                 filteredBookings = filteredBookings.filter(b => {
-                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    const bookingDate = parseBookingDate(b.date);
+                    if (!bookingDate) return false;
+                    bookingDate.setHours(0, 0, 0, 0);
                     return bookingDate < today;
                 });
             } else if (currentStatusFilter === 'future-bookings') {
                 filteredBookings = filteredBookings.filter(b => {
-                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    const bookingDate = parseBookingDate(b.date);
+                    if (!bookingDate) return false;
+                    bookingDate.setHours(0, 0, 0, 0);
                     return bookingDate >= today;
                 });
             } else if (selectedTime) {
                 // Apply time period filter (dropdown) only if status filter is not active
                 if (selectedTime === 'past') {
                     filteredBookings = filteredBookings.filter(b => {
-                        const bookingDate = new Date(b.date + 'T00:00:00');
+                        const bookingDate = parseBookingDate(b.date);
+                        if (!bookingDate) return false;
+                        bookingDate.setHours(0, 0, 0, 0);
                         return bookingDate < today;
                     });
                 } else if (selectedTime === 'future') {
                     filteredBookings = filteredBookings.filter(b => {
-                        const bookingDate = new Date(b.date + 'T00:00:00');
+                        const bookingDate = parseBookingDate(b.date);
+                        if (!bookingDate) return false;
+                        bookingDate.setHours(0, 0, 0, 0);
                         return bookingDate >= today;
                     });
                 }
@@ -2618,8 +2658,8 @@
             // Apply year filter
             if (selectedYear) {
                 filteredBookings = filteredBookings.filter(b => {
-                    const dateParts = b.date.split('-');
-                    return dateParts[0] === selectedYear;
+                    const year = getYearFromDate(b.date);
+                    return year === selectedYear;
                 });
             }
             
@@ -2632,10 +2672,10 @@
             if (!sortState.column) {
                 // Default sort by date (newest first)
                 filteredBookings.sort((a, b) => {
-                    const aDateParts = a.date.split('-');
-                    const bDateParts = b.date.split('-');
-                    const aValue = new Date(parseInt(aDateParts[0], 10), parseInt(aDateParts[1], 10) - 1, parseInt(aDateParts[2], 10)).getTime();
-                    const bValue = new Date(parseInt(bDateParts[0], 10), parseInt(bDateParts[1], 10) - 1, parseInt(bDateParts[2], 10)).getTime();
+                    const aDate = parseBookingDate(a.date);
+                    const bDate = parseBookingDate(b.date);
+                    const aValue = aDate ? aDate.getTime() : 0;
+                    const bValue = bDate ? bDate.getTime() : 0;
                     return bValue - aValue; // Descending (newest first)
                 });
             } else {
@@ -2649,10 +2689,10 @@
                             break;
                         case 'date':
                             // Parse dates for comparison
-                            const aDateParts = a.date.split('-');
-                            const bDateParts = b.date.split('-');
-                            aValue = new Date(parseInt(aDateParts[0], 10), parseInt(aDateParts[1], 10) - 1, parseInt(aDateParts[2], 10)).getTime();
-                            bValue = new Date(parseInt(bDateParts[0], 10), parseInt(bDateParts[1], 10) - 1, parseInt(bDateParts[2], 10)).getTime();
+                            const aDate = parseBookingDate(a.date);
+                            const bDate = parseBookingDate(b.date);
+                            aValue = aDate ? aDate.getTime() : 0;
+                            bValue = bDate ? bDate.getTime() : 0;
                             break;
                         case 'project':
                             aValue = (a.eventType || '').toLowerCase();
