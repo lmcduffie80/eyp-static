@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoneyBook API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #e55a2b;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        h1 {
+            color: #1a1a1a;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online {
+            background: #28a745;
+        }
+        .status-offline {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>HoneyBook API Deployment Test</h1>
+    
+    <div class="test-card">
+        <h2>1. API Endpoint Status Check</h2>
+        <p>Test if the API endpoint is accessible and deployed.</p>
+        <button onclick="testGetEndpoint()">Test GET Request</button>
+        <div id="get-result"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>2. API POST Request Test</h2>
+        <p>Test the POST endpoint with a manual sync request.</p>
+        <button onclick="testPostEndpoint()">Test POST Request</button>
+        <div id="post-result"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>3. Environment Information</h2>
+        <div id="env-info"></div>
+    </div>
+
+    <script>
+        // Get current URL to determine API base path
+        const getApiUrl = () => {
+            const currentPath = window.location.pathname;
+            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            return basePath + '/api/honeybook-sync';
+        };
+
+        // Display environment info
+        function displayEnvInfo() {
+            const envDiv = document.getElementById('env-info');
+            const apiUrl = getApiUrl();
+            
+            envDiv.innerHTML = `
+                <p><strong>Current URL:</strong> ${window.location.href}</p>
+                <p><strong>Protocol:</strong> ${window.location.protocol}</p>
+                <p><strong>Host:</strong> ${window.location.host}</p>
+                <p><strong>API Endpoint:</strong> ${apiUrl}</p>
+                <p><strong>Is Local File:</strong> ${window.location.protocol === 'file:' ? 'Yes ⚠️ (Cannot make HTTP requests)' : 'No ✓'}</p>
+            `;
+        }
+
+        // Test GET endpoint
+        async function testGetEndpoint() {
+            const resultDiv = document.getElementById('get-result');
+            resultDiv.innerHTML = '<div class="result info">Testing GET request...</div>';
+            
+            try {
+                const apiUrl = getApiUrl();
+                console.log('Testing GET:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <span class="status-indicator status-online"></span><strong>API is LIVE!</strong>
+                            Status: ${response.status} ${response.statusText}
+                            <br><br>
+                            Response:
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <span class="status-indicator status-offline"></span><strong>API responded with error</strong>
+                            Status: ${response.status} ${response.statusText}
+                            <br><br>
+                            Response:
+                            <pre>${await response.text()}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status-indicator status-offline"></span><strong>Connection Failed</strong>
+                        <br><br>
+                        Error: ${error.message}
+                        <br><br>
+                        <strong>Possible causes:</strong>
+                        <ul>
+                            <li>API function not deployed to Vercel</li>
+                            <li>Accessing page from file:// protocol (cannot make HTTP requests)</li>
+                            <li>CORS issue (check browser console)</li>
+                            <li>Network connectivity problem</li>
+                        </ul>
+                        <br>
+                        <strong>Check:</strong>
+                        <ul>
+                            <li>Visit: <a href="${getApiUrl()}" target="_blank">${getApiUrl()}</a></li>
+                            <li>Check Vercel Dashboard → Functions tab</li>
+                            <li>Verify deployment status on Vercel</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        // Test POST endpoint
+        async function testPostEndpoint() {
+            const resultDiv = document.getElementById('post-result');
+            resultDiv.innerHTML = '<div class="result info">Testing POST request...</div>';
+            
+            try {
+                const apiUrl = getApiUrl();
+                console.log('Testing POST:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        projects: [],
+                        manual_sync: true
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <span class="status-indicator status-online"></span><strong>POST Request Successful!</strong>
+                            Status: ${response.status} ${response.statusText}
+                            <br><br>
+                            Response:
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <span class="status-indicator status-offline"></span><strong>POST Request Failed</strong>
+                            Status: ${response.status} ${response.statusText}
+                            <br><br>
+                            Response:
+                            <pre>${errorText}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <span class="status-indicator status-offline"></span><strong>Connection Failed</strong>
+                        <br><br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Display environment info on load
+        displayEnvInfo();
+    </script>
+</body>
+</html>
+
