@@ -2366,7 +2366,7 @@
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
             const currentDJ = allDJs.find(dj => dj.username === currentUsername);
             
-            // Build possible matching names
+            // Build possible matching names (case-insensitive matching)
             const possibleNames = [currentUsername];
             if (currentDJ) {
                 if (currentDJ.firstName && currentDJ.lastName) {
@@ -2377,10 +2377,13 @@
                 }
             }
             
-            // Filter bookings - match if djUser matches any of the possible names
+            // Filter bookings - match if djUser matches any of the possible names (case-insensitive)
             let filteredBookings = bookings.filter(b => {
                 if (!b.djUser) return false; // Don't show unassigned bookings
-                return possibleNames.includes(b.djUser);
+                const bookingDJ = b.djUser.trim();
+                return possibleNames.some(name => 
+                    name.toLowerCase().trim() === bookingDJ.toLowerCase()
+                );
             });
             
             if (filter === 'upcoming') {
@@ -2713,7 +2716,7 @@
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
             const currentDJ = allDJs.find(dj => dj.username === currentUsername);
             
-            // Build possible matching names
+            // Build possible matching names (case-insensitive matching)
             const possibleNames = [currentUsername];
             if (currentDJ) {
                 if (currentDJ.firstName && currentDJ.lastName) {
@@ -2724,14 +2727,29 @@
                 }
             }
             
-            // Filter bookings for current DJ
+            // Filter bookings for current DJ (case-insensitive match)
             const djBookings = bookings.filter(b => {
                 if (!b.djUser) return false;
-                return possibleNames.includes(b.djUser);
+                const bookingDJ = b.djUser.trim();
+                return possibleNames.some(name => 
+                    name.toLowerCase().trim() === bookingDJ.toLowerCase()
+                );
             });
             
-            // Calculate total bookings
-            const totalBookings = djBookings.length;
+            // Calculate total bookings (only upcoming/future bookings)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const upcomingBookings = djBookings.filter(b => {
+                if (!b.date) return false;
+                const dateParts = b.date.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const bookingDate = new Date(year, month, day);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate >= today;
+            });
+            const totalBookings = upcomingBookings.length;
             document.getElementById('total-bookings-stat').textContent = totalBookings;
             
             // Calculate total revenue and previous year revenue
