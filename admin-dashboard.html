@@ -1910,6 +1910,31 @@
                 `;
             }).join('');
 
+            // Store bookings data for SMS reminders (global variable for easy access)
+            window.djBookingsData = {};
+            djs.forEach(dj => {
+                const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                const djBookings = bookings.filter(b => {
+                    const bookingDJ = b.djUser || '';
+                    return bookingDJ === djDisplayName || bookingDJ === dj.username || !b.djUser;
+                });
+                const upcomingBookings = djBookings.filter(b => {
+                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    return bookingDate >= new Date();
+                });
+                window.djBookingsData[djDisplayName] = upcomingBookings;
+            });
+
+            // Add event listeners to send reminder buttons
+            container.querySelectorAll('.send-reminder-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const djName = this.getAttribute('data-dj-name');
+                    const djPhone = this.getAttribute('data-dj-phone');
+                    const bookings = window.djBookingsData[djName] || [];
+                    sendDJReminder(djName, djPhone, bookings);
+                });
+            });
+
             // Populate calendar filter dropdown (bookings filter is populated from bookings in filterAllBookings)
             const djOptions = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
