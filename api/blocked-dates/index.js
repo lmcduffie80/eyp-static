@@ -2,7 +2,7 @@
 // GET /api/blocked-dates - Get all blocked dates (optionally filtered by DJ)
 // POST /api/blocked-dates - Create new blocked date
 
-import { sql } from '@vercel/postgres';
+import sql from '../db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers

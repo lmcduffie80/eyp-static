@@ -6,8 +6,11 @@
     "dev": "vercel dev"
   },
   "dependencies": {
+    "@aws-sdk/rds-signer": "^3.958.0",
     "@sendgrid/mail": "^7.7.0",
-    "@vercel/postgres": "^0.10.0"
+    "@vercel/oidc-aws-credentials-provider": "^3.0.5",
+    "@vercel/postgres": "^0.10.0",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "@vercel/node": "^3.0.0",

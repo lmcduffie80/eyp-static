@@ -1,7 +1,7 @@
 // Migration endpoint to import data from localStorage JSON
 // POST /api/migrate - Import data from localStorage export
 
-import { sql } from '@vercel/postgres';
+import sql from '../db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers

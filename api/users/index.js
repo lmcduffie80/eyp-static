@@ -3,7 +3,7 @@
 // POST /api/users - Create new user
 // PUT /api/users - Update user
 
-import { sql } from '@vercel/postgres';
+import sql from '../db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers

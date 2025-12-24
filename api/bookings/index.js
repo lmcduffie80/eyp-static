@@ -2,7 +2,8 @@
 // GET /api/bookings - Get all bookings
 // POST /api/bookings - Create new booking
 
-import { sql } from '@vercel/postgres';
+// Use connection helper that works with both Vercel Postgres and AWS RDS
+import sql from '../db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers

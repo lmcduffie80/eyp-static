@@ -1,7 +1,7 @@
 // Test database connection
 // GET /api/test-db - Test if database connection works
 
-import { sql } from '@vercel/postgres';
+import sql from './db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers

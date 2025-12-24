@@ -2,7 +2,7 @@
 // GET /api/reviews - Get all reviews (optionally filtered by DJ)
 // POST /api/reviews - Create new review
 
-import { sql } from '@vercel/postgres';
+import sql from '../db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers

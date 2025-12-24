@@ -3,7 +3,7 @@
 // PUT /api/bookings/[id] - Update booking
 // DELETE /api/bookings/[id] - Delete booking
 
-import { sql } from '@vercel/postgres';
+import sql from '../db/connection.js';
 
 export default async function handler(req, res) {
     // Set CORS headers
