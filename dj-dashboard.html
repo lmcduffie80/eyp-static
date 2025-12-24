@@ -1120,15 +1120,13 @@
         <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
             ☰
         </button>
-        <h1>
-            <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
-            DJ Dashboard
+        <h1 style="margin: 0;">
+            <span id="header-welcome" style="font-size: 1.5rem; font-weight: 500;">Welcome, </span>
+            <span id="header-user-name" style="font-size: 1.5rem; font-weight: 500;">DJ User</span>
         </h1>
         <div class="header-actions">
             <div style="text-align: right; margin-right: 1rem;">
-                <div id="welcome-message" style="font-size: 1rem; color: var(--secondary-color); margin-bottom: 0.25rem;">Welcome,</div>
-                <div id="user-name" style="font-weight: bold; font-size: 1.2rem; color: var(--secondary-color);">DJ User</div>
-                <div id="user-email" style="font-size: 0.75rem; color: #ccc; margin-top: 0.25rem;"></div>
+                <div id="user-email" style="font-size: 0.75rem; color: #ccc;"></div>
             </div>
             <div class="user-profile-menu">
                 <div class="profile-icon" id="profile-icon" onclick="toggleProfileDropdown()">
@@ -1504,8 +1502,10 @@
                 displayName = currentDJ.fullName || currentDJ.name || currentDJ.username;
                 
                 // Update header welcome message and name
-                document.getElementById('welcome-message').textContent = 'Welcome,';
-                document.getElementById('user-name').textContent = displayName;
+                const headerWelcome = document.getElementById('header-welcome');
+                const headerUserName = document.getElementById('header-user-name');
+                if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
+                if (headerUserName) headerUserName.textContent = displayName;
                 
                 // Show email if available
                 const emailDiv = document.getElementById('user-email');
@@ -1529,8 +1529,11 @@
                 }
             } else {
                 // Update header with username
-                document.getElementById('welcome-message').textContent = 'Welcome,';
-                document.getElementById('user-name').textContent = currentUsername;
+                const headerWelcome = document.getElementById('header-welcome');
+                const headerUserName = document.getElementById('header-user-name');
+                if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
+                if (headerUserName) headerUserName.textContent = currentUsername;
+                
                 const emailDiv = document.getElementById('user-email');
                 if (emailDiv) {
                     emailDiv.textContent = '';
