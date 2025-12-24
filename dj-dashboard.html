@@ -1830,6 +1830,11 @@
             // Load account info when opening
             if (accountForm.classList.contains('show')) {
                 loadAccountInfoToDropdown();
+                // Show Save and Cancel buttons when opening account settings
+                const formActions = document.querySelector('.profile-dropdown-form-actions');
+                if (formActions) {
+                    formActions.style.display = '';
+                }
             }
         }
         
@@ -1923,6 +1928,12 @@
             // Show success message
             const successMsg = document.getElementById('dropdown-save-success');
             successMsg.classList.add('show');
+            
+            // Hide Save and Cancel buttons after successful save
+            const formActions = document.querySelector('.profile-dropdown-form-actions');
+            if (formActions) {
+                formActions.style.display = 'none';
+            }
             
             // Hide success message after 3 seconds
             setTimeout(() => {
