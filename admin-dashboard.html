@@ -1218,23 +1218,41 @@
             const now = new Date();
             
             // Filter data based on time range
-            let filteredVisits = analytics.visits;
+            let filteredVisits = analytics.visits || [];
             if (timeRange !== 'all' && !isNaN(timeRange)) {
                 const cutoffDate = new Date(now.getTime() - (timeRange * 24 * 60 * 60 * 1000));
-                filteredVisits = analytics.visits.filter(v => new Date(v.timestamp) >= cutoffDate);
+                filteredVisits = filteredVisits.filter(v => new Date(v.timestamp) >= cutoffDate);
             }
 
             // Calculate metrics
             const totalVisits = filteredVisits.length;
-            const totalPageViews = filteredVisits.length;
-            const uniqueVisitors = new Set(filteredVisits.map(v => v.ip || v.userAgent)).size;
+            const totalPageViews = analytics.pageViews ? analytics.pageViews.length : totalVisits;
             
-            // Calculate average session duration
-            const sessions = Object.values(analytics.sessions);
+            // Count unique visitors from cookie-based visitor IDs
+            let uniqueVisitors = 0;
+            if (filteredVisits.length > 0) {
+                const uniqueVisitorIds = new Set(filteredVisits.map(v => v.visitorId).filter(id => id));
+                uniqueVisitors = uniqueVisitorIds.size;
+            } else if (analytics.uniqueVisitors) {
+                // Fallback: count from uniqueVisitors object if available
+                if (typeof analytics.uniqueVisitors === 'object' && !Array.isArray(analytics.uniqueVisitors)) {
+                    uniqueVisitors = Object.keys(analytics.uniqueVisitors).length;
+                } else if (Array.isArray(analytics.uniqueVisitors)) {
+                    uniqueVisitors = analytics.uniqueVisitors.length;
+                }
+            }
+            
+            // Calculate average session duration from cookie-based sessions
+            const sessions = Object.values(analytics.sessions || {});
             let totalDuration = 0;
             let sessionCount = 0;
             sessions.forEach(session => {
-                if (session.lastActivity && session.startTime) {
+                if (session.duration) {
+                    // Use stored duration if available (from cookie tracking)
+                    totalDuration += session.duration;
+                    sessionCount++;
+                } else if (session.lastActivity && session.startTime) {
+                    // Fallback: calculate from timestamps
                     const duration = new Date(session.lastActivity) - new Date(session.startTime);
                     totalDuration += duration;
                     sessionCount++;
@@ -1254,10 +1272,10 @@
             // Generate top pages
             generateTopPages(filteredVisits);
 
-            // Generate traffic sources
+            // Generate traffic sources (using referrerSource from cookie tracking)
             generateTrafficSources(filteredVisits);
 
-            // Generate device types
+            // Generate device types (using deviceType from cookie tracking)
             generateDeviceTypes(filteredVisits);
 
             // Generate recent activity
@@ -1340,11 +1358,13 @@
         function generateTrafficSources(visits) {
             const sources = {};
             visits.forEach(visit => {
-                const source = visit.referrer === 'direct' ? 'Direct' : 
+                // Use referrerSource from cookie tracking if available, otherwise calculate
+                const source = visit.referrerSource || 
+                              (visit.referrer === 'direct' || !visit.referrer ? 'Direct' : 
                               visit.referrer.includes('google') ? 'Google' :
                               visit.referrer.includes('facebook') ? 'Facebook' :
                               visit.referrer.includes('instagram') ? 'Instagram' :
-                              'Other';
+                              'Other');
                 sources[source] = (sources[source] || 0) + 1;
             });
 
@@ -1372,13 +1392,18 @@
         function generateDeviceTypes(visits) {
             const devices = { Desktop: 0, Mobile: 0, Tablet: 0 };
             visits.forEach(visit => {
-                const ua = visit.userAgent.toLowerCase();
-                if (/tablet|ipad|playbook|silk/i.test(ua)) {
-                    devices.Tablet++;
-                } else if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(ua)) {
-                    devices.Mobile++;
+                // Use deviceType from cookie tracking if available, otherwise calculate from userAgent
+                if (visit.deviceType) {
+                    devices[visit.deviceType] = (devices[visit.deviceType] || 0) + 1;
                 } else {
-                    devices.Desktop++;
+                    const ua = (visit.userAgent || '').toLowerCase();
+                    if (/tablet|ipad|playbook|silk/i.test(ua)) {
+                        devices.Tablet++;
+                    } else if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(ua)) {
+                        devices.Mobile++;
+                    } else {
+                        devices.Desktop++;
+                    }
                 }
             });
 
@@ -1422,13 +1447,29 @@
             container.innerHTML = visits.map(visit => {
                 const date = new Date(visit.timestamp);
                 const timeAgo = getTimeAgo(date);
-                const pageName = visit.page.replace('.html', '').replace('index.html', 'Home');
+                const pageName = (visit.page || 'unknown').replace('.html', '').replace('index.html', 'Home');
+                
+                // Get referrer source
+                let referrerText = 'Direct visit';
+                try {
+                    if (visit.referrerSource && visit.referrerSource !== 'Direct') {
+                        referrerText = `From ${visit.referrerSource}`;
+                    } else if (visit.referrer && visit.referrer !== 'direct' && visit.referrer !== '') {
+                        const referrerUrl = new URL(visit.referrer);
+                        referrerText = `From ${referrerUrl.hostname}`;
+                    }
+                } catch (e) {
+                    referrerText = visit.referrerSource || 'Direct visit';
+                }
+                
+                // Get device type
+                const deviceType = visit.deviceType || 'Unknown';
                 
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-radius: 5px; margin-bottom: 0.5rem; border-left: 4px solid var(--accent-color);">
                         <div>
                             <div style="font-weight: 500; color: var(--primary-color);">${pageName}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-light);">${visit.referrer === 'direct' ? 'Direct visit' : 'From ' + new URL(visit.referrer).hostname}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-light);">${referrerText} • ${deviceType}</div>
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 0.85rem; color: var(--text-light);">${date.toLocaleString()}</div>
