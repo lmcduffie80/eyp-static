@@ -2698,7 +2698,7 @@
             if (sectionName === 'dashboard') {
                 updateDashboardStats();
                 generateCalendar();
-                displayBlockedDates();
+                displayBlockedDates(); // Display blocked dates list with edit/delete functionality
             } else if (sectionName === 'projects') {
                 // Check if a filter was passed (from URL or function parameter)
                 const urlParams = new URLSearchParams(window.location.search);
