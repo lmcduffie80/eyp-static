@@ -1071,12 +1071,18 @@
         function loadAnalytics() {
             initializeAnalytics();
             const analytics = JSON.parse(localStorage.getItem('analytics_data'));
-            const timeRange = parseInt(document.getElementById('analytics-time-range').value);
+            const timeRangeSelect = document.getElementById('analytics-time-range');
+            if (!timeRangeSelect) {
+                console.error('Analytics time range select not found');
+                return;
+            }
+            const timeRangeValue = timeRangeSelect.value;
+            const timeRange = timeRangeValue === 'all' ? 'all' : parseInt(timeRangeValue);
             const now = new Date();
             
             // Filter data based on time range
             let filteredVisits = analytics.visits;
-            if (timeRange !== 'all') {
+            if (timeRange !== 'all' && !isNaN(timeRange)) {
                 const cutoffDate = new Date(now.getTime() - (timeRange * 24 * 60 * 60 * 1000));
                 filteredVisits = analytics.visits.filter(v => new Date(v.timestamp) >= cutoffDate);
             }
