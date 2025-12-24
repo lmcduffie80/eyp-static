@@ -1281,11 +1281,6 @@
                     </div>
                 </div>
 
-                <form class="block-date-form" id="block-date-form" style="margin-top: 1.5rem;">
-                    <input type="text" id="block-date" class="form-input" placeholder="Click a date on the calendar to block it" required readonly>
-                    <input type="text" id="block-reason" class="form-input" placeholder="Reason (optional)" style="flex: 1;">
-                    <button type="submit" class="btn btn-primary">Block Date</button>
-                </form>
 
                 <!-- Booking Details Modal -->
                 <div id="booking-details-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
@@ -1815,70 +1810,6 @@
         // Load user info on page load
         loadDJUserInfo();
 
-        // Block date form submission - Enhanced with input sanitization
-        document.getElementById('block-date-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validate token before allowing action
-            if (!validateToken()) {
-                return;
-            }
-            
-            let date = document.getElementById('block-date').value.trim();
-            const reason = document.getElementById('block-reason').value.trim();
-
-            if (!date) {
-                alert('Please select a date');
-                return;
-            }
-
-            // Validate date format (mm-dd-yyyy)
-            const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
-            if (!dateRegex.test(date)) {
-                alert('Invalid date format');
-                logSecurityEvent('invalid_input', { field: 'date', value: date });
-                return;
-            }
-
-            // Convert mm-dd-yyyy to YYYY-MM-DD for storage (standard format)
-            const dateParts = date.split('-');
-            date = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Convert to YYYY-MM-DD
-
-            // Sanitize reason input
-            const sanitizedReason = sanitizeInput(reason) || 'No reason provided';
-            // TODO: Send to backend API
-            // For now, store in localStorage
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
-            
-            // Check for duplicate dates
-            if (blockedDates.some(bd => bd.date === date)) {
-                alert('This date is already blocked');
-                return;
-            }
-            
-            blockedDates.push({
-                date: date,
-                reason: sanitizedReason,
-                blockedAt: new Date().toISOString(),
-                blockedBy: localStorage.getItem('dj_user')
-            });
-            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
-            
-            logSecurityEvent('block_date', { date: date });
-
-            // Update calendar picker to disable blocked date (date is now in YYYY-MM-DD format)
-            const fp = flatpickr("#block-date");
-            fp.config.disable.push(date);
-            fp.set('disable', fp.config.disable);
-
-            // Refresh blocked dates list and calendar
-            displayBlockedDates();
-            generateCalendar();
-
-            // Clear form
-            document.getElementById('block-date-form').reset();
-        });
-
         // Display blocked dates
         function displayBlockedDates() {
             const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
@@ -1942,10 +1873,6 @@
             // Refresh display and calendar
             displayBlockedDates();
             generateCalendar();
-            
-            // Scroll to the form
-            document.getElementById('block-date-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            document.getElementById('block-date').focus();
         }
 
         // Remove blocked date - Enhanced with security
@@ -1968,11 +1895,6 @@
             localStorage.setItem('blocked_dates', JSON.stringify(filtered));
             
             logSecurityEvent('unblock_date', { date: date });
-
-            // Update calendar picker
-            const fp = flatpickr("#block-date");
-            fp.config.disable = fp.config.disable.filter(d => d !== date);
-            fp.set('disable', fp.config.disable);
 
             displayBlockedDates();
             generateCalendar();
@@ -2190,20 +2112,65 @@
             }
         });
 
-        // Select date from calendar widget
+        // Select date from calendar widget and block it
         function selectCalendarDate(dateStr) {
-            // dateStr is in YYYY-MM-DD format, convert to mm-dd-yyyy
-            // Parse directly from string to avoid any timezone conversion issues
+            // Validate token before allowing action
+            if (!validateToken()) {
+                return;
+            }
+            
+            // Check if date is already blocked
+            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+            const isAlreadyBlocked = blockedDates.some(bd => bd.date === dateStr);
+            
+            if (isAlreadyBlocked) {
+                alert('This date is already blocked.');
+                return;
+            }
+            
+            // Check if date is in the past
             const dateParts = dateStr.split('-');
-            const year = dateParts[0];
-            const month = dateParts[1];
-            const day = dateParts[2];
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1;
+            const day = parseInt(dateParts[2], 10);
+            const selectedDate = new Date(year, month, day);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
             
-            // Format as mm-dd-yyyy directly without Date object conversion
-            const formattedDate = `${month}-${day}-${year}`;
+            if (selectedDate < today) {
+                alert('Cannot block dates in the past.');
+                return;
+            }
             
-            // Set the input value directly - don't use flatpickr.setDate as it may cause date conversion issues
-            document.getElementById('block-date').value = formattedDate;
+            // Prompt for reason
+            const reason = prompt('Enter a reason for blocking this date (optional):', '');
+            
+            // If user cancelled, do nothing
+            if (reason === null) {
+                return;
+            }
+            
+            // Sanitize reason input
+            const sanitizedReason = reason ? reason.trim().replace(/[<>]/g, '') : 'No reason provided';
+            
+            // Add blocked date
+            blockedDates.push({
+                date: dateStr,
+                reason: sanitizedReason,
+                blockedBy: localStorage.getItem('dj_user') || 'DJ User',
+                blockedAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
+            
+            logSecurityEvent('block_date', { date: dateStr, reason: sanitizedReason });
+            
+            // Refresh calendar to show blocked date
+            generateCalendar();
+            
+            // Show success message
+            alert(`Date has been blocked successfully.`);
         }
 
         // Load bookings
