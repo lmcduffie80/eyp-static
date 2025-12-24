@@ -559,7 +559,30 @@
 
             // For development: check against localStorage
             const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const user = existingUsers.find(u => (u.username === username || u.email === username) && u.password === password);
+            
+            // Try multiple matching strategies: username, email, or firstName + lastName
+            const user = existingUsers.find(u => {
+                // Case-insensitive username match
+                const usernameMatch = u.username && u.username.toLowerCase().trim() === username.toLowerCase().trim();
+                
+                // Case-insensitive email match
+                const emailMatch = u.email && u.email.toLowerCase().trim() === username.toLowerCase().trim();
+                
+                // Case-insensitive firstName + lastName match (for "Gavin McDuffie" or "gavin mcduffie" format)
+                const fullNameMatch = u.firstName && u.lastName && 
+                    `${u.firstName} ${u.lastName}`.toLowerCase().trim() === username.toLowerCase().trim();
+                
+                // Case-insensitive firstName match (for single name login attempts)
+                const firstNameMatch = u.firstName && u.firstName.toLowerCase().trim() === username.toLowerCase().trim();
+                
+                // Check if any identifier matches
+                const identifierMatch = usernameMatch || emailMatch || fullNameMatch || firstNameMatch;
+                
+                // Password match (case-sensitive)
+                const passwordMatch = u.password === password;
+                
+                return identifierMatch && passwordMatch;
+            });
 
             if (user) {
                 // Store authentication token (in production, use httpOnly cookies)
