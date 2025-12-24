@@ -1589,14 +1589,6 @@
             return `${month}-${day}-${year}`;
         }
         
-        // Initialize calendar picker - format as mm-dd-yyyy
-        const datePicker = flatpickr("#block-date", {
-            dateFormat: "m-d-Y",
-            minDate: "today",
-            disable: [],
-            clickOpens: false, // Disable clicking input to open calendar
-            allowInput: true // Allow manual input if needed
-        });
 
         // Load user data
         function loadDJUserInfo() {
