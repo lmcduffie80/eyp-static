@@ -2281,6 +2281,30 @@
             }
         }
 
+        // Sidebar toggle functions for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('show');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+        }
+
+        // Check if we're on mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
         // Section navigation function
         function showSection(sectionName) {
             // Hide all sections
@@ -2309,6 +2333,11 @@
             const selectedNav = document.getElementById(`nav-${sectionName}`);
             if (selectedNav) {
                 selectedNav.classList.add('active');
+            }
+
+            // Close sidebar on mobile after selection
+            if (isMobile()) {
+                closeSidebar();
             }
 
             // Load section-specific content
