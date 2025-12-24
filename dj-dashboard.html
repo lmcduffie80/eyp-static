@@ -2737,9 +2737,9 @@
             });
             
             // Calculate total bookings (only upcoming/future bookings)
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const upcomingBookings = djBookings.filter(b => {
+            const todayForStats = new Date();
+            todayForStats.setHours(0, 0, 0, 0);
+            const upcomingBookingsForStats = djBookings.filter(b => {
                 if (!b.date) return false;
                 const dateParts = b.date.split('-');
                 const year = parseInt(dateParts[0], 10);
@@ -2747,9 +2747,9 @@
                 const day = parseInt(dateParts[2], 10);
                 const bookingDate = new Date(year, month, day);
                 bookingDate.setHours(0, 0, 0, 0);
-                return bookingDate >= today;
+                return bookingDate >= todayForStats;
             });
-            const totalBookings = upcomingBookings.length;
+            const totalBookings = upcomingBookingsForStats.length;
             document.getElementById('total-bookings-stat').textContent = totalBookings;
             
             // Calculate total revenue and previous year revenue
