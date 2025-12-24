@@ -2976,14 +2976,22 @@
         }
 
         // Filter bookings
-        function filterBookings(filter) {
+        async function filterBookings(filter) {
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            // Find and activate the button with the matching filter
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.textContent.trim().toLowerCase() === filter.toLowerCase() || 
+                    (filter === 'all' && btn.textContent.trim() === 'All') ||
+                    (filter === 'upcoming' && btn.textContent.trim() === 'Upcoming') ||
+                    (filter === 'past' && btn.textContent.trim() === 'Past')) {
+                    btn.classList.add('active');
+                }
+            });
 
             // Reload bookings from API
-            loadBookings(filter);
+            await loadBookings(filter);
         }
 
         // Check and send reminders (2 weeks prior)
