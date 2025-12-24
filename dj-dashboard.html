@@ -3278,7 +3278,93 @@
                 syncWebsiteTestimonialsToDJReviews();
             }
             
+            // Also manually add known testimonials if they don't exist yet
+            addWillReviewIfNeeded();
+            addGavinReviewIfNeeded();
+            
             if (typeof loadReviews === 'function') loadReviews();
+        }
+
+        // Manually add Will's review from the website if it doesn't exist
+        function addWillReviewIfNeeded() {
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const willReviewText = "Will made our wedding reception absolutely incredible! His energy and enthusiasm were contagious, and he had everyone on the dance floor from the first song to the last. Will took the time to understand our music preferences and created the perfect atmosphere for our celebration. His professional setup and seamless transitions kept the party going all night. We couldn't have asked for a better DJ experience. Thank you, Will!";
+            
+            // Check if this review already exists
+            const reviewExists = allReviews.some(r => 
+                r.djUsername === 'Will Luke' && 
+                r.comment && 
+                r.comment.includes("Will made our wedding reception absolutely incredible")
+            );
+            
+            if (!reviewExists) {
+                // Create hash for ID
+                let hash = 0;
+                const idString = willReviewText.substring(0, 100) + 'Will Luke';
+                for (let i = 0; i < idString.length; i++) {
+                    const char = idString.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                const reviewId = `web_${Math.abs(hash)}_Will_Luke`;
+                
+                const newReview = {
+                    id: reviewId,
+                    djUsername: 'Will Luke',
+                    clientName: 'Website Review',
+                    rating: 5,
+                    comment: willReviewText,
+                    eventName: 'DJ Entertainment',
+                    date: '2025-01-01',
+                    createdAt: new Date().toISOString(),
+                    source: 'website'
+                };
+                
+                allReviews.push(newReview);
+                localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
+                console.log('Added Will\'s review to dj_reviews');
+            }
+        }
+
+        // Manually add Gavin's review from the website if it doesn't exist
+        function addGavinReviewIfNeeded() {
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const gavinReviewText = "Gavin was absolutely amazing at our wedding! He kept the dance floor packed all night long with an incredible mix of music that appealed to all our guests. His professionalism and attention to detail were outstanding. Gavin made sure our special day had the perfect soundtrack, and we couldn't have been happier. We highly recommend Gavin for any wedding celebration!";
+            
+            // Check if this review already exists
+            const reviewExists = allReviews.some(r => 
+                r.djUsername === 'Gavin McDuffie' && 
+                r.comment && 
+                r.comment.includes("Gavin was absolutely amazing at our wedding")
+            );
+            
+            if (!reviewExists) {
+                // Create hash for ID
+                let hash = 0;
+                const idString = gavinReviewText.substring(0, 100) + 'Gavin McDuffie';
+                for (let i = 0; i < idString.length; i++) {
+                    const char = idString.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                const reviewId = `web_${Math.abs(hash)}_Gavin_McDuffie`;
+                
+                const newReview = {
+                    id: reviewId,
+                    djUsername: 'Gavin McDuffie',
+                    clientName: 'Website Review',
+                    rating: 5,
+                    comment: gavinReviewText,
+                    eventName: 'DJ Entertainment',
+                    date: '2025-01-01',
+                    createdAt: new Date().toISOString(),
+                    source: 'website'
+                };
+                
+                allReviews.push(newReview);
+                localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
+                console.log('Added Gavin\'s review to dj_reviews');
+            }
         }
     </script>
 </body>
