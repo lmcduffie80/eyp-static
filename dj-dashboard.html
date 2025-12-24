@@ -2070,17 +2070,16 @@
             
             logSecurityEvent('unblock_date', { date: date });
             
-            // Close modal
+            // Close modal first
             closeBlockDateConfirmModal();
             
-            // Refresh displays
-            displayBlockedDates();
-            displayBlockedDatesPage();
+            // Refresh calendars immediately (so the blocked indicator is removed right away)
             generateCalendar();
             generateCalendarPage();
             
-            // Show success message
-            showBlockDateMessage('Blocked date has been removed successfully!', 'success');
+            // Refresh blocked dates lists
+            displayBlockedDates();
+            displayBlockedDatesPage();
         }
 
         // Calendar state
