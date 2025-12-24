@@ -2289,11 +2289,20 @@
             // Sanitize reason input
             const sanitizedReason = reason ? reason.trim().replace(/[<>]/g, '') : 'No reason provided';
             
-            // Add blocked date
+            // Get DJ user info to store full name
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            const djName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                : (currentUsername || 'DJ User');
+            
+            // Add blocked date with DJ name
             blockedDates.push({
                 date: dateStr,
                 reason: sanitizedReason,
-                blockedBy: localStorage.getItem('dj_user') || 'DJ User',
+                djUser: djName, // Store DJ's full name for admin dashboard display
+                blockedBy: currentUsername || 'DJ User', // Keep username for backward compatibility
                 blockedAt: new Date().toISOString()
             });
             
