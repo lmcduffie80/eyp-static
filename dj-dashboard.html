@@ -1943,7 +1943,7 @@
                 </div>
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                     <button onclick="closeBlockedDateModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Cancel</button>
-                    <button onclick="confirmDeleteBlockedDate('${escapeHtml(blockedDate.date)}')" class="btn btn-danger" style="padding: 0.75rem 1.5rem;">Delete</button>
+                    <button onclick="closeBlockedDateModal(); openDeleteBlockedDateConfirmModal('${escapeHtml(blockedDate.date)}')" class="btn btn-danger" style="padding: 0.75rem 1.5rem;">Delete</button>
                 </div>
             `;
 
