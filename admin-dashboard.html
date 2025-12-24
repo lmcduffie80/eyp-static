@@ -372,20 +372,27 @@
         
         .bookings-table th:nth-child(5),
         .bookings-table td:nth-child(5) {
-            /* Payout column */
+            /* Payment column */
             min-width: 110px;
             white-space: nowrap;
         }
         
         .bookings-table th:nth-child(6),
         .bookings-table td:nth-child(6) {
-            /* Total Revenue column */
+            /* CC Payment 6% column */
             min-width: 130px;
             white-space: nowrap;
         }
         
         .bookings-table th:nth-child(7),
         .bookings-table td:nth-child(7) {
+            /* DJ Payout column */
+            min-width: 110px;
+            white-space: nowrap;
+        }
+        
+        .bookings-table th:nth-child(8),
+        .bookings-table td:nth-child(8) {
             /* Actions column */
             min-width: 90px;
             white-space: nowrap;
@@ -667,7 +674,7 @@
             <div class="section-card" style="margin-bottom: 2rem;">
                 <h2>Import Projects from CSV</h2>
                 <p style="color: var(--text-light); margin-bottom: 1rem;">
-                    Upload a CSV file with columns: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue
+                    Upload a CSV file with columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout
                 </p>
                 <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
@@ -695,12 +702,13 @@
                     <table class="bookings-table" style="table-layout: auto; width: 100%; min-width: 900px;">
                         <thead>
                             <tr>
-                                <th class="sortable" onclick="sortTable('dj')" data-column="dj">DJ</th>
                                 <th class="sortable" onclick="sortTable('date')" data-column="date">Date</th>
+                                <th class="sortable" onclick="sortTable('dj')" data-column="dj">DJ</th>
                                 <th class="sortable" onclick="sortTable('project')" data-column="project">Project</th>
                                 <th class="sortable" onclick="sortTable('location')" data-column="location">Location</th>
-                                <th class="sortable" onclick="sortTable('payout')" data-column="payout">Payout</th>
-                                <th class="sortable" onclick="sortTable('totalRevenue')" data-column="totalRevenue">Total Revenue</th>
+                                <th class="sortable" onclick="sortTable('totalRevenue')" data-column="totalRevenue">Payment</th>
+                                <th class="sortable" onclick="sortTable('ccPayment')" data-column="ccPayment">CC Payment 6%</th>
+                                <th class="sortable" onclick="sortTable('payout')" data-column="payout">DJ Payout</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1550,8 +1558,12 @@
                             bValue = parseFloat(b.payout || 0);
                             break;
                         case 'totalRevenue':
-                            aValue = parseFloat(a.totalRevenue || a.payout || 0);
-                            bValue = parseFloat(b.totalRevenue || b.payout || 0);
+                            aValue = parseFloat(a.totalRevenue || 0);
+                            bValue = parseFloat(b.totalRevenue || 0);
+                            break;
+                        case 'ccPayment':
+                            aValue = parseFloat(a.ccPayment || 0);
+                            bValue = parseFloat(b.ccPayment || 0);
                             break;
                         default:
                             return 0;
@@ -1566,7 +1578,7 @@
             const container = document.getElementById('all-bookings-container');
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<tr><td colspan="7" class="empty-state">No projects found</td></tr>';
+                container.innerHTML = '<tr><td colspan="8" class="empty-state">No projects found</td></tr>';
                 return;
             }
 
@@ -1583,7 +1595,25 @@
             container.innerHTML = filteredBookings.map(booking => {
                 const formattedDate = formatDateMMDDYYYY(booking.date);
                 
-                // Format payout - remove any existing $ signs and add one
+                // Format Payment (totalRevenue) - remove any existing $ signs and add one
+                let formattedPayment = '-';
+                if (booking.totalRevenue) {
+                    const paymentValue = String(booking.totalRevenue).replace(/[$,]/g, '').trim();
+                    if (paymentValue) {
+                        formattedPayment = '$' + parseFloat(paymentValue).toFixed(2);
+                    }
+                }
+
+                // Format CC Payment 6% - remove any existing $ signs and add one
+                let formattedCCPayment = '-';
+                if (booking.ccPayment) {
+                    const ccPaymentValue = String(booking.ccPayment).replace(/[$,]/g, '').trim();
+                    if (ccPaymentValue) {
+                        formattedCCPayment = '$' + parseFloat(ccPaymentValue).toFixed(2);
+                    }
+                }
+                
+                // Format DJ Payout - remove any existing $ signs and add one
                 let formattedPayout = '-';
                 if (booking.payout) {
                     const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
@@ -1592,24 +1622,15 @@
                     }
                 }
 
-                // Format total revenue - remove any existing $ signs and add one
-                let formattedTotalRevenue = '-';
-                const revenueSource = booking.totalRevenue || booking.payout;
-                if (revenueSource) {
-                    const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
-                    if (revenueValue) {
-                        formattedTotalRevenue = '$' + parseFloat(revenueValue).toFixed(2);
-                    }
-                }
-
                 return `
                     <tr>
-                        <td>${booking.djUser || 'Unassigned'}</td>
                         <td>${formattedDate}</td>
+                        <td>${booking.djUser || 'Unassigned'}</td>
                         <td>${booking.eventType}</td>
                         <td>${booking.location}</td>
+                        <td>${formattedPayment}</td>
+                        <td>${formattedCCPayment}</td>
                         <td>${formattedPayout}</td>
-                        <td>${formattedTotalRevenue}</td>
                         <td>
                             <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
                                 Delete
@@ -1697,7 +1718,7 @@
                     
                     // Check if headers are empty
                     if (headers.length === 0 || headers.every(h => !h)) {
-                        showCSVMessage(`Could not parse CSV headers. First line of file: "${lines[0].substring(0, 200)}...". Please ensure the first row contains column names: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
+                        showCSVMessage(`Could not parse CSV headers. First line of file: "${lines[0].substring(0, 200)}...". Please ensure the first row contains column names: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout`, 'error');
                         return;
                     }
                     
@@ -1711,39 +1732,42 @@
                     console.log('Detected CSV separator:', csvSeparator);
                     
                     // Find column indices (flexible matching) - be more specific to avoid wrong matches
-                    const djNameIndex = findColumnIndex(headers, ['dj name', 'djname']);
-                    const dateIndex = findColumnIndex(headers, ['date of project', 'date of project', 'date']);
-                    const projectNameIndex = findColumnIndex(headers, ['project name', 'projectname', 'project']);
-                    const locationIndex = findColumnIndex(headers, ['location for venue', 'location', 'venue location']);
-                    const payoutIndex = findColumnIndex(headers, ['payout', 'dj payout']);
-                    const totalRevenueIndex = findColumnIndex(headers, ['total revenue', 'totalrevenue', 'revenue']);
+                    const dateIndex = findColumnIndex(headers, ['data', 'date', 'date of project']);
+                    const djNameIndex = findColumnIndex(headers, ['dj', 'dj name', 'djname']);
+                    const projectNameIndex = findColumnIndex(headers, ['project', 'project name', 'projectname']);
+                    const locationIndex = findColumnIndex(headers, ['location', 'location for venue', 'venue location']);
+                    const paymentIndex = findColumnIndex(headers, ['payment', 'total revenue', 'totalrevenue', 'revenue']);
+                    const ccPaymentIndex = findColumnIndex(headers, ['cc payment', 'cc payment 6%', 'cc payment 6']);
+                    const payoutIndex = findColumnIndex(headers, ['dj payout', 'payout', 'djpayout']);
                     
                     console.log('Column indices:', { 
+                        dateIndex,
                         djNameIndex, 
-                        dateIndex, 
                         projectNameIndex, 
                         locationIndex, 
+                        paymentIndex,
+                        ccPaymentIndex,
                         payoutIndex,
-                        totalRevenueIndex,
                         'All headers': headerValues,
                         'headers found': {
-                            djName: dateIndex !== -1 ? headerValues[djNameIndex] : 'NOT FOUND',
                             date: dateIndex !== -1 ? headerValues[dateIndex] : 'NOT FOUND',
+                            djName: djNameIndex !== -1 ? headerValues[djNameIndex] : 'NOT FOUND',
                             projectName: projectNameIndex !== -1 ? headerValues[projectNameIndex] : 'NOT FOUND',
                             location: locationIndex !== -1 ? headerValues[locationIndex] : 'NOT FOUND',
-                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND',
-                            totalRevenue: totalRevenueIndex !== -1 ? headerValues[totalRevenueIndex] : 'NOT FOUND'
+                            payment: paymentIndex !== -1 ? headerValues[paymentIndex] : 'NOT FOUND',
+                            ccPayment: ccPaymentIndex !== -1 ? headerValues[ccPaymentIndex] : 'NOT FOUND',
+                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND'
                         }
                     });
                     
-                    if (djNameIndex === -1 || dateIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
+                    if (dateIndex === -1 || djNameIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
                         const missing = [];
-                        if (djNameIndex === -1) missing.push('DJ Name');
-                        if (dateIndex === -1) missing.push('Date of Project');
-                        if (projectNameIndex === -1) missing.push('Project name');
-                        if (locationIndex === -1) missing.push('Location for venue');
+                        if (dateIndex === -1) missing.push('Data (Date)');
+                        if (djNameIndex === -1) missing.push('DJ');
+                        if (projectNameIndex === -1) missing.push('Project');
+                        if (locationIndex === -1) missing.push('Location');
                         
-                        showCSVMessage(`CSV is missing required columns: ${missing.join(', ')}. Found headers: "${headerValues.join('", "')}". Please ensure your CSV has columns: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
+                        showCSVMessage(`CSV is missing required columns: ${missing.join(', ')}. Found headers: "${headerValues.join('", "')}". Please ensure your CSV has columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout`, 'error');
                         return;
                     }
                     
@@ -1797,7 +1821,7 @@
                     
                     if (!dateColumnValid && sampleDateValue) {
                         const dateHeaderName = headerValues[dateIndex] || 'Date of Project';
-                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${dateHeaderName}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers and that row 6 (after skipping first 5 rows) contains valid date data. Expected columns: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue`, 'error');
+                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${dateHeaderName}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers and that row 6 (after skipping first 5 rows) contains valid date data. Expected columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout`, 'error');
                         return;
                     }
                     
@@ -1835,10 +1859,13 @@
                         const dateStr = values[dateIndex] ? values[dateIndex].trim() : '';
                         const projectName = values[projectNameIndex] ? values[projectNameIndex].trim() : '';
                         const location = values[locationIndex] ? values[locationIndex].trim() : '';
+                        const payment = paymentIndex !== -1 && values[paymentIndex] ? values[paymentIndex].trim() : '';
+                        const ccPayment = ccPaymentIndex !== -1 && values[ccPaymentIndex] ? values[ccPaymentIndex].trim() : '';
                         const payout = payoutIndex !== -1 && values[payoutIndex] ? values[payoutIndex].trim() : '';
-                        const totalRevenue = totalRevenueIndex !== -1 && values[totalRevenueIndex] ? values[totalRevenueIndex].trim() : '';
+                        // Map Payment to totalRevenue, DJ Payout to payout
+                        const totalRevenue = payment || '';
                         
-                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payout, totalRevenue });
+                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payment, ccPayment, payout, totalRevenue });
                         
                         if (!djName || !dateStr || !projectName || !location) {
                             const missingFields = [];
@@ -1890,8 +1917,9 @@
                             eventType: projectName,
                             location: location,
                             clientName: projectName, // Use project name as client name if no separate field
-                            payout: payout || '',
-                            totalRevenue: totalRevenue || '',
+                            payout: payout || '', // DJ Payout
+                            totalRevenue: totalRevenue || '', // Payment
+                            ccPayment: ccPayment || '', // CC Payment 6%
                             time: '', // Not in CSV, leave empty
                             contactEmail: '',
                             contactPhone: '',
@@ -1945,7 +1973,7 @@
                         if (invalidDateExamples.length > 0) {
                             errorMsg += ` Example invalid dates: ${invalidDateExamples.join(', ')}. Please use formats like MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, or YYYY-MM-DD.`;
                         } else {
-                            errorMsg += ' Please check your CSV file format and ensure columns match: DJ Name, Date of Project, Project name, Location for venue, Payout, Total Revenue';
+                            errorMsg += ' Please check your CSV file format and ensure columns match: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout';
                         }
                         
                         showCSVMessage(errorMsg, 'error');
