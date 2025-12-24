@@ -679,7 +679,12 @@
             </div>
             
             <div class="section-card">
-                <h2>All Projects</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="margin: 0;">All Projects</h2>
+                    <button onclick="clearAllProjects()" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem; font-weight: bold;" title="Clear all projects">
+                        Clear All Projects
+                    </button>
+                </div>
                 <div class="filter-controls" style="margin-bottom: 1rem;">
                     <select id="booking-filter-dj" onchange="filterAllBookings()">
                         <option value="">All DJs</option>
@@ -1276,6 +1281,26 @@
             
             // Also refresh the DJ stats
             loadAllDJs();
+        }
+
+        // Clear all projects/bookings
+        function clearAllProjects() {
+            if (!confirm('Are you sure you want to delete ALL projects? This action cannot be undone.')) {
+                return;
+            }
+
+            localStorage.setItem('dj_bookings', JSON.stringify([]));
+
+            // Refresh the table
+            filterAllBookings();
+            
+            // Update dashboard stats
+            updateDashboardStats();
+            
+            // Also refresh the DJ stats
+            loadAllDJs();
+            
+            showMessage('All projects have been cleared.', 'success');
         }
 
         // Get all blocked dates
