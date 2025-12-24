@@ -3102,23 +3102,36 @@
                 );
             });
             
+            // Helper function to parse date as local date
+            function parseLocalDate(dateValue) {
+                if (!dateValue) return null;
+                if (typeof dateValue === 'string') {
+                    // Handle YYYY-MM-DD format - parse as local date
+                    if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = dateValue.split('-');
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    }
+                    // Handle ISO format - extract date part and parse as local
+                    if (dateValue.includes('T')) {
+                        const datePart = dateValue.split('T')[0];
+                        const parts = datePart.split('-');
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    }
+                }
+                return new Date(dateValue);
+            }
+            
             if (filter === 'upcoming') {
                 filteredBookings = filteredBookings.filter(b => {
-                    const dateParts = b.date.split('-');
-                    const year = parseInt(dateParts[0], 10);
-                    const month = parseInt(dateParts[1], 10) - 1;
-                    const day = parseInt(dateParts[2], 10);
-                    const bookingDate = new Date(year, month, day);
+                    const bookingDate = parseLocalDate(b.date);
+                    if (!bookingDate) return false;
                     bookingDate.setHours(0, 0, 0, 0);
                     return bookingDate >= today;
                 });
             } else if (filter === 'past') {
                 filteredBookings = filteredBookings.filter(b => {
-                    const dateParts = b.date.split('-');
-                    const year = parseInt(dateParts[0], 10);
-                    const month = parseInt(dateParts[1], 10) - 1;
-                    const day = parseInt(dateParts[2], 10);
-                    const bookingDate = new Date(year, month, day);
+                    const bookingDate = parseLocalDate(b.date);
+                    if (!bookingDate) return false;
                     bookingDate.setHours(0, 0, 0, 0);
                     return bookingDate < today;
                 });
