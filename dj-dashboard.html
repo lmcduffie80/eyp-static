@@ -1888,12 +1888,63 @@
                 document.getElementById('dropdown-name').value = currentDJ.fullName || currentDJ.name || '';
                 document.getElementById('dropdown-email').value = currentDJ.email || '';
                 document.getElementById('dropdown-phone').value = currentDJ.phone || '';
+                
+                // Load profile picture
+                if (currentDJ.profilePicture) {
+                    document.getElementById('profile-picture-img').src = currentDJ.profilePicture;
+                    document.getElementById('profile-picture-img').style.display = 'block';
+                    document.getElementById('profile-picture-initials').style.display = 'none';
+                } else {
+                    document.getElementById('profile-picture-img').style.display = 'none';
+                    document.getElementById('profile-picture-initials').style.display = 'flex';
+                    const initials = (currentDJ.fullName || currentDJ.name || currentDJ.username || 'DJ').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                    document.getElementById('profile-picture-initials').textContent = initials;
+                }
             } else {
                 document.getElementById('dropdown-username').value = currentUsername || '';
                 document.getElementById('dropdown-name').value = '';
                 document.getElementById('dropdown-email').value = '';
                 document.getElementById('dropdown-phone').value = '';
+                
+                // Default profile picture preview
+                document.getElementById('profile-picture-img').style.display = 'none';
+                document.getElementById('profile-picture-initials').style.display = 'flex';
+                const initials = (currentUsername || 'DJ').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                document.getElementById('profile-picture-initials').textContent = initials;
             }
+        }
+        
+        // Handle profile picture upload
+        function handleProfilePictureUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size must be less than 5MB.');
+                return;
+            }
+            
+            // Read file as data URL
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                
+                // Update preview
+                document.getElementById('profile-picture-img').src = imageData;
+                document.getElementById('profile-picture-img').style.display = 'block';
+                document.getElementById('profile-picture-initials').style.display = 'none';
+                
+                // Store in a temporary variable to save when form is submitted
+                window.tempProfilePicture = imageData;
+            };
+            reader.readAsDataURL(file);
         }
         
         // Save account from dropdown - Enhanced with input validation and sanitization
