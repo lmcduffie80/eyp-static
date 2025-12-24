@@ -655,6 +655,16 @@
                 </div>
                 <div class="stat-value" id="total-revenue">$0.00</div>
             </div>
+            <div class="stat-card" onclick="filterByStat('blocked-dates')" id="stat-card-blocked-dates">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">🚫</span>
+                        Blocked Dates
+                    </h3>
+                    <span class="stat-info-icon" title="Click to view all blocked dates">ℹ️</span>
+                </div>
+                <div class="stat-value" id="blocked-dates-count">0</div>
+            </div>
         </div>
 
 
@@ -1431,12 +1441,17 @@
                 return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
 
+            // Get blocked dates count
+            const blockedDates = getAllBlockedDates();
+            const blockedDatesCount = blockedDates.length;
+
             // Update stat values
             document.getElementById('total-projects').textContent = bookings.length;
             document.getElementById('completed-projects').textContent = completedBookings.length;
             document.getElementById('uncompleted-projects').textContent = uncompletedBookings.length;
             document.getElementById('dj-revenue').textContent = formatCurrency(djRevenue);
             document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
+            document.getElementById('blocked-dates-count').textContent = blockedDatesCount;
         }
 
         // Update revenue stats based on filtered bookings
@@ -1487,6 +1502,24 @@
                 } else {
                     filterAllBookings();
                 }
+                return;
+            }
+
+            // For blocked-dates, navigate to calendar tab
+            if (filterType === 'blocked-dates') {
+                currentStatusFilter = null;
+                // Switch to calendar tab and show blocked dates
+                if (!document.getElementById('calendar-tab').classList.contains('active')) {
+                    switchTab('calendar');
+                    // Generate calendar after tab switch
+                    setTimeout(() => {
+                        generateMasterCalendar();
+                    }, 100);
+                } else {
+                    generateMasterCalendar();
+                }
+                // Add active class to blocked dates card
+                document.getElementById(`stat-card-${filterType}`).classList.add('active');
                 return;
             }
 
