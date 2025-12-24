@@ -398,76 +398,93 @@
 
         // Initialize admin user and default DJ users if they don't exist
         function initializeDefaultUsers() {
-            const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            
-            // Initialize admin user
-            const adminExists = existingUsers.find(u => u.username === 'admin' || u.email === 'admin@externallyyours.com');
-            if (!adminExists) {
-                const adminUser = {
-                    username: 'admin',
-                    email: 'admin@externallyyours.com',
-                    password: 'admin123', // In production, this should be hashed!
-                    firstName: 'Admin',
-                    lastName: 'User',
-                    createdAt: new Date().toISOString()
-                };
-                existingUsers.push(adminUser);
-            }
-            
-            // Initialize Will Luke
-            const willExists = existingUsers.find(u => 
-                (u.email && u.email.toLowerCase() === 'will@externallyyoursproductions.com') ||
-                (u.firstName && u.lastName && u.firstName.toLowerCase() === 'will' && u.lastName.toLowerCase() === 'luke')
-            );
-            if (!willExists) {
-                const willUser = {
-                    username: 'Will Luke',
-                    email: 'will@externallyyoursproductions.com',
-                    password: 'admin123', // In production, this should be hashed!
-                    firstName: 'Will',
-                    lastName: 'Luke',
-                    createdAt: new Date().toISOString()
-                };
-                existingUsers.push(willUser);
-            }
-            
-            // Initialize Gavin McDuffie
-            const gavinExists = existingUsers.find(u => 
-                (u.email && u.email.toLowerCase().includes('gavin')) ||
-                (u.firstName && u.lastName && u.firstName.toLowerCase() === 'gavin' && u.lastName.toLowerCase() === 'mcduffie')
-            );
-            if (!gavinExists) {
-                const gavinUser = {
-                    username: 'Gavin McDuffie',
-                    email: 'gavin@externallyyoursproductions.com',
-                    password: 'admin123', // In production, this should be hashed!
-                    firstName: 'Gavin',
-                    lastName: 'McDuffie',
-                    createdAt: new Date().toISOString()
-                };
-                existingUsers.push(gavinUser);
-            }
-            
-            // Initialize Stephen Kena
-            const stephenExists = existingUsers.find(u => 
-                (u.email && u.email.toLowerCase().includes('stephen')) ||
-                (u.firstName && u.lastName && u.firstName.toLowerCase() === 'stephen' && u.lastName.toLowerCase() === 'kena')
-            );
-            if (!stephenExists) {
-                const stephenUser = {
-                    username: 'Stephen Kena',
-                    email: 'stephen@externallyyoursproductions.com',
-                    password: 'admin123', // In production, this should be hashed!
-                    firstName: 'Stephen',
-                    lastName: 'Kena',
-                    createdAt: new Date().toISOString()
-                };
-                existingUsers.push(stephenUser);
-            }
-            
-            // Save all users
-            if (existingUsers.length > 0) {
-                localStorage.setItem('dj_users', JSON.stringify(existingUsers));
+            try {
+                const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
+                let usersUpdated = false;
+                
+                // Initialize admin user
+                const adminExists = existingUsers.find(u => 
+                    (u.username && u.username.toLowerCase() === 'admin') || 
+                    (u.email && u.email.toLowerCase() === 'admin@externallyyours.com')
+                );
+                if (!adminExists) {
+                    const adminUser = {
+                        username: 'admin',
+                        email: 'admin@externallyyours.com',
+                        password: 'admin123', // In production, this should be hashed!
+                        firstName: 'Admin',
+                        lastName: 'User',
+                        createdAt: new Date().toISOString()
+                    };
+                    existingUsers.push(adminUser);
+                    usersUpdated = true;
+                    console.log('Initialized admin user');
+                }
+                
+                // Initialize Will Luke
+                const willExists = existingUsers.find(u => 
+                    (u.email && u.email.toLowerCase() === 'will@externallyyoursproductions.com') ||
+                    (u.firstName && u.lastName && u.firstName.toLowerCase() === 'will' && u.lastName.toLowerCase() === 'luke')
+                );
+                if (!willExists) {
+                    const willUser = {
+                        username: 'Will Luke',
+                        email: 'will@externallyyoursproductions.com',
+                        password: 'admin123', // In production, this should be hashed!
+                        firstName: 'Will',
+                        lastName: 'Luke',
+                        createdAt: new Date().toISOString()
+                    };
+                    existingUsers.push(willUser);
+                    usersUpdated = true;
+                    console.log('Initialized Will Luke user');
+                }
+                
+                // Initialize Gavin McDuffie
+                const gavinExists = existingUsers.find(u => 
+                    (u.email && u.email.toLowerCase() === 'gavin@externallyyoursproductions.com') ||
+                    (u.firstName && u.lastName && u.firstName.toLowerCase() === 'gavin' && u.lastName.toLowerCase() === 'mcduffie')
+                );
+                if (!gavinExists) {
+                    const gavinUser = {
+                        username: 'Gavin McDuffie',
+                        email: 'gavin@externallyyoursproductions.com',
+                        password: 'admin123', // In production, this should be hashed!
+                        firstName: 'Gavin',
+                        lastName: 'McDuffie',
+                        createdAt: new Date().toISOString()
+                    };
+                    existingUsers.push(gavinUser);
+                    usersUpdated = true;
+                    console.log('Initialized Gavin McDuffie user');
+                }
+                
+                // Initialize Stephen Kena
+                const stephenExists = existingUsers.find(u => 
+                    (u.email && u.email.toLowerCase() === 'stephen@externallyyoursproductions.com') ||
+                    (u.firstName && u.lastName && u.firstName.toLowerCase() === 'stephen' && u.lastName.toLowerCase() === 'kena')
+                );
+                if (!stephenExists) {
+                    const stephenUser = {
+                        username: 'Stephen Kena',
+                        email: 'stephen@externallyyoursproductions.com',
+                        password: 'admin123', // In production, this should be hashed!
+                        firstName: 'Stephen',
+                        lastName: 'Kena',
+                        createdAt: new Date().toISOString()
+                    };
+                    existingUsers.push(stephenUser);
+                    usersUpdated = true;
+                    console.log('Initialized Stephen Kena user');
+                }
+                
+                // Save all users
+                if (usersUpdated) {
+                    localStorage.setItem('dj_users', JSON.stringify(existingUsers));
+                    console.log('Saved users to localStorage:', existingUsers.length, 'total users');
+                }
+            } catch (error) {
+                console.error('Error initializing default users:', error);
             }
         }
 
@@ -616,6 +633,10 @@
             // For development: check against localStorage
             const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
             
+            // Debug logging
+            console.log('Login attempt:', { username, passwordLength: password.length });
+            console.log('Existing users:', existingUsers);
+            
             // Try multiple matching strategies: username, email, or firstName + lastName
             const user = existingUsers.find(u => {
                 // Case-insensitive username match
@@ -637,8 +658,22 @@
                 // Password match (case-sensitive)
                 const passwordMatch = u.password === password;
                 
+                // Debug logging for this user
+                if (identifierMatch) {
+                    console.log('Identifier match found for user:', {
+                        username: u.username,
+                        email: u.email,
+                        firstName: u.firstName,
+                        lastName: u.lastName,
+                        passwordMatch,
+                        storedPassword: u.password ? '***' : 'missing'
+                    });
+                }
+                
                 return identifierMatch && passwordMatch;
             });
+            
+            console.log('Login result:', user ? 'SUCCESS' : 'FAILED');
 
             if (user) {
                 // Store authentication token (in production, use httpOnly cookies)
