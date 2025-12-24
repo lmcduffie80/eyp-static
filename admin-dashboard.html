@@ -672,17 +672,31 @@
         <div id="bookings-tab" class="tab-content">
             <!-- CSV Import Section -->
             <div class="section-card" style="margin-bottom: 2rem;">
-                <h2>Import Projects from CSV</h2>
-                <p style="color: var(--text-light); margin-bottom: 1rem;">
-                    Upload a CSV file with columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout
-                </p>
-                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                    <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
-                    <button onclick="importCSVBookings()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                        Import CSV
-                    </button>
-                    <span id="csv-import-message" style="color: var(--success-color); display: none;"></span>
+                <h2>Import Projects</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--primary-color); font-size: 1.1rem;">From CSV File</h3>
+                        <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">
+                            Upload a CSV file with columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout
+                        </p>
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <button onclick="importCSVBookings()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                Import CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--primary-color); font-size: 1.1rem;">From HoneyBook</h3>
+                        <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">
+                            Sync projects directly from your HoneyBook account (requires Zapier webhook setup)
+                        </p>
+                        <button onclick="syncFromHoneyBook()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Sync from HoneyBook
+                        </button>
+                    </div>
                 </div>
+                <div id="import-message" style="color: var(--success-color); display: none; margin-top: 1rem;"></div>
             </div>
             
             <div class="section-card">
@@ -1736,17 +1750,90 @@
             updateRevenueStats(filteredBookings);
         }
 
+        // Helper function to show import messages
+        function showImportMessage(message, type) {
+            const messageEl = document.getElementById('import-message');
+            messageEl.textContent = message;
+            messageEl.style.display = 'block';
+            messageEl.style.color = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Sync projects from HoneyBook
+        async function syncFromHoneyBook() {
+            showImportMessage('Syncing from HoneyBook...', 'success');
+            
+            try {
+                // Call the HoneyBook sync API endpoint
+                const response = await fetch('/api/honeybook-sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        // For manual sync, you can pass empty array or fetch from a stored webhook
+                        projects: [],
+                        manual_sync: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.projects && data.projects.length > 0) {
+                    // Import the projects
+                    const existingBookings = getAllBookings();
+                    const newBookings = [];
+                    let importedCount = 0;
+                    let skippedCount = 0;
+
+                    data.projects.forEach((project, index) => {
+                        // Check if project already exists
+                        const exists = existingBookings.some(b => 
+                            b.djUser === project.djUser && 
+                            b.date === project.date && 
+                            b.eventType === project.eventType
+                        );
+
+                        if (!exists) {
+                            project.id = project.id || Date.now() + index;
+                            newBookings.push(project);
+                            importedCount++;
+                        } else {
+                            skippedCount++;
+                        }
+                    });
+
+                    // Merge with existing bookings
+                    const allBookings = [...existingBookings, ...newBookings];
+                    localStorage.setItem('dj_bookings', JSON.stringify(allBookings));
+
+                    showImportMessage(`Successfully imported ${importedCount} project(s) from HoneyBook${skippedCount > 0 ? `. ${skippedCount} duplicate(s) skipped.` : ''}.`, 'success');
+
+                    // Refresh displays
+                    updateDashboardStats();
+                    filterAllBookings();
+                    loadAllDJs();
+                } else {
+                    showImportMessage('No projects found to sync. Make sure your Zapier webhook is configured and has sent data.', 'error');
+                }
+            } catch (error) {
+                console.error('HoneyBook sync error:', error);
+                showImportMessage('Error syncing from HoneyBook: ' + error.message + '. Please check your API endpoint configuration.', 'error');
+            }
+        }
+
         // CSV Import function
         function importCSVBookings() {
             const fileInput = document.getElementById('csv-file-input');
             const file = fileInput.files[0];
-            const messageEl = document.getElementById('csv-import-message');
             
             // Helper function to show CSV import messages
             function showCSVMessage(message, type) {
-                messageEl.textContent = message;
-                messageEl.style.display = 'inline';
-                messageEl.style.color = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+                showImportMessage(message, type);
             }
             
             if (!file) {
