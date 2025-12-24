@@ -396,11 +396,12 @@
     <script>
         let isSignupMode = false;
 
-        // Initialize admin user if it doesn't exist
-        function initializeAdminUser() {
+        // Initialize admin user and default DJ users if they don't exist
+        function initializeDefaultUsers() {
             const existingUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const adminExists = existingUsers.find(u => u.username === 'admin' || u.email === 'admin');
             
+            // Initialize admin user
+            const adminExists = existingUsers.find(u => u.username === 'admin' || u.email === 'admin@externallyyours.com');
             if (!adminExists) {
                 const adminUser = {
                     username: 'admin',
@@ -411,12 +412,67 @@
                     createdAt: new Date().toISOString()
                 };
                 existingUsers.push(adminUser);
+            }
+            
+            // Initialize Will Luke
+            const willExists = existingUsers.find(u => 
+                (u.email && u.email.toLowerCase() === 'will@externallyyoursproductions.com') ||
+                (u.firstName && u.lastName && u.firstName.toLowerCase() === 'will' && u.lastName.toLowerCase() === 'luke')
+            );
+            if (!willExists) {
+                const willUser = {
+                    username: 'Will Luke',
+                    email: 'will@externallyyoursproductions.com',
+                    password: 'admin123', // In production, this should be hashed!
+                    firstName: 'Will',
+                    lastName: 'Luke',
+                    createdAt: new Date().toISOString()
+                };
+                existingUsers.push(willUser);
+            }
+            
+            // Initialize Gavin McDuffie
+            const gavinExists = existingUsers.find(u => 
+                (u.email && u.email.toLowerCase().includes('gavin')) ||
+                (u.firstName && u.lastName && u.firstName.toLowerCase() === 'gavin' && u.lastName.toLowerCase() === 'mcduffie')
+            );
+            if (!gavinExists) {
+                const gavinUser = {
+                    username: 'Gavin McDuffie',
+                    email: 'gavin@externallyyoursproductions.com',
+                    password: 'admin123', // In production, this should be hashed!
+                    firstName: 'Gavin',
+                    lastName: 'McDuffie',
+                    createdAt: new Date().toISOString()
+                };
+                existingUsers.push(gavinUser);
+            }
+            
+            // Initialize Stephen Kena
+            const stephenExists = existingUsers.find(u => 
+                (u.email && u.email.toLowerCase().includes('stephen')) ||
+                (u.firstName && u.lastName && u.firstName.toLowerCase() === 'stephen' && u.lastName.toLowerCase() === 'kena')
+            );
+            if (!stephenExists) {
+                const stephenUser = {
+                    username: 'Stephen Kena',
+                    email: 'stephen@externallyyoursproductions.com',
+                    password: 'admin123', // In production, this should be hashed!
+                    firstName: 'Stephen',
+                    lastName: 'Kena',
+                    createdAt: new Date().toISOString()
+                };
+                existingUsers.push(stephenUser);
+            }
+            
+            // Save all users
+            if (existingUsers.length > 0) {
                 localStorage.setItem('dj_users', JSON.stringify(existingUsers));
             }
         }
 
-        // Initialize admin user on page load
-        initializeAdminUser();
+        // Initialize default users on page load
+        initializeDefaultUsers();
 
         // Toggle between login and signup forms
         function toggleMode() {
