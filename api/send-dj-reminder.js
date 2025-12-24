@@ -108,23 +108,36 @@ export default async function handler(req, res) {
             Body: message
         });
 
+        // Create Basic Auth header (same format as curl -u AccountSid:AuthToken)
+        const credentials = `${accountSid}:${authToken}`;
+        const base64Credentials = Buffer.from(credentials).toString('base64');
+
         const twilioResponse = await fetch(twilioUrl, {
             method: 'POST',
             headers: {
-                'Authorization': 'Basic ' + Buffer.from(`${accountSid}:${authToken}`).toString('base64'),
+                'Authorization': `Basic ${base64Credentials}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: formData.toString()
         });
 
+        // Check if response is ok before parsing JSON
         const twilioData = await twilioResponse.json();
 
         if (!twilioResponse.ok) {
-            console.error('Twilio error:', twilioData);
+            console.error('Twilio API error:', {
+                status: twilioResponse.status,
+                statusText: twilioResponse.statusText,
+                data: twilioData
+            });
+            
+            // Provide more detailed error message
+            const errorMessage = twilioData.message || twilioData.error || 'Unknown error from Twilio';
             return res.status(500).json({ 
                 success: false, 
-                message: 'Failed to send SMS: ' + (twilioData.message || 'Unknown error'),
-                error: twilioData 
+                message: `Failed to send SMS: ${errorMessage}`,
+                error: twilioData,
+                status: twilioResponse.status
             });
         }
 
