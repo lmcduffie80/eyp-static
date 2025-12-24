@@ -2531,6 +2531,13 @@
             }
         }
 
+        // Wrapper function for filter change (handles async and preserves sort state)
+        async function handleFilterChange() {
+            // Preserve current sort state
+            // Then re-filter and display (sorting will be applied in filterAllBookings)
+            await filterAllBookings();
+        }
+
         // Sort table function
         function sortTable(column) {
             // If clicking the same column, toggle direction; otherwise, set to ascending
@@ -2549,7 +2556,7 @@
                 }
             });
             
-            // Re-filter and display
+            // Re-filter and display (sorting will be applied)
             filterAllBookings();
         }
 
