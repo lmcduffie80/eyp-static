@@ -1716,10 +1716,12 @@
                         }
                     }
                     
+                    // Skip first 5 data rows, start processing at row 6 (0-indexed: row 0 is header, rows 1-5 are skipped)
+                    const startRow = 6;
+                    
                     // Validate that the date column actually looks like it contains dates by checking first few data rows (starting at row 6)
                     let dateColumnValid = false;
                     let sampleDateValue = '';
-                    const startRow = 6; // Skip first 5 data rows, start at row 6 (0-indexed: row 0 is header, rows 1-5 are skipped)
                     for (let i = startRow; i < Math.min(startRow + 3, lines.length); i++) {
                         const testValues = parseRow(lines[i]);
                         if (testValues.length > dateIndex && testValues[dateIndex]) {
@@ -1751,7 +1753,6 @@
                         skippedRows: 0
                     };
                     const invalidDateExamples = []; // Store examples of invalid dates
-                    const startRow = 6; // Skip first 5 data rows (rows 1-5), start processing at row 6
                     
                     // Skip first 5 data rows
                     if (lines.length > startRow) {
