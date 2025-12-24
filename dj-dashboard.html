@@ -1819,9 +1819,29 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Filter bookings by current DJ's username
+            // Filter bookings by current DJ - match by username or full name
             const currentUsername = localStorage.getItem('dj_user');
-            let filteredBookings = bookings.filter(b => b.djUser === currentUsername || !b.djUser);
+            
+            // Get DJ user info to check for firstName/lastName
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            
+            // Build possible matching names
+            const possibleNames = [currentUsername];
+            if (currentDJ) {
+                if (currentDJ.firstName && currentDJ.lastName) {
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+                }
+                if (currentDJ.username && currentDJ.username !== currentUsername) {
+                    possibleNames.push(currentDJ.username);
+                }
+            }
+            
+            // Filter bookings - match if djUser matches any of the possible names
+            let filteredBookings = bookings.filter(b => {
+                if (!b.djUser) return false; // Don't show unassigned bookings
+                return possibleNames.includes(b.djUser);
+            });
             
             if (filter === 'upcoming') {
                 filteredBookings = filteredBookings.filter(b => {
