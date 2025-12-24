@@ -1023,7 +1023,41 @@
         <button class="session-warning-button" onclick="extendSession()">Stay Logged In</button>
     </div>
 
-    <div class="dashboard-header">
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-logo-container">
+                <a href="#" onclick="showSection('dashboard'); return false;">
+                    <img src="EYP Logo_New.png" alt="EYP Logo" class="sidebar-logo">
+                </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link active" onclick="showSection('dashboard')" id="nav-dashboard">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" onclick="showSection('calendar')" id="nav-calendar">
+                        <span>Calendar</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" onclick="showSection('projects')" id="nav-projects">
+                        <span>Projects</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" onclick="showSection('reviews')" id="nav-reviews">
+                        <span>Reviews</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+        <div class="dashboard-header">
         <h1>
             <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
             DJ Dashboard
@@ -2195,11 +2229,62 @@
             }
         }
 
-        // Initialize - Load both calendar and bookings on page load
-        generateAllCalendars();
-        displayBlockedDates();
-        loadBookings();
-        loadReviews();
+        // Section navigation function
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = ['dashboard', 'calendar', 'projects', 'reviews'];
+            sections.forEach(sec => {
+                const section = document.getElementById(`${sec}-section`);
+                if (section) {
+                    section.style.display = 'none';
+                    section.classList.remove('active');
+                }
+                // Update nav links
+                const navLink = document.getElementById(`nav-${sec}`);
+                if (navLink) {
+                    navLink.classList.remove('active');
+                }
+            });
+
+            // Show selected section
+            const selectedSection = document.getElementById(`${sectionName}-section`);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+                selectedSection.classList.add('active');
+            }
+            
+            // Update nav link
+            const selectedNav = document.getElementById(`nav-${sectionName}`);
+            if (selectedNav) {
+                selectedNav.classList.add('active');
+            }
+
+            // Load section-specific content
+            if (sectionName === 'calendar') {
+                if (typeof generateAllCalendars === 'function') generateAllCalendars();
+                if (typeof displayBlockedDates === 'function') displayBlockedDates();
+            } else if (sectionName === 'projects') {
+                if (typeof loadBookings === 'function') loadBookings();
+            } else if (sectionName === 'reviews') {
+                if (typeof loadReviews === 'function') loadReviews();
+            }
+        }
+
+        // Initialize - Load dashboard by default and initial data
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            initializeDashboard();
+        }
+
+        function initializeDashboard() {
+            showSection('dashboard');
+            // Pre-load data
+            if (typeof generateAllCalendars === 'function') generateAllCalendars();
+            if (typeof displayBlockedDates === 'function') displayBlockedDates();
+            if (typeof loadBookings === 'function') loadBookings();
+            if (typeof loadReviews === 'function') loadReviews();
+        }
     </script>
 </body>
 </html>
