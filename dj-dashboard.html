@@ -2734,13 +2734,26 @@
             const totalBookings = djBookings.length;
             document.getElementById('total-bookings-stat').textContent = totalBookings;
             
-            // Calculate total revenue (sum of payout)
+            // Calculate total revenue (sum of payout) and previous year revenue
             let totalRevenue = 0;
+            let previousYearRevenue = 0;
+            const currentYear = new Date().getFullYear();
+            const previousYear = currentYear - 1;
+            
             djBookings.forEach(booking => {
                 if (booking.payout) {
                     // Remove $ and commas, convert to number
                     const payoutValue = parseFloat(String(booking.payout).replace(/[$,]/g, '')) || 0;
                     totalRevenue += payoutValue;
+                    
+                    // Check if booking is from previous year
+                    if (booking.date) {
+                        const dateParts = booking.date.split('-');
+                        const bookingYear = parseInt(dateParts[0], 10);
+                        if (bookingYear === previousYear) {
+                            previousYearRevenue += payoutValue;
+                        }
+                    }
                 }
             });
             
@@ -2752,6 +2765,18 @@
                 maximumFractionDigits: 2
             });
             document.getElementById('total-revenue-stat').textContent = formattedRevenue;
+            
+            // Format previous year revenue with commas
+            const formattedPreviousYearRevenue = previousYearRevenue.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            const previousYearElement = document.getElementById('previous-year-revenue-stat');
+            if (previousYearElement) {
+                previousYearElement.textContent = formattedPreviousYearRevenue;
+            }
             
             // Find next booking date
             const today = new Date();
