@@ -379,6 +379,13 @@
         
         .bookings-table th:nth-child(6),
         .bookings-table td:nth-child(6) {
+            /* Total Revenue column */
+            min-width: 130px;
+            white-space: nowrap;
+        }
+        
+        .bookings-table th:nth-child(7),
+        .bookings-table td:nth-child(7) {
             /* Actions column */
             min-width: 90px;
             white-space: nowrap;
@@ -688,6 +695,7 @@
                                 <th class="sortable" onclick="sortTable('project')" data-column="project">Project</th>
                                 <th class="sortable" onclick="sortTable('location')" data-column="location">Location</th>
                                 <th class="sortable" onclick="sortTable('payout')" data-column="payout">Payout</th>
+                                <th class="sortable" onclick="sortTable('totalRevenue')" data-column="totalRevenue">Total Revenue</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1516,6 +1524,10 @@
                             aValue = parseFloat(a.payout || 0);
                             bValue = parseFloat(b.payout || 0);
                             break;
+                        case 'totalRevenue':
+                            aValue = parseFloat(a.totalRevenue || a.payout || 0);
+                            bValue = parseFloat(b.totalRevenue || b.payout || 0);
+                            break;
                         default:
                             return 0;
                     }
@@ -1529,7 +1541,7 @@
             const container = document.getElementById('all-bookings-container');
 
             if (filteredBookings.length === 0) {
-                container.innerHTML = '<tr><td colspan="6" class="empty-state">No projects found</td></tr>';
+                container.innerHTML = '<tr><td colspan="7" class="empty-state">No projects found</td></tr>';
                 return;
             }
 
@@ -1555,6 +1567,16 @@
                     }
                 }
 
+                // Format total revenue - remove any existing $ signs and add one
+                let formattedTotalRevenue = '-';
+                const revenueSource = booking.totalRevenue || booking.payout;
+                if (revenueSource) {
+                    const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
+                    if (revenueValue) {
+                        formattedTotalRevenue = '$' + parseFloat(revenueValue).toFixed(2);
+                    }
+                }
+
                 return `
                     <tr>
                         <td>${booking.djUser || 'Unassigned'}</td>
@@ -1562,6 +1584,7 @@
                         <td>${booking.eventType}</td>
                         <td>${booking.location}</td>
                         <td>${formattedPayout}</td>
+                        <td>${formattedTotalRevenue}</td>
                         <td>
                             <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
                                 Delete
