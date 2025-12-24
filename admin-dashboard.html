@@ -2256,35 +2256,45 @@
 
             container.innerHTML = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
-                const djMatchName = djDisplayName; // Use display name for matching with bookings
+                
+                // Build all possible name variations for matching
+                const nameVariations = new Set();
+                nameVariations.add(djDisplayName.toLowerCase());
+                nameVariations.add((dj.username || '').toLowerCase());
+                if (dj.firstName) nameVariations.add(dj.firstName.toLowerCase());
+                if (dj.lastName) nameVariations.add(dj.lastName.toLowerCase());
+                if (dj.firstName && dj.lastName) {
+                    nameVariations.add(`${dj.firstName} ${dj.lastName}`.toLowerCase());
+                    nameVariations.add(`${dj.lastName} ${dj.firstName}`.toLowerCase()); // Reverse order
+                }
+                
                 // Match bookings to this DJ - case-insensitive matching with multiple variations
                 const djBookings = bookings.filter(b => {
                     const bookingDJ = (b.djUser || '').trim();
                     if (!bookingDJ) return false; // Don't include bookings without a DJ assigned
                     
-                    // Try multiple matching strategies
                     const bookingDJLower = bookingDJ.toLowerCase();
-                    const djDisplayNameLower = djDisplayName.toLowerCase();
-                    const djUsernameLower = (dj.username || '').toLowerCase();
                     
-                    // Exact match (case-insensitive)
-                    const matches = bookingDJLower === djDisplayNameLower || 
-                                   bookingDJLower === djUsernameLower;
-                    
-                    // If no match, try partial matching (e.g., "Gavin" matches "Gavin McDuffie")
-                    if (!matches && dj.firstName) {
-                        const firstNameLower = dj.firstName.toLowerCase();
-                        if (bookingDJLower.includes(firstNameLower) || firstNameLower.includes(bookingDJLower)) {
+                    // Check if booking DJ matches any of our name variations
+                    for (const variation of nameVariations) {
+                        if (bookingDJLower === variation) {
+                            return true;
+                        }
+                        // Also try partial matching (e.g., "Gavin" in "Gavin McDuffie" or vice versa)
+                        if (variation && bookingDJLower.includes(variation) || variation.includes(bookingDJLower)) {
                             return true;
                         }
                     }
                     
-                    return matches;
+                    return false;
                 });
                 
-                console.log(`DJ: ${djDisplayName}`, {
-                    totalBookings: djBookings.length,
-                    bookings: djBookings.map(b => ({ djUser: b.djUser, date: b.date, payout: b.payout }))
+                console.log(`DJ: ${djDisplayName} (username: ${dj.username})`, {
+                    nameVariations: Array.from(nameVariations),
+                    totalBookings: bookings.length,
+                    matchedBookings: djBookings.length,
+                    sampleBookingDJs: bookings.slice(0, 5).map(b => b.djUser),
+                    matchedBookingDetails: djBookings.map(b => ({ djUser: b.djUser, date: b.date, payout: b.payout }))
                 });
                 const djBlocked = blockedDates.filter(bd => {
                     const blockedDJ = bd.djUser || '';
