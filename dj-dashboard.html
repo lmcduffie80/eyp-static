@@ -2494,7 +2494,14 @@
                 window.location.reload();
             } catch (error) {
                 console.error('Error saving edited blocked date:', error);
-                alert(`Failed to update blocked date: ${error.message || 'Unknown error'}. Please try again.`);
+                let errorMessage = error.message || 'Unknown error';
+                
+                // Provide more user-friendly error messages
+                if (errorMessage.includes('PAM authentication') || errorMessage.includes('authentication failed')) {
+                    errorMessage = 'Database connection error. Please contact the administrator or try again later.';
+                }
+                
+                alert(`Failed to update blocked date: ${errorMessage}. Please try again.`);
             }
         }
 
@@ -2635,7 +2642,14 @@
                 window.location.reload();
             } catch (error) {
                 console.error('Error unblocking date:', error);
-                alert(`Failed to unblock date: ${error.message || 'Unknown error'}. Please try again.`);
+                let errorMessage = error.message || 'Unknown error';
+                
+                // Provide more user-friendly error messages
+                if (errorMessage.includes('PAM authentication') || errorMessage.includes('authentication failed')) {
+                    errorMessage = 'Database connection error. Please contact the administrator or try again later.';
+                }
+                
+                alert(`Failed to unblock date: ${errorMessage}. Please try again.`);
             }
         }
 
@@ -3018,7 +3032,14 @@
                 window.location.reload();
             } catch (error) {
                 console.error('Error blocking date:', error);
-                alert(`Failed to block date: ${error.message || 'Unknown error'}. Please try again.`);
+                let errorMessage = error.message || 'Unknown error';
+                
+                // Provide more user-friendly error messages
+                if (errorMessage.includes('PAM authentication') || errorMessage.includes('authentication failed')) {
+                    errorMessage = 'Database connection error. Please contact the administrator or try again later.';
+                }
+                
+                alert(`Failed to block date: ${errorMessage}. Please try again.`);
             }
         }
 
