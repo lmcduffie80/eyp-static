@@ -124,57 +124,43 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Build update query dynamically
-            const updates = [];
-            const values = [];
-            let paramIndex = 1;
-
-            if (username !== undefined) {
-                updates.push(`username = $${paramIndex++}`);
-                values.push(username);
+            // Build update query using template literal (required by @vercel/postgres)
+            // Only update fields that are provided
+            let result;
+            
+            if (username && email && password && firstName !== undefined && lastName !== undefined) {
+                // Full update
+                result = await sql`
+                    UPDATE users SET
+                        username = ${username},
+                        email = ${email},
+                        password = ${password},
+                        first_name = ${firstName || null},
+                        last_name = ${lastName || null},
+                        phone = ${phone || null},
+                        profile_picture = ${profilePicture || null},
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            } else {
+                // Partial update - build conditionally
+                // Note: @vercel/postgres requires all fields in template literal
+                // For flexibility, we'll do a simple update with provided fields
+                result = await sql`
+                    UPDATE users SET
+                        username = COALESCE(${username}, username),
+                        email = COALESCE(${email}, email),
+                        password = COALESCE(${password}, password),
+                        first_name = COALESCE(${firstName}, first_name),
+                        last_name = COALESCE(${lastName}, last_name),
+                        phone = COALESCE(${phone}, phone),
+                        profile_picture = COALESCE(${profilePicture}, profile_picture),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
             }
-            if (email !== undefined) {
-                updates.push(`email = $${paramIndex++}`);
-                values.push(email);
-            }
-            if (password !== undefined) {
-                updates.push(`password = $${paramIndex++}`);
-                values.push(password);
-            }
-            if (firstName !== undefined) {
-                updates.push(`first_name = $${paramIndex++}`);
-                values.push(firstName);
-            }
-            if (lastName !== undefined) {
-                updates.push(`last_name = $${paramIndex++}`);
-                values.push(lastName);
-            }
-            if (phone !== undefined) {
-                updates.push(`phone = $${paramIndex++}`);
-                values.push(phone);
-            }
-            if (profilePicture !== undefined) {
-                updates.push(`profile_picture = $${paramIndex++}`);
-                values.push(profilePicture);
-            }
-
-            if (updates.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'No fields to update'
-                });
-            }
-
-            updates.push(`updated_at = CURRENT_TIMESTAMP`);
-            values.push(id);
-
-            const query = `
-                UPDATE users SET ${updates.join(', ')}
-                WHERE id = $${paramIndex}
-                RETURNING *
-            `;
-
-            const result = await sql.query(query, values);
 
             if (result.rows.length === 0) {
                 return res.status(404).json({ success: false, error: 'User not found' });
