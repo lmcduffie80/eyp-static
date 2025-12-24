@@ -1306,6 +1306,15 @@
                     <div class="profile-dropdown-account" id="profile-account-form">
                         <h3>Account Information</h3>
                         <form id="dropdown-account-form" class="profile-dropdown-form" onsubmit="saveAccountFromDropdown(event); return false;">
+                            <div class="form-group" style="text-align: center; margin-bottom: 1rem;">
+                                <label for="profile-picture-upload" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Profile Picture</label>
+                                <div id="profile-picture-preview" style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); margin-bottom: 0.5rem; overflow: hidden; border: 2px solid #e0e0e0;">
+                                    <img id="profile-picture-img" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                    <span id="profile-picture-initials" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: white; font-weight: bold; font-size: 1.5rem;"></span>
+                                </div>
+                                <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;" onchange="handleProfilePictureUpload(event)">
+                                <button type="button" onclick="document.getElementById('profile-picture-upload').click();" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Change Picture</button>
+                            </div>
                             <div class="form-group">
                                 <label for="dropdown-username">Name</label>
                                 <input type="text" id="dropdown-username" disabled>
@@ -1805,6 +1814,35 @@
         function updateProfileIcon(name) {
             const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             document.getElementById('profile-initials').textContent = initials || 'DJ';
+            updateProfileIconWithPicture();
+        }
+        
+        // Update profile icon with picture if available
+        function updateProfileIconWithPicture() {
+            const currentUsername = localStorage.getItem('dj_user');
+            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
+            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
+            const profileIcon = document.getElementById('profile-icon');
+            const profileInitials = document.getElementById('profile-initials');
+            
+            if (currentDJ && currentDJ.profilePicture) {
+                // Check if img element exists, if not create it
+                let img = profileIcon.querySelector('img');
+                if (!img) {
+                    img = document.createElement('img');
+                    profileIcon.insertBefore(img, profileInitials);
+                }
+                img.src = currentDJ.profilePicture;
+                img.style.display = 'block';
+                profileInitials.style.display = 'none';
+            } else {
+                // Show initials, hide image
+                const img = profileIcon.querySelector('img');
+                if (img) {
+                    img.style.display = 'none';
+                }
+                profileInitials.style.display = 'flex';
+            }
         }
         
         // Toggle profile dropdown
@@ -1910,15 +1948,24 @@
                     allDJs[currentDJIndex].fullName = name;
                     allDJs[currentDJIndex].name = name;
                 }
+                // Save profile picture if uploaded
+                if (window.tempProfilePicture) {
+                    allDJs[currentDJIndex].profilePicture = window.tempProfilePicture;
+                    window.tempProfilePicture = null;
+                }
             } else {
                 const newUser = {
                     username: currentUsername,
                     email: email,
                     phone: phone,
                     name: name || '',
-                    fullName: name || ''
+                    fullName: name || '',
+                    profilePicture: window.tempProfilePicture || null
                 };
                 allDJs.push(newUser);
+                if (window.tempProfilePicture) {
+                    window.tempProfilePicture = null;
+                }
             }
             
             // Save updated users list
@@ -1943,6 +1990,9 @@
             
             // Reload user info to update header and dropdown
             loadDJUserInfo();
+            
+            // Update profile icon with picture if available
+            updateProfileIconWithPicture();
         }
         
         // Cancel account edit from dropdown
