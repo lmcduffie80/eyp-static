@@ -1873,7 +1873,10 @@
                         <div class="dj-card-header">
                             <div class="dj-name">${djDisplayName}</div>
                             ${upcomingBookings.length > 0 ? `
-                            <button onclick="sendDJReminder('${djDisplayName}', '${dj.phone || ''}', ${JSON.stringify(upcomingBookings).replace(/'/g, "&apos;")})" 
+                            <button class="send-reminder-btn" 
+                                    data-dj-name="${djDisplayName.replace(/"/g, '&quot;')}" 
+                                    data-dj-phone="${(dj.phone || '').replace(/"/g, '&quot;')}" 
+                                    data-booking-count="${upcomingBookings.length}"
                                     style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">
                                 📱 Send Reminder
                             </button>
