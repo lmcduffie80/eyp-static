@@ -672,29 +672,15 @@
         <div id="bookings-tab" class="tab-content">
             <!-- CSV Import Section -->
             <div class="section-card" style="margin-bottom: 2rem;">
-                <h2>Import Projects</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="margin-bottom: 0.5rem; color: var(--primary-color); font-size: 1.1rem;">From CSV File</h3>
-                        <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">
-                            Upload a CSV file with columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout
-                        </p>
-                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                            <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
-                            <button onclick="importCSVBookings()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                                Import CSV
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 style="margin-bottom: 0.5rem; color: var(--primary-color); font-size: 1.1rem;">From HoneyBook</h3>
-                        <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">
-                            Sync projects directly from your HoneyBook account (requires Zapier webhook setup)
-                        </p>
-                        <button onclick="syncFromHoneyBook()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                            Sync from HoneyBook
-                        </button>
-                    </div>
+                <h2>Import Projects from CSV</h2>
+                <p style="color: var(--text-light); margin-bottom: 1rem;">
+                    Upload a CSV file with columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout
+                </p>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <input type="file" id="csv-file-input" accept=".csv" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                    <button onclick="importCSVBookings()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                        Import CSV
+                    </button>
                 </div>
                 <div id="import-message" style="color: var(--success-color); display: none; margin-top: 1rem;"></div>
             </div>
