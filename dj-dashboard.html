@@ -3124,22 +3124,30 @@
                 });
             }
 
-            // Helper function to parse booking date consistently
+            // Helper function to parse booking date consistently (always as local date)
             function parseBookingDate(dateValue) {
                 if (!dateValue) return null;
                 if (dateValue instanceof Date) return dateValue;
                 if (typeof dateValue === 'string') {
-                    // Handle ISO format (e.g., "2025-04-10T00:00:00.000Z")
-                    if (dateValue.includes('T')) {
-                        return new Date(dateValue);
+                    // Handle YYYY-MM-DD format - parse as local date to avoid timezone issues
+                    if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = dateValue.split('-');
+                        const year = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                        const day = parseInt(parts[2], 10);
+                        return new Date(year, month, day); // Creates local date (no timezone shift)
                     }
-                    // Handle YYYY-MM-DD format
-                    const parts = dateValue.split('-');
-                    if (parts.length === 3) {
-                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    // Handle ISO format (e.g., "2025-04-10T00:00:00.000Z") - extract date part and parse as local
+                    if (dateValue.includes('T')) {
+                        const datePart = dateValue.split('T')[0];
+                        const parts = datePart.split('-');
+                        const year = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1;
+                        const day = parseInt(parts[2], 10);
+                        return new Date(year, month, day); // Creates local date
                     }
                 }
-                // Fallback: try to create Date object
+                // Fallback: try to create Date object (may still have timezone issues, but better than nothing)
                 const date = new Date(dateValue);
                 return isNaN(date.getTime()) ? null : date;
             }
