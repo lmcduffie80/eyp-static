@@ -1086,6 +1086,7 @@
         @media (max-width: 768px) {
             .mobile-menu-btn {
                 display: block;
+                font-size: 1.2rem;
             }
 
             .sidebar {
@@ -1106,7 +1107,7 @@
             }
 
             .dashboard-container {
-                padding: 1rem;
+                padding: 0.75rem;
             }
 
             .block-date-form {
@@ -1115,11 +1116,130 @@
 
             .dashboard-header {
                 flex-direction: row;
+                padding: 0.75rem;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.1rem;
+            }
+
+            #header-welcome,
+            #header-user-name {
+                font-size: 1.1rem !important;
+            }
+
+            /* Stat Cards - Smaller on Mobile */
+            .stats-grid {
+                grid-template-columns: 1fr;
                 gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+                border-radius: 8px;
+            }
+
+            .stat-card-header {
+                margin-bottom: 0.75rem;
+            }
+
+            .stat-card-header h3 {
+                font-size: 0.8rem;
+            }
+
+            .stat-icon {
+                font-size: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            /* Next Booking stat has inline style - override it */
+            #next-booking-stat {
+                font-size: 1rem !important;
+            }
+
+            /* Section containers - reduce padding on mobile */
+            .section-container {
+                padding: 1rem;
+            }
+
+            .calendar-section {
+                padding: 1rem !important;
+            }
+
+            /* Calendar widget - smaller on mobile */
+            .calendar-widget {
+                padding: 0.75rem;
+                max-width: 100%;
+            }
+
+            .calendar-widget-header h3 {
+                font-size: 1rem;
+            }
+
+            .calendar-nav-btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            /* Reviews section - smaller fonts */
+            .reviews-section {
+                padding: 1rem;
+            }
+
+            .reviews-header h2 {
+                font-size: 1.25rem;
+            }
+
+            .rating-number {
+                font-size: 2rem;
+            }
+
+            .review-card {
+                padding: 1rem;
+            }
+
+            .review-client {
+                font-size: 0.95rem;
+            }
+
+            .review-text {
+                font-size: 0.9rem;
+            }
+
+            /* Projects section */
+            .projects-section {
+                padding: 1rem;
+            }
+
+            .bookings-filter {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .filter-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
             }
 
             .tabs {
                 overflow-x: auto;
+            }
+
+            /* General font size reductions */
+            body {
+                font-size: 0.9rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+
+            h3 {
+                font-size: 1.1rem;
             }
         }
     </style>
