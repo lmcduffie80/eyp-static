@@ -2023,6 +2023,7 @@
                             <div class="dj-name">${djDisplayName}</div>
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
+                            <div>Username: ${dj.username || 'No username'}</div>
                             <div>Email: ${dj.email || 'No email'}</div>
                             ${dj.phone ? `<div>Phone: ${dj.phone}</div>` : ''}
                             <div>Member since: ${dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A'}</div>

@@ -1316,8 +1316,8 @@
                                 <button type="button" onclick="document.getElementById('profile-picture-upload').click();" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Change Picture</button>
                             </div>
                             <div class="form-group">
-                                <label for="dropdown-username">Name</label>
-                                <input type="text" id="dropdown-username" disabled>
+                                <label for="dropdown-username">Username</label>
+                                <input type="text" id="dropdown-username" placeholder="Enter your username" required>
                             </div>
                             <div class="form-group">
                                 <label for="dropdown-name">Full Name</label>
@@ -1981,14 +1981,27 @@
                 return false;
             });
             
+            let username = document.getElementById('dropdown-username').value.trim();
             let email = document.getElementById('dropdown-email').value.trim();
             let phone = document.getElementById('dropdown-phone').value.trim();
             let name = document.getElementById('dropdown-name').value.trim();
             
             // Sanitize all inputs
+            username = sanitizeInput(username);
             email = sanitizeInput(email);
             phone = sanitizeInput(phone);
             name = sanitizeInput(name);
+            
+            // Validate username
+            if (!username) {
+                alert('Username is required');
+                return;
+            }
+            
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long');
+                return;
+            }
             
             // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2012,6 +2025,7 @@
             
             // Update user info
             if (currentDJIndex !== -1) {
+                allDJs[currentDJIndex].username = username;
                 allDJs[currentDJIndex].email = email;
                 allDJs[currentDJIndex].phone = phone;
                 if (name) {
@@ -2022,6 +2036,11 @@
                 if (window.tempProfilePicture) {
                     allDJs[currentDJIndex].profilePicture = window.tempProfilePicture;
                     window.tempProfilePicture = null;
+                }
+                
+                // Update localStorage dj_user if username changed
+                if (username !== currentUsername) {
+                    localStorage.setItem('dj_user', username);
                 }
             } else {
                 const newUser = {
