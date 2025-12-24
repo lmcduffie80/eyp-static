@@ -747,6 +747,12 @@
                         <option value="">All DJs</option>
                     </select>
                 </div>
+                <div id="blocked-dates-list" style="margin-bottom: 2rem; display: none;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Blocked Dates Details</h3>
+                    <div id="blocked-dates-list-content" style="background: var(--bg-light); padding: 1rem; border-radius: 8px;">
+                        <!-- Blocked dates list will be displayed here -->
+                    </div>
+                </div>
                 <div id="master-calendar-container">
                     <!-- Master calendar will be generated here -->
                 </div>
@@ -2262,6 +2268,48 @@
             if (selectedDJ) {
                 filteredBlocked = blockedDates.filter(bd => bd.djUser === selectedDJ);
                 filteredBookings = bookings.filter(b => b.djUser === selectedDJ);
+            }
+
+            // Show/hide blocked dates list based on whether blocked dates exist
+            const blockedDatesListContainer = document.getElementById('blocked-dates-list');
+            const blockedDatesListContent = document.getElementById('blocked-dates-list-content');
+            
+            if (filteredBlocked.length > 0) {
+                // Format dates for display (MM-DD-YYYY)
+                const formatDateForDisplay = (dateStr) => {
+                    if (!dateStr) return '';
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        return `${parts[1]}-${parts[2]}-${parts[0]}`;
+                    }
+                    return dateStr;
+                };
+
+                // Sort blocked dates by date
+                const sortedBlocked = [...filteredBlocked].sort((a, b) => {
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                blockedDatesListContent.innerHTML = `
+                    <div style="display: grid; gap: 0.75rem;">
+                        ${sortedBlocked.map(bd => {
+                            const djName = bd.djUser || 'All DJs';
+                            return `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-left: 4px solid var(--warning-color); border-radius: 4px;">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--primary-color);">${formatDateForDisplay(bd.date)}</div>
+                                        <div style="font-size: 0.85rem; color: var(--text-light);">DJ: ${djName}</div>
+                                        ${bd.notes ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${bd.notes}</div>` : ''}
+                                    </div>
+                                    <div style="font-size: 1.5rem;">🚫</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                blockedDatesListContainer.style.display = 'block';
+            } else {
+                blockedDatesListContainer.style.display = 'none';
             }
 
             const blockedDatesList = filteredBlocked.map(bd => bd.date);
