@@ -124,43 +124,20 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Build update query using template literal (required by @vercel/postgres)
-            // Only update fields that are provided
-            let result;
-            
-            if (username && email && password && firstName !== undefined && lastName !== undefined) {
-                // Full update
-                result = await sql`
-                    UPDATE users SET
-                        username = ${username},
-                        email = ${email},
-                        password = ${password},
-                        first_name = ${firstName || null},
-                        last_name = ${lastName || null},
-                        phone = ${phone || null},
-                        profile_picture = ${profilePicture || null},
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE id = ${id}
-                    RETURNING *
-                `;
-            } else {
-                // Partial update - build conditionally
-                // Note: @vercel/postgres requires all fields in template literal
-                // For flexibility, we'll do a simple update with provided fields
-                result = await sql`
-                    UPDATE users SET
-                        username = COALESCE(${username}, username),
-                        email = COALESCE(${email}, email),
-                        password = COALESCE(${password}, password),
-                        first_name = COALESCE(${firstName}, first_name),
-                        last_name = COALESCE(${lastName}, last_name),
-                        phone = COALESCE(${phone}, phone),
-                        profile_picture = COALESCE(${profilePicture}, profile_picture),
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE id = ${id}
-                    RETURNING *
-                `;
-            }
+            // Update user - use COALESCE to only update provided fields
+            const result = await sql`
+                UPDATE users SET
+                    username = COALESCE(${username || null}, username),
+                    email = COALESCE(${email || null}, email),
+                    password = COALESCE(${password || null}, password),
+                    first_name = COALESCE(${firstName !== undefined ? firstName : null}, first_name),
+                    last_name = COALESCE(${lastName !== undefined ? lastName : null}, last_name),
+                    phone = COALESCE(${phone !== undefined ? phone : null}, phone),
+                    profile_picture = COALESCE(${profilePicture !== undefined ? profilePicture : null}, profile_picture),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ${id}
+                RETURNING *
+            `;
 
             if (result.rows.length === 0) {
                 return res.status(404).json({ success: false, error: 'User not found' });
