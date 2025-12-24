@@ -2147,32 +2147,30 @@
 
             let filteredBookings = bookings;
             
-            // Apply status filter (from stat card click) - only if time filter is not set
-            if (!selectedTime) {
-                if (currentStatusFilter === 'completed') {
+            // Apply status filter (from stat card click) - takes priority over time dropdown
+            if (currentStatusFilter === 'completed') {
+                filteredBookings = filteredBookings.filter(b => {
+                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    return bookingDate < today;
+                });
+            } else if (currentStatusFilter === 'uncompleted') {
+                filteredBookings = filteredBookings.filter(b => {
+                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    return bookingDate >= today;
+                });
+            } else if (selectedTime) {
+                // Apply time period filter (dropdown) only if status filter is not active
+                if (selectedTime === 'past') {
                     filteredBookings = filteredBookings.filter(b => {
                         const bookingDate = new Date(b.date + 'T00:00:00');
                         return bookingDate < today;
                     });
-                } else if (currentStatusFilter === 'uncompleted') {
+                } else if (selectedTime === 'future') {
                     filteredBookings = filteredBookings.filter(b => {
                         const bookingDate = new Date(b.date + 'T00:00:00');
                         return bookingDate >= today;
                     });
                 }
-            }
-            
-            // Apply time period filter (dropdown)
-            if (selectedTime === 'past') {
-                filteredBookings = filteredBookings.filter(b => {
-                    const bookingDate = new Date(b.date + 'T00:00:00');
-                    return bookingDate < today;
-                });
-            } else if (selectedTime === 'future') {
-                filteredBookings = filteredBookings.filter(b => {
-                    const bookingDate = new Date(b.date + 'T00:00:00');
-                    return bookingDate >= today;
-                });
             }
             
             // Apply year filter
