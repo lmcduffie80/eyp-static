@@ -2074,6 +2074,9 @@
                 document.getElementById(`stat-card-${filterType}`).classList.add('active');
             }
 
+            // Update revenue stats when filter changes (especially for uncompleted)
+            updateDashboardStats();
+
             // Switch to bookings tab if not already there
             if (!document.getElementById('bookings-tab').classList.contains('active')) {
                 switchTab('bookings');
