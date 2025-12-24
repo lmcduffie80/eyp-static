@@ -2191,14 +2191,28 @@
             
             try {
                 const blockedDates = await apiGetBlockedDates();
+                console.log('Raw blocked dates from API:', blockedDates);
                 // Transform API response to match expected format
-                const transformed = blockedDates.map(bd => ({
-                    id: bd.id,
-                    djUser: bd.djUser,
-                    date: bd.date,
-                    reason: bd.reason,
-                    blockedBy: bd.blockedBy
-                }));
+                const transformed = blockedDates.map(bd => {
+                    // Ensure date is in YYYY-MM-DD format
+                    let dateStr = bd.date;
+                    if (dateStr) {
+                        // If it's a Date object or ISO string, convert to YYYY-MM-DD
+                        if (dateStr instanceof Date) {
+                            dateStr = dateStr.toISOString().split('T')[0];
+                        } else if (dateStr.includes('T')) {
+                            dateStr = dateStr.split('T')[0];
+                        }
+                    }
+                    return {
+                        id: bd.id,
+                        djUser: bd.djUser,
+                        date: dateStr,
+                        reason: bd.reason,
+                        blockedBy: bd.blockedBy
+                    };
+                });
+                console.log('Transformed blocked dates:', transformed);
                 blockedDatesCache = transformed;
                 blockedDatesCacheTime = now;
                 return transformed;
@@ -3500,8 +3514,34 @@
                 blockedDatesListContainer.style.display = 'none';
             }
 
-            const blockedDatesList = filteredBlocked.map(bd => bd.date);
-            const bookingDatesList = filteredBookings.map(b => b.date);
+            // Normalize dates to YYYY-MM-DD format for comparison
+            const normalizeDate = (dateValue) => {
+                if (!dateValue) return null;
+                if (typeof dateValue === 'string') {
+                    // If it's an ISO string, extract just the date part
+                    if (dateValue.includes('T')) {
+                        return dateValue.split('T')[0];
+                    }
+                    // If it's already YYYY-MM-DD, return as is
+                    if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        return dateValue;
+                    }
+                }
+                // If it's a Date object, convert to YYYY-MM-DD
+                if (dateValue instanceof Date) {
+                    const year = dateValue.getFullYear();
+                    const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateValue.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+                return dateValue;
+            };
+            
+            const blockedDatesList = filteredBlocked.map(bd => normalizeDate(bd.date)).filter(d => d);
+            const bookingDatesList = filteredBookings.map(b => normalizeDate(b.date)).filter(d => d);
+            
+            console.log('Blocked dates list for calendar:', blockedDatesList);
+            console.log('Booking dates list for calendar:', bookingDatesList);
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
