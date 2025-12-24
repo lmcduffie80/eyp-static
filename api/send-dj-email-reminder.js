@@ -147,78 +147,57 @@ Externally Yours Productions
 This is an automated reminder email. Please do not reply to this message.
         `.trim();
 
-        // Send email using SendGrid
-        const sendGridApiKey = process.env.SENDGRID_API_KEY;
-        const fromEmail = process.env.FROM_EMAIL || 'noreply@externallyyours.com';
+        // Send email using Gmail SMTP
+        const gmailUser = process.env.GMAIL_USER;
+        const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+        const fromEmail = process.env.FROM_EMAIL || gmailUser || 'noreply@externallyyours.com';
 
-        if (!sendGridApiKey) {
+        if (!gmailUser || !gmailAppPassword) {
             return res.status(500).json({ 
                 success: false, 
-                message: 'Email service not configured. Please set SENDGRID_API_KEY environment variable.' 
+                message: 'Email service not configured. Please set GMAIL_USER and GMAIL_APP_PASSWORD environment variables.' 
             });
         }
 
-        // Send email via SendGrid API
-        const sendGridUrl = 'https://api.sendgrid.com/v3/mail/send';
-        
-        const emailData = {
-            personalizations: [{
-                to: [{ email: djEmail, name: djName }],
-                subject: `Upcoming Bookings Reminder - ${bookings.length} Event${bookings.length > 1 ? 's' : ''}`
-            }],
-            from: {
-                email: fromEmail,
-                name: 'Externally Yours Productions'
-            },
-            content: [
-                {
-                    type: 'text/plain',
-                    value: emailText
-                },
-                {
-                    type: 'text/html',
-                    value: emailHTML
+        try {
+            // Use Nodemailer for Gmail SMTP
+            const nodemailer = (await import('nodemailer')).default;
+            
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: gmailUser,
+                    pass: gmailAppPassword
                 }
-            ]
-        };
-
-        const sendGridResponse = await fetch(sendGridUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sendGridApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(emailData)
-        });
-
-        if (!sendGridResponse.ok) {
-            const errorText = await sendGridResponse.text();
-            let errorData;
-            try {
-                errorData = JSON.parse(errorText);
-            } catch (e) {
-                errorData = { message: errorText };
-            }
-            
-            console.error('SendGrid API error:', {
-                status: sendGridResponse.status,
-                statusText: sendGridResponse.statusText,
-                data: errorData
             });
-            
+
+            const mailOptions = {
+                from: {
+                    name: 'Externally Yours Productions',
+                    address: fromEmail
+                },
+                to: djEmail,
+                subject: `Upcoming Bookings Reminder - ${bookings.length} Event${bookings.length > 1 ? 's' : ''}`,
+                text: emailText,
+                html: emailHTML
+            };
+
+            await transporter.sendMail(mailOptions);
+
+            return res.status(200).json({
+                success: true,
+                message: `Email reminder sent successfully to ${djName}`,
+                email: djEmail
+            });
+
+        } catch (emailError) {
+            console.error('Gmail SMTP error:', emailError);
             return res.status(500).json({ 
                 success: false, 
-                message: 'Failed to send email: ' + (errorData.errors?.[0]?.message || errorData.message || 'Unknown error'),
-                error: errorData,
-                status: sendGridResponse.status
+                message: 'Failed to send email: ' + (emailError.message || 'Unknown error'),
+                error: emailError.message
             });
         }
-
-        return res.status(200).json({
-            success: true,
-            message: `Email reminder sent successfully to ${djName}`,
-            email: djEmail
-        });
 
     } catch (error) {
         console.error('Send DJ email reminder error:', error);
