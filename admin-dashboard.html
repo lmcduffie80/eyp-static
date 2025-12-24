@@ -665,6 +665,26 @@
                 </div>
                 <div class="stat-value" id="blocked-dates-count">0</div>
             </div>
+            <div class="stat-card" onclick="filterByStat('revenue-2025')" id="stat-card-revenue-2025">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">💰</span>
+                        2025 Revenue
+                    </h3>
+                    <span class="stat-info-icon" title="Click to view 2025 revenue details">ℹ️</span>
+                </div>
+                <div class="stat-value" id="revenue-2025">$0.00</div>
+            </div>
+            <div class="stat-card" onclick="filterByStat('revenue-2026')" id="stat-card-revenue-2026">
+                <div class="stat-card-header">
+                    <h3>
+                        <span class="stat-icon">💰</span>
+                        2026 Revenue
+                    </h3>
+                    <span class="stat-info-icon" title="Click to view 2026 revenue details">ℹ️</span>
+                </div>
+                <div class="stat-value" id="revenue-2026">$0.00</div>
+            </div>
         </div>
 
 
@@ -1442,6 +1462,34 @@
                 return sum;
             }, 0);
 
+            // Calculate 2025 revenue
+            const revenue2025 = bookings.reduce((sum, booking) => {
+                if (!booking.date) return sum;
+                const bookingYear = new Date(booking.date + 'T00:00:00').getFullYear();
+                if (bookingYear === 2025) {
+                    const revenueSource = booking.totalRevenue || booking.payout;
+                    if (revenueSource) {
+                        const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
+                        return sum + (parseFloat(revenueValue) || 0);
+                    }
+                }
+                return sum;
+            }, 0);
+
+            // Calculate 2026 revenue
+            const revenue2026 = bookings.reduce((sum, booking) => {
+                if (!booking.date) return sum;
+                const bookingYear = new Date(booking.date + 'T00:00:00').getFullYear();
+                if (bookingYear === 2026) {
+                    const revenueSource = booking.totalRevenue || booking.payout;
+                    if (revenueSource) {
+                        const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
+                        return sum + (parseFloat(revenueValue) || 0);
+                    }
+                }
+                return sum;
+            }, 0);
+
             // Format number with thousand separators
             function formatCurrency(amount) {
                 return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -1458,6 +1506,8 @@
             document.getElementById('dj-revenue').textContent = formatCurrency(djRevenue);
             document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
             document.getElementById('blocked-dates-count').textContent = blockedDatesCount;
+            document.getElementById('revenue-2025').textContent = formatCurrency(revenue2025);
+            document.getElementById('revenue-2026').textContent = formatCurrency(revenue2026);
         }
 
         // Update revenue stats based on filtered bookings
@@ -1507,6 +1557,30 @@
                     switchTab('bookings');
                 } else {
                     filterAllBookings();
+                }
+                return;
+            }
+
+            // For 2025 and 2026 revenue, filter by year
+            if (filterType === 'revenue-2025' || filterType === 'revenue-2026') {
+                currentStatusFilter = null;
+                const year = filterType === 'revenue-2025' ? '2025' : '2026';
+                
+                // Switch to bookings tab if not already there
+                if (!document.getElementById('bookings-tab').classList.contains('active')) {
+                    switchTab('bookings');
+                    // Wait for tab switch, then set year filter
+                    setTimeout(() => {
+                        document.getElementById('booking-filter-year').value = year;
+                        filterAllBookings();
+                        // Add active class to clicked card
+                        document.getElementById(`stat-card-${filterType}`).classList.add('active');
+                    }, 100);
+                } else {
+                    document.getElementById('booking-filter-year').value = year;
+                    filterAllBookings();
+                    // Add active class to clicked card
+                    document.getElementById(`stat-card-${filterType}`).classList.add('active');
                 }
                 return;
             }
