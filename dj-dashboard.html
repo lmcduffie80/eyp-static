@@ -2069,9 +2069,18 @@
             localStorage.setItem('blocked_dates', JSON.stringify(filtered));
             
             logSecurityEvent('unblock_date', { date: date });
-
+            
+            // Close modal
+            closeBlockDateConfirmModal();
+            
+            // Refresh displays
             displayBlockedDates();
+            displayBlockedDatesPage();
             generateCalendar();
+            generateCalendarPage();
+            
+            // Show success message
+            showBlockDateMessage('Blocked date has been removed successfully!', 'success');
         }
 
         // Calendar state
