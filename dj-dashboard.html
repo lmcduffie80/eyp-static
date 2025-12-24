@@ -2062,7 +2062,7 @@
             // Save updated users list
             localStorage.setItem('dj_users', JSON.stringify(allDJs));
             
-            logSecurityEvent('account_update', { fields: ['email', 'phone', 'name'] });
+            logSecurityEvent('account_update', { fields: ['username', 'email', 'phone', 'name'] });
             
             // Show success message
             const successMsg = document.getElementById('dropdown-save-success');
