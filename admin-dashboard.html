@@ -2245,16 +2245,46 @@
                 return;
             }
 
+            // Debug: Log bookings and DJs to console
+            console.log('All bookings:', bookings);
+            console.log('All DJs:', djs.map(dj => ({
+                username: dj.username,
+                firstName: dj.firstName,
+                lastName: dj.lastName,
+                displayName: (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username
+            })));
+
             container.innerHTML = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
                 const djMatchName = djDisplayName; // Use display name for matching with bookings
-                // Match bookings to this DJ - case-insensitive matching
+                // Match bookings to this DJ - case-insensitive matching with multiple variations
                 const djBookings = bookings.filter(b => {
                     const bookingDJ = (b.djUser || '').trim();
                     if (!bookingDJ) return false; // Don't include bookings without a DJ assigned
-                    // Case-insensitive comparison
-                    return bookingDJ.toLowerCase() === djDisplayName.toLowerCase() || 
-                           bookingDJ.toLowerCase() === (dj.username || '').toLowerCase();
+                    
+                    // Try multiple matching strategies
+                    const bookingDJLower = bookingDJ.toLowerCase();
+                    const djDisplayNameLower = djDisplayName.toLowerCase();
+                    const djUsernameLower = (dj.username || '').toLowerCase();
+                    
+                    // Exact match (case-insensitive)
+                    const matches = bookingDJLower === djDisplayNameLower || 
+                                   bookingDJLower === djUsernameLower;
+                    
+                    // If no match, try partial matching (e.g., "Gavin" matches "Gavin McDuffie")
+                    if (!matches && dj.firstName) {
+                        const firstNameLower = dj.firstName.toLowerCase();
+                        if (bookingDJLower.includes(firstNameLower) || firstNameLower.includes(bookingDJLower)) {
+                            return true;
+                        }
+                    }
+                    
+                    return matches;
+                });
+                
+                console.log(`DJ: ${djDisplayName}`, {
+                    totalBookings: djBookings.length,
+                    bookings: djBookings.map(b => ({ djUser: b.djUser, date: b.date, payout: b.payout }))
                 });
                 const djBlocked = blockedDates.filter(bd => {
                     const blockedDJ = bd.djUser || '';
