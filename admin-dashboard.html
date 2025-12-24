@@ -3051,6 +3051,18 @@
                     })
                 });
 
+                // Check if response is ok before parsing
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch (e) {
+                        errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` };
+                    }
+                    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
@@ -3060,7 +3072,14 @@
                 }
             } catch (error) {
                 console.error('Send reminder error:', error);
-                showToast(`❌ Error sending SMS reminder: ${error.message}`, 'error');
+                
+                // More detailed error message
+                let errorMessage = error.message;
+                if (error.message === 'Failed to fetch') {
+                    errorMessage = 'Cannot reach the API endpoint. Please check: 1) The function is deployed, 2) You\'re on the correct domain, 3) Check browser console for details.';
+                }
+                
+                showToast(`❌ Error sending SMS reminder: ${errorMessage}`, 'error');
             }
         }
 
