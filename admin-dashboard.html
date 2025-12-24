@@ -1768,8 +1768,12 @@
             showImportMessage('Syncing from HoneyBook...', 'success');
             
             try {
+                // Determine the API base URL
+                const apiUrl = '/api/honeybook-sync';
+                console.log('Calling HoneyBook sync API:', apiUrl);
+                
                 // Call the HoneyBook sync API endpoint
-                const response = await fetch('/api/honeybook-sync', {
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1779,10 +1783,21 @@
                         projects: [],
                         manual_sync: true
                     })
+                }).catch((fetchError) => {
+                    // Network error (CORS, DNS, connection refused, etc.)
+                    console.error('Fetch error:', fetchError);
+                    throw new Error(`Cannot connect to API endpoint. Make sure the function is deployed to Vercel. Error: ${fetchError.message}`);
                 });
 
+                console.log('Response status:', response.status, response.statusText);
+
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    let errorData;
+                    try {
+                        errorData = await response.json();
+                    } catch (e) {
+                        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+                    }
                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
 
@@ -1836,7 +1851,14 @@
                 }
             } catch (error) {
                 console.error('HoneyBook sync error:', error);
-                showImportMessage('Error syncing from HoneyBook: ' + error.message + '. Please check your API endpoint configuration and Vercel function logs.', 'error');
+                let errorMessage = error.message;
+                
+                // Provide more helpful error messages
+                if (error.message.includes('Failed to fetch') || error.message.includes('Cannot connect')) {
+                    errorMessage = 'Cannot connect to the API endpoint. Please ensure: 1) The function is deployed to Vercel, 2) You\'re accessing the page from the deployed URL (not file://), 3) Check browser console for CORS errors.';
+                }
+                
+                showImportMessage('Error syncing from HoneyBook: ' + errorMessage + '. Check Vercel function logs for details.', 'error');
             }
         }
 
