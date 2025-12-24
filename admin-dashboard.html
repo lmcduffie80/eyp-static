@@ -3109,18 +3109,38 @@
                         console.log(`Creating ${newBookings.length} new bookings...`);
                         let createdCount = 0;
                         let failedCount = 0;
+                        const creationErrors = [];
                         
                         for (const booking of newBookings) {
                             try {
                                 // Remove the temporary ID before creating (API will assign its own)
                                 const { id, ...bookingData } = booking;
+                                
+                                // Validate required fields before sending
+                                if (!bookingData.djUser || !bookingData.date || !bookingData.eventType) {
+                                    const missingFields = [];
+                                    if (!bookingData.djUser) missingFields.push('djUser');
+                                    if (!bookingData.date) missingFields.push('date');
+                                    if (!bookingData.eventType) missingFields.push('eventType');
+                                    creationErrors.push(`Row ${booking.id || 'unknown'}: Missing ${missingFields.join(', ')}`);
+                                    failedCount++;
+                                    continue;
+                                }
+                                
                                 await apiCreateBooking(bookingData);
                                 createdCount++;
                             } catch (error) {
-                                console.error('Error creating booking during CSV import:', error, booking);
+                                const errorMsg = error.message || 'Unknown error';
+                                console.error('Error creating booking during CSV import:', errorMsg, booking);
+                                creationErrors.push(`${booking.date || 'Unknown date'}: ${errorMsg}`);
                                 failedCount++;
                                 // Continue with other bookings even if one fails
                             }
+                        }
+                        
+                        // Log first few errors for debugging
+                        if (creationErrors.length > 0) {
+                            console.error('Booking creation errors (first 10):', creationErrors.slice(0, 10));
                         }
                         
                         // Clear cache to force refresh
