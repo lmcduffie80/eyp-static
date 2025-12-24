@@ -47,7 +47,7 @@ async function initAWSSigner() {
 /**
  * Get AWS RDS connection pool
  * Creates a new pool if needed, or returns existing one
- * Note: Auth tokens expire after 15 minutes, but pg Pool handles reconnection
+ * Note: Auth tokens expire after 15 minutes, so we need to refresh them
  */
 async function getAWSPool() {
     await initAWSSigner();
@@ -67,6 +67,19 @@ async function getAWSPool() {
             max: 1, // Serverless functions - use 1 connection per instance
             idleTimeoutMillis: 30000,
             connectionTimeoutMillis: 10000,
+        });
+        
+        // Handle connection errors and recreate pool if auth fails
+        awsPool.on('error', async (err) => {
+            console.error('Unexpected error on idle database client:', err);
+            // If it's an authentication error, clear the pool to force recreation
+            if (err.message && (err.message.includes('authentication') || err.message.includes('PAM'))) {
+                console.log('Authentication error detected, clearing pool...');
+                if (awsPool) {
+                    await awsPool.end().catch(() => {});
+                    awsPool = null;
+                }
+            }
         });
     }
     
@@ -102,26 +115,77 @@ function convertTemplateToQuery(queryParts, ...values) {
 export default async function sql(queryParts, ...values) {
     // If we have POSTGRES_URL, use @vercel/postgres (simpler)
     if (useVercelPostgres) {
-        const { sql: vercelSql } = await import("@vercel/postgres");
-        return await vercelSql(queryParts, ...values);
+        try {
+            const { sql: vercelSql } = await import("@vercel/postgres");
+            return await vercelSql(queryParts, ...values);
+        } catch (error) {
+            console.error('Vercel Postgres connection error:', error);
+            throw error;
+        }
     }
 
     // Otherwise, use AWS RDS with IAM authentication
     if (useAWSSigner) {
-        const pool = await getAWSPool();
-        if (!pool) {
-            throw new Error("Failed to create AWS RDS connection pool");
-        }
+        try {
+            const pool = await getAWSPool();
+            if (!pool) {
+                throw new Error("Failed to create AWS RDS connection pool");
+            }
 
-        const { query, values: queryValues } = convertTemplateToQuery(queryParts, ...values);
-        const result = await pool.query(query, queryValues);
-        
-        // Return in same format as @vercel/postgres
-        return { rows: result.rows };
+            const { query, values: queryValues } = convertTemplateToQuery(queryParts, ...values);
+            const result = await pool.query(query, queryValues);
+            
+            // Return in same format as @vercel/postgres
+            return { rows: result.rows };
+        } catch (error) {
+            // If authentication error, try to recreate the pool with a fresh token
+            if (error.message && (error.message.includes('authentication') || error.message.includes('PAM') || error.message.includes('password'))) {
+                console.log('Authentication error, attempting to recreate pool with fresh token...');
+                
+                // Clear existing pool
+                if (awsPool) {
+                    try {
+                        await awsPool.end();
+                    } catch (e) {
+                        // Ignore errors when closing
+                    }
+                    awsPool = null;
+                }
+                
+                // Reset signer to force re-initialization
+                signerInitialized = false;
+                awsSigner = null;
+                
+                // Try once more with fresh pool
+                const pool = await getAWSPool();
+                if (!pool) {
+                    throw new Error("Failed to create AWS RDS connection pool after retry");
+                }
+                
+                const { query, values: queryValues } = convertTemplateToQuery(queryParts, ...values);
+                const result = await pool.query(query, queryValues);
+                
+                return { rows: result.rows };
+            }
+            // Re-throw if not an auth error
+            throw error;
+        }
     }
 
-    throw new Error(
+    // Diagnostic information for debugging
+    const hasPostgresUrl = !!process.env.POSTGRES_URL;
+    const hasAwsRoleArn = !!process.env.AWS_ROLE_ARN;
+    const hasPgHost = !!process.env.PGHOST;
+    const hasPgUser = !!process.env.PGUSER;
+    
+    const errorMsg = 
         "No database connection configured. " +
-        "Missing POSTGRES_URL or AWS credentials (AWS_ROLE_ARN, PGHOST, PGUSER)."
-    );
+        `POSTGRES_URL: ${hasPostgresUrl ? 'set' : 'missing'}, ` +
+        `AWS_ROLE_ARN: ${hasAwsRoleArn ? 'set' : 'missing'}, ` +
+        `PGHOST: ${hasPgHost ? 'set' : 'missing'}, ` +
+        `PGUSER: ${hasPgUser ? 'set' : 'missing'}. ` +
+        "Please set POSTGRES_URL for Vercel Postgres, or all AWS credentials (AWS_ROLE_ARN, PGHOST, PGUSER) for AWS RDS.";
+    
+    console.error('Database connection error:', errorMsg);
+    throw new Error(errorMsg);
 }
