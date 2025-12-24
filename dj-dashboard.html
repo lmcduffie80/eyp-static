@@ -2306,7 +2306,7 @@
         }
 
         // Load bookings
-        function loadBookings() {
+        function loadBookings(filter = null) {
             // TODO: Fetch from backend API
             // For now, use sample data
             const bookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
@@ -2338,9 +2338,9 @@
                     }
                 ];
                 localStorage.setItem('dj_bookings', JSON.stringify(sampleBookings));
-                displayBookings(sampleBookings);
+                displayBookings(sampleBookings, filter || 'all');
             } else {
-                displayBookings(bookings);
+                displayBookings(bookings, filter || 'all');
             }
         }
 
