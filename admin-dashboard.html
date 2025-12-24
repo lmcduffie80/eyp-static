@@ -3054,21 +3054,31 @@
                             continue;
                         }
                         
+                        // Helper function to parse numeric value (handles empty strings, null, undefined)
+                        const parseNumeric = (value) => {
+                            if (!value || value === '' || value === null || value === undefined) return null;
+                            // Remove currency symbols and commas
+                            const cleaned = String(value).replace(/[$,]/g, '').trim();
+                            if (!cleaned) return null;
+                            const parsed = parseFloat(cleaned);
+                            return isNaN(parsed) ? null : parsed;
+                        };
+                        
                         // Create booking object
                         const booking = {
-                            id: Date.now() + i, // Simple ID generation
+                            id: Date.now() + i, // Simple ID generation (will be removed before API call)
                             djUser: normalizedDJName, // Use normalized name to match DJ user format
                             date: formattedDate,
                             eventType: projectName,
-                            location: location,
-                            clientName: projectName, // Use project name as client name if no separate field
-                            payout: payout || '', // DJ Payout
-                            totalRevenue: totalRevenue || '', // Payment
-                            ccPayment: ccPayment || '', // CC Payment 6%
-                            time: '', // Not in CSV, leave empty
-                            contactEmail: '',
-                            contactPhone: '',
-                            notes: payout ? `Payout: ${payout}` : ''
+                            location: location || null,
+                            clientName: projectName || null, // Use project name as client name if no separate field
+                            payout: parseNumeric(payout), // DJ Payout - convert to number or null
+                            totalRevenue: parseNumeric(totalRevenue), // Payment - convert to number or null
+                            ccPayment: parseNumeric(ccPayment), // CC Payment 6% - convert to number or null
+                            time: null, // Not in CSV, use null
+                            contactEmail: null,
+                            contactPhone: null,
+                            notes: payout ? `Payout: ${payout}` : null
                         };
                         
                         newBookings.push(booking);
