@@ -1802,12 +1802,11 @@
                     return bookingDate >= new Date();
                 });
 
-                // Calculate revenue for this DJ
-                const djRevenue = djBookings.reduce((sum, booking) => {
-                    const revenueSource = booking.totalRevenue || booking.payout;
-                    if (revenueSource) {
-                        const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
-                        return sum + (parseFloat(revenueValue) || 0);
+                // Calculate revenue for this DJ (only DJ payout from future bookings)
+                const djRevenue = upcomingBookings.reduce((sum, booking) => {
+                    if (booking.payout) {
+                        const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                        return sum + (parseFloat(payoutValue) || 0);
                     }
                     return sum;
                 }, 0);
