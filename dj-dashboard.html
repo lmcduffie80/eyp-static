@@ -2037,9 +2037,9 @@
                     </div>
                     ${blockedDate.reason ? `<div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">Reason: ${escapeHtml(blockedDate.reason)}</div>` : ''}
                 </div>
-                <div style="display: flex; gap: 1rem; justify-content: center;">
-                    <button onclick="confirmUnblockDate('${escapeHtml(date)}')" class="btn btn-primary" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Remove</button>
-                    <button onclick="closeBlockDateConfirmModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Cancel</button>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-direction: row;">
+                    <button onclick="confirmUnblockDate('${escapeHtml(date)}')" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">Remove</button>
+                    <button onclick="closeBlockDateConfirmModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
                 </div>
             `;
             
