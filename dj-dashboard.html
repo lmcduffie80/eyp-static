@@ -605,9 +605,10 @@
         }
 
         .calendar-day.has-booking {
-            background: var(--success-color);
-            color: var(--secondary-color);
+            background: #d4edda;
+            color: var(--primary-color);
             font-weight: bold;
+            border: 2px solid var(--success-color);
         }
 
         .calendar-day-number {
@@ -2668,14 +2669,40 @@
             // Get bookings for current DJ
             const djBookings = await getAllBookingsForDJ();
             
-            // Create a map of date to bookings for quick lookup
+            // Helper function to normalize date to YYYY-MM-DD format
+            function normalizeDateForCalendar(dateValue) {
+                if (!dateValue) return null;
+                if (typeof dateValue === 'string') {
+                    // If it's an ISO string, extract just the date part
+                    if (dateValue.includes('T')) {
+                        return dateValue.split('T')[0];
+                    }
+                    // If it's already YYYY-MM-DD, return as is
+                    if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        return dateValue;
+                    }
+                }
+                // If it's a Date object, convert to YYYY-MM-DD
+                if (dateValue instanceof Date) {
+                    const year = dateValue.getFullYear();
+                    const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateValue.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+                return dateValue;
+            }
+            
+            // Create a map of date to bookings for quick lookup (normalized dates)
             const bookingsByDate = {};
             djBookings.forEach(booking => {
                 if (booking.date) {
-                    if (!bookingsByDate[booking.date]) {
-                        bookingsByDate[booking.date] = [];
+                    const normalizedDate = normalizeDateForCalendar(booking.date);
+                    if (normalizedDate) {
+                        if (!bookingsByDate[normalizedDate]) {
+                            bookingsByDate[normalizedDate] = [];
+                        }
+                        bookingsByDate[normalizedDate].push(booking);
                     }
-                    bookingsByDate[booking.date].push(booking);
                 }
             });
 
