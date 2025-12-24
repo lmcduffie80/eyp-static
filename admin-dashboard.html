@@ -2816,6 +2816,16 @@
                 `;
             }).join('');
             
+            // Restore sort indicators after filtering
+            if (sortState.column) {
+                document.querySelectorAll('.bookings-table th').forEach(th => {
+                    th.classList.remove('sort-asc', 'sort-desc');
+                    if (th.dataset.column === sortState.column) {
+                        th.classList.add(sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                    }
+                });
+            }
+            
             // Update revenue stats based on filtered bookings
             updateRevenueStats(filteredBookings);
         }
