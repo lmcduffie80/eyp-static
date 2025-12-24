@@ -1872,15 +1872,6 @@
                     <div class="dj-card">
                         <div class="dj-card-header">
                             <div class="dj-name">${djDisplayName}</div>
-                            ${upcomingBookings.length > 0 ? `
-                            <button class="send-reminder-btn" 
-                                    data-dj-name="${djDisplayName.replace(/"/g, '&quot;')}" 
-                                    data-dj-email="${(dj.email || '').replace(/"/g, '&quot;')}" 
-                                    data-booking-count="${upcomingBookings.length}"
-                                    style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">
-                                ✉️ Send Email Reminder
-                            </button>
-                            ` : ''}
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
                             <div>Email: ${dj.email}</div>
@@ -1908,31 +1899,6 @@
                     </div>
                 `;
             }).join('');
-
-            // Store bookings data for email reminders (global variable for easy access)
-            window.djBookingsData = {};
-            djs.forEach(dj => {
-                const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
-                const djBookings = bookings.filter(b => {
-                    const bookingDJ = b.djUser || '';
-                    return bookingDJ === djDisplayName || bookingDJ === dj.username || !b.djUser;
-                });
-                const upcomingBookings = djBookings.filter(b => {
-                    const bookingDate = new Date(b.date + 'T00:00:00');
-                    return bookingDate >= new Date();
-                });
-                window.djBookingsData[djDisplayName] = upcomingBookings;
-            });
-
-            // Add event listeners to send reminder buttons
-            container.querySelectorAll('.send-reminder-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const djName = this.getAttribute('data-dj-name');
-                    const djEmail = this.getAttribute('data-dj-email');
-                    const bookings = window.djBookingsData[djName] || [];
-                    sendDJEmailReminder(djName, djEmail, bookings);
-                });
-            });
 
             // Populate calendar filter dropdown (bookings filter is populated from bookings in filterAllBookings)
             const djOptions = djs.map(dj => {
@@ -3021,65 +2987,6 @@
                     toast.style.display = 'none';
                 }, 300);
             }, 5000);
-        }
-
-        // Send DJ reminder email
-        async function sendDJEmailReminder(djName, djEmail, bookings) {
-            if (!djEmail) {
-                showToast('This DJ does not have an email address on file. Please add an email address in User Management first.', 'error');
-                return;
-            }
-
-            if (!confirm(`Send email reminder to ${djName} (${djEmail}) about ${bookings.length} upcoming booking${bookings.length > 1 ? 's' : ''}?`)) {
-                return;
-            }
-
-            // Show loading message
-            showToast(`Sending email reminder to ${djName}...`, 'info');
-
-            try {
-                const response = await fetch('/api/send-dj-email-reminder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        djName: djName,
-                        djEmail: djEmail,
-                        bookings: bookings
-                    })
-                });
-
-                // Check if response is ok before parsing
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    let errorData;
-                    try {
-                        errorData = JSON.parse(errorText);
-                    } catch (e) {
-                        errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` };
-                    }
-                    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showToast(`✅ Email reminder sent successfully to ${djName}! They should receive it shortly.`, 'success');
-                } else {
-                    showToast(`❌ Failed to send email: ${data.message}`, 'error');
-                }
-            } catch (error) {
-                console.error('Send email reminder error:', error);
-                
-                // More detailed error message
-                let errorMessage = error.message;
-                if (error.message === 'Failed to fetch') {
-                    errorMessage = 'Cannot reach the API endpoint. Please check: 1) The function is deployed, 2) You\'re on the correct domain, 3) Check browser console for details.';
-                }
-                
-                showToast(`❌ Error sending email reminder: ${errorMessage}`, 'error');
-            }
         }
 
         // Logout
