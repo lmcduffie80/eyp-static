@@ -3669,13 +3669,30 @@
             const nextBookingElement = document.getElementById('next-booking-stat');
             if (upcomingBookings.length > 0) {
                 const nextBooking = upcomingBookings[0];
-                const dateParts = nextBooking.date.split('-');
-                const year = dateParts[0];
-                const month = dateParts[1];
-                const day = dateParts[2];
-                // Format as MM-DD-YYYY
-                const formattedDate = `${month}-${day}-${year}`;
-                nextBookingElement.textContent = formattedDate;
+                // Parse date properly (handle ISO format or YYYY-MM-DD)
+                let dateStr = nextBooking.date;
+                if (dateStr && typeof dateStr === 'string') {
+                    // If it's an ISO string, extract just the date part
+                    if (dateStr.includes('T')) {
+                        dateStr = dateStr.split('T')[0];
+                    }
+                }
+                
+                // Parse the date string to create a Date object
+                const dateParts = dateStr.split('-');
+                if (dateParts.length === 3) {
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const dateObj = new Date(year, month, day);
+                    // Format as MM-DD-YYYY using the helper function
+                    const formattedDate = formatDateMMDDYYYY(dateObj);
+                    nextBookingElement.textContent = formattedDate;
+                } else {
+                    // Fallback: try to parse as-is
+                    const formattedDate = formatDateMMDDYYYY(dateStr);
+                    nextBookingElement.textContent = formattedDate || dateStr;
+                }
                 nextBookingElement.style.fontSize = '1.25rem';
             } else {
                 nextBookingElement.textContent = 'No upcoming bookings';
