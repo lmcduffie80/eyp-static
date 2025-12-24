@@ -2780,10 +2780,11 @@
                     console.log(`Import complete: ${importedCount} imported, ${skippedCount} skipped`);
                     console.log('Skip reasons:', skipReasons);
                     
-                    // Merge with existing bookings
-                    const allBookings = [...existingBookings, ...newBookings];
-                    localStorage.setItem('dj_bookings', JSON.stringify(allBookings));
-                    console.log('Total bookings in localStorage:', allBookings.length);
+                    // Replace all existing bookings with new ones (don't merge)
+                    // This ensures each CSV import replaces the previous data
+                    localStorage.setItem('dj_bookings', JSON.stringify(newBookings));
+                    console.log('Total bookings in localStorage:', newBookings.length);
+                    console.log('Previous bookings cleared. New CSV data stored.');
                     
                     // Build detailed error message
                     let errorDetails = [];
