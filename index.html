@@ -1119,6 +1119,51 @@
                 }
             }
         });
+
+        // Extract testimonials from page and store them for DJ review sync
+        function extractTestimonialsFromPage() {
+            const testimonials = [];
+            const testimonialCards = document.querySelectorAll('.testimonial-card');
+            
+            testimonialCards.forEach(card => {
+                const textElement = card.querySelector('.testimonial-text');
+                const text = textElement ? textElement.textContent.trim() : '';
+                
+                if (!text) return;
+                
+                // Extract date
+                const dateElement = card.querySelector('.testimonial-date');
+                let date = '';
+                if (dateElement) {
+                    const dateText = dateElement.textContent.trim();
+                    const yearMatch = dateText.match(/\b(20\d{2})\b/);
+                    if (yearMatch) {
+                        date = yearMatch[1];
+                    }
+                }
+                
+                // Extract service/event
+                const serviceElement = card.querySelector('.testimonial-service-label');
+                const service = serviceElement ? serviceElement.textContent.trim() : '';
+                
+                testimonials.push({
+                    text: text,
+                    date: date || new Date().getFullYear().toString(),
+                    service: service,
+                    source: 'website_html'
+                });
+            });
+            
+            if (testimonials.length > 0) {
+                localStorage.setItem('website_testimonials', JSON.stringify(testimonials));
+                console.log(`Extracted ${testimonials.length} testimonials from website.`);
+            }
+            
+            return testimonials;
+        }
+
+        // Extract testimonials when page loads
+        document.addEventListener('DOMContentLoaded', extractTestimonialsFromPage);
     </script>
 </body>
 </html>

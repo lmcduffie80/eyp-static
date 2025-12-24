@@ -2767,7 +2767,8 @@
                 comment: reviewData.comment || '',
                 eventName: reviewData.eventName || '',
                 date: reviewData.date || new Date().toISOString().split('T')[0],
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                source: reviewData.source || 'manual' // Track where review came from
             };
             allReviews.push(newReview);
             localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
@@ -2777,6 +2778,160 @@
             if (currentUsername === djUsername) {
                 loadReviews();
             }
+        }
+
+        // Sync testimonials from website to DJ reviews
+        // This function scans testimonials and checks for mentions of DJ names
+        function syncWebsiteTestimonialsToDJReviews() {
+            // DJ name mappings: first name -> full username
+            const djNameMap = {
+                'will': 'Will Luke',
+                'gavin': 'Gavin McDuffie',
+                'stephen': 'Stephen Kena'
+            };
+
+            // Testimonials data structure - can be populated from website or admin dashboard
+            // Format: { text: string, clientName?: string, date?: string, service?: string }
+            const websiteTestimonials = JSON.parse(localStorage.getItem('website_testimonials') || '[]');
+            
+            if (websiteTestimonials.length === 0) {
+                console.log('No website testimonials found to sync.');
+                return;
+            }
+
+            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            const existingReviewIds = new Set(allReviews.map(r => r.id));
+            let syncedCount = 0;
+
+            websiteTestimonials.forEach(testimonial => {
+                const testimonialText = (testimonial.text || testimonial.comment || '').toLowerCase();
+                
+                // Check which DJ names are mentioned in the testimonial
+                Object.keys(djNameMap).forEach(firstName => {
+                    // Use word boundary to match first name (case-insensitive)
+                    const namePattern = new RegExp(`\\b${firstName}\\b`, 'i');
+                    if (namePattern.test(testimonialText)) {
+                        const djUsername = djNameMap[firstName];
+                        
+                        // Create a unique ID based on testimonial text hash and DJ username
+                        // Use a simple hash function to create consistent IDs
+                        let hash = 0;
+                        const idString = testimonialText.substring(0, 100) + djUsername;
+                        for (let i = 0; i < idString.length; i++) {
+                            const char = idString.charCodeAt(i);
+                            hash = ((hash << 5) - hash) + char;
+                            hash = hash & hash; // Convert to 32bit integer
+                        }
+                        const reviewId = `web_${Math.abs(hash)}_${djUsername.replace(/\s+/g, '_')}`;
+                        
+                        // Check if this review already exists (by ID or by matching content + DJ)
+                        const reviewExists = allReviews.some(r => 
+                            r.id === reviewId || 
+                            (r.source === 'website' && 
+                             r.djUsername === djUsername && 
+                             r.comment.toLowerCase().trim() === testimonialText.trim())
+                        );
+                        
+                        if (reviewExists) {
+                            return;
+                        }
+
+                        // Extract client name from testimonial or use default
+                        const clientName = testimonial.clientName || testimonial.name || 'Website Review';
+
+                        // Extract date - use testimonial date or current date
+                        let reviewDate = testimonial.date || testimonial.reviewDate;
+                        if (reviewDate && typeof reviewDate === 'string') {
+                            // Try to parse date - if it's just a year, use Jan 1st of that year
+                            if (/^\d{4}$/.test(reviewDate)) {
+                                reviewDate = `${reviewDate}-01-01`;
+                            }
+                        } else {
+                            reviewDate = new Date().toISOString().split('T')[0];
+                        }
+
+                        // Extract event/service name
+                        const eventName = testimonial.eventName || testimonial.service || testimonial.event || '';
+
+                        // Create review entry
+                        const newReview = {
+                            id: reviewId,
+                            djUsername: djUsername,
+                            clientName: clientName,
+                            rating: testimonial.rating || 5, // Default to 5 stars if not specified
+                            comment: testimonial.text || testimonial.comment || '',
+                            eventName: eventName,
+                            date: reviewDate,
+                            createdAt: new Date().toISOString(),
+                            source: 'website'
+                        };
+
+                        allReviews.push(newReview);
+                        existingReviewIds.add(reviewId);
+                        syncedCount++;
+                    }
+                });
+            });
+
+            // Save all reviews
+            localStorage.setItem('dj_reviews', JSON.stringify(allReviews));
+            
+            console.log(`Synced ${syncedCount} testimonials to DJ reviews.`);
+            
+            // Reload reviews if user is logged in
+            const currentUsername = localStorage.getItem('dj_user');
+            if (currentUsername && ['Will Luke', 'Gavin McDuffie', 'Stephen Kena'].includes(currentUsername)) {
+                loadReviews();
+            }
+
+            return syncedCount;
+        }
+
+        // Helper function to manually add testimonials from website HTML
+        // This can be called to populate website_testimonials from the testimonials section
+        function extractTestimonialsFromHTML() {
+            // This function can be called from admin dashboard or website pages
+            // It extracts testimonials from the DOM and stores them in website_testimonials
+            
+            const testimonials = [];
+            const testimonialCards = document.querySelectorAll('.testimonial-card, .review-card, [class*="testimonial"], [class*="review"]');
+            
+            testimonialCards.forEach(card => {
+                const textElement = card.querySelector('.testimonial-text, .review-text, p');
+                const text = textElement ? textElement.textContent.trim() : '';
+                
+                if (!text) return;
+                
+                // Extract date
+                const dateElement = card.querySelector('.testimonial-date, .review-date, [class*="date"]');
+                let date = '';
+                if (dateElement) {
+                    const dateText = dateElement.textContent.trim();
+                    // Try to extract year or full date
+                    const yearMatch = dateText.match(/\b(20\d{2})\b/);
+                    if (yearMatch) {
+                        date = yearMatch[1];
+                    }
+                }
+                
+                // Extract service/event
+                const serviceElement = card.querySelector('.testimonial-service-label, .service-label, [class*="service"]');
+                const service = serviceElement ? serviceElement.textContent.trim() : '';
+                
+                testimonials.push({
+                    text: text,
+                    date: date || new Date().getFullYear().toString(),
+                    service: service,
+                    source: 'html_extraction'
+                });
+            });
+            
+            if (testimonials.length > 0) {
+                localStorage.setItem('website_testimonials', JSON.stringify(testimonials));
+                console.log(`Extracted ${testimonials.length} testimonials from HTML.`);
+            }
+            
+            return testimonials;
         }
 
         // Sidebar toggle functions for mobile
@@ -2992,6 +3147,12 @@
             if (typeof generateCalendar === 'function') generateCalendar();
             if (typeof displayBlockedDates === 'function') displayBlockedDates();
             if (typeof loadBookings === 'function') loadBookings();
+            
+            // Sync website testimonials to DJ reviews on page load
+            if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
+                syncWebsiteTestimonialsToDJReviews();
+            }
+            
             if (typeof loadReviews === 'function') loadReviews();
         }
     </script>
