@@ -2938,13 +2938,16 @@
         // Send DJ reminder SMS
         async function sendDJReminder(djName, djPhone, bookings) {
             if (!djPhone) {
-                alert('This DJ does not have a phone number on file. Please add a phone number in User Management first.');
+                showMessage('This DJ does not have a phone number on file. Please add a phone number in User Management first.', 'error');
                 return;
             }
 
             if (!confirm(`Send SMS reminder to ${djName} about ${bookings.length} upcoming booking${bookings.length > 1 ? 's' : ''}?`)) {
                 return;
             }
+
+            // Show loading message
+            showMessage(`Sending SMS reminder to ${djName}...`, 'info');
 
             try {
                 const response = await fetch('/api/send-dj-reminder', {
@@ -2962,13 +2965,13 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    alert(`SMS reminder sent successfully to ${djName}!`);
+                    showMessage(`✅ SMS reminder sent successfully to ${djName}! They should receive it shortly.`, 'success');
                 } else {
-                    alert(`Failed to send SMS: ${data.message}`);
+                    showMessage(`❌ Failed to send SMS: ${data.message}`, 'error');
                 }
             } catch (error) {
                 console.error('Send reminder error:', error);
-                alert('Error sending SMS reminder: ' + error.message);
+                showMessage(`❌ Error sending SMS reminder: ${error.message}`, 'error');
             }
         }
 
