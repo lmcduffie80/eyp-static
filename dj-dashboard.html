@@ -35,6 +35,91 @@
             line-height: 1.6;
             color: var(--text-dark);
             background: var(--bg-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Main Layout Wrapper */
+        .dashboard-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-logo-container {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo-container a {
+            display: inline-block;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .sidebar-logo {
+            height: 60px;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+            padding-top: 2rem;
+        }
+
+        .sidebar-nav-item {
+            margin: 0;
+        }
+
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .sidebar-nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: white;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-light);
         }
 
         /* Header */
@@ -320,6 +405,15 @@
 
         .tab-button:hover {
             color: var(--primary-color);
+        }
+
+        /* Section Containers */
+        .section-container {
+            display: none;
+        }
+
+        .section-container.active {
+            display: block;
         }
 
         /* Calendar Section */
