@@ -3007,7 +3007,7 @@
                         
                         // Normalize DJ name to match user format (firstName + lastName)
                         // Try to match DJ name from CSV to existing DJ users
-                        const allDJs = getAllDJs();
+                        const allDJs = await getAllDJs();
                         let normalizedDJName = djName.trim();
                         
                         // Try to find matching DJ user by name
@@ -3069,48 +3069,79 @@
                     
                     // Replace all existing bookings with new ones (don't merge)
                     // This ensures each CSV import replaces the previous data
-                    localStorage.setItem('dj_bookings', JSON.stringify(newBookings));
-                    console.log('Total bookings in localStorage:', newBookings.length);
-                    console.log('Previous bookings cleared. New CSV data stored.');
-                    
-                    // Build detailed error message
-                    let errorDetails = [];
-                    if (skipReasons.skippedRows > 0) errorDetails.push(`${skipReasons.skippedRows} row(s) skipped (first 5 data rows)`);
-                    if (skipReasons.notEnoughColumns > 0) errorDetails.push(`${skipReasons.notEnoughColumns} row(s) with not enough columns`);
-                    if (skipReasons.missingFields > 0) errorDetails.push(`${skipReasons.missingFields} row(s) with missing required fields`);
-                    if (skipReasons.invalidDate > 0) errorDetails.push(`${skipReasons.invalidDate} row(s) with invalid date format`);
-                    if (skipReasons.duplicate > 0) errorDetails.push(`${skipReasons.duplicate} duplicate row(s)`);
-                    
-                    // Show success message
-                    if (importedCount > 0) {
-                        const skipMessage = skippedCount > 0 ? `. Skipped: ${errorDetails.join(', ')}.` : '';
-                        showCSVMessage(`Successfully imported ${importedCount} project(s)${skipMessage}`, 'success');
+                    try {
+                        // First, get all existing bookings and delete them
+                        const existingBookings = await getAllBookings();
+                        console.log(`Deleting ${existingBookings.length} existing bookings...`);
                         
-                        // Clear file input
-                        fileInput.value = '';
+                        for (const booking of existingBookings) {
+                            try {
+                                await apiDeleteBooking(booking.id);
+                            } catch (error) {
+                                console.warn('Error deleting booking during CSV import:', error);
+                                // Continue with other bookings even if one fails
+                            }
+                        }
                         
-                        // Update dashboard stats
-                        updateDashboardStats();
+                        // Create all new bookings via API
+                        console.log(`Creating ${newBookings.length} new bookings...`);
+                        let createdCount = 0;
+                        let failedCount = 0;
                         
-                        // Refresh displays
-                        filterAllBookings();
-                        loadAllDJs();
+                        for (const booking of newBookings) {
+                            try {
+                                // Remove the temporary ID before creating (API will assign its own)
+                                const { id, ...bookingData } = booking;
+                                await apiCreateBooking(bookingData);
+                                createdCount++;
+                            } catch (error) {
+                                console.error('Error creating booking during CSV import:', error, booking);
+                                failedCount++;
+                                // Continue with other bookings even if one fails
+                            }
+                        }
+                        
+                        // Clear cache to force refresh
+                        bookingsCache = null;
+                        bookingsCacheTime = null;
+                        
+                        console.log(`CSV import complete: ${createdCount} created, ${failedCount} failed, ${existingBookings.length} deleted`);
+                        console.log('Previous bookings cleared. New CSV data stored in database.');
+                        
+                        // Build detailed error message
+                        let errorDetails = [];
+                        if (skipReasons.skippedRows > 0) errorDetails.push(`${skipReasons.skippedRows} row(s) skipped (first 5 data rows)`);
+                        if (skipReasons.notEnoughColumns > 0) errorDetails.push(`${skipReasons.notEnoughColumns} row(s) with not enough columns`);
+                        if (skipReasons.missingFields > 0) errorDetails.push(`${skipReasons.missingFields} row(s) with missing required fields`);
+                        if (skipReasons.invalidDate > 0) errorDetails.push(`${skipReasons.invalidDate} row(s) with invalid date format`);
+                        if (skipReasons.duplicate > 0) errorDetails.push(`${skipReasons.duplicate} duplicate row(s)`);
+                        if (failedCount > 0) errorDetails.push(`${failedCount} booking(s) failed to create`);
+                        
+                        // Show success message
+                        if (createdCount > 0) {
+                            const skipMessage = errorDetails.length > 0 ? `. ${errorDetails.join(', ')}.` : '';
+                            showCSVMessage(`Successfully imported ${createdCount} project(s)${skipMessage}`, 'success');
+                            
+                            // Clear file input
+                            fileInput.value = '';
+                            
+                            // Update dashboard stats
+                            await updateDashboardStats();
+                            
+                            // Refresh displays
+                            await filterAllBookings();
+                            await loadAllDJs();
+                        } else {
+                            showCSVMessage(`No projects imported. ${errorDetails.length > 0 ? errorDetails.join(', ') : 'All bookings failed to create.'}`, 'error');
+                        }
                         
                         // Hide message after 5 seconds
                         setTimeout(() => {
                             messageEl.style.display = 'none';
                         }, 5000);
-                    } else {
-                        let errorMsg = `No projects imported. Skipped ${skippedCount} row(s). ${errorDetails.length > 0 ? 'Reasons: ' + errorDetails.join(', ') + '.' : ''}`;
-                        
-                        // Add examples of invalid dates if any
-                        if (invalidDateExamples.length > 0) {
-                            errorMsg += ` Example invalid dates: ${invalidDateExamples.join(', ')}. Please use formats like MM/DD/YYYY (e.g., 01/15/2024), MM-DD-YYYY, or YYYY-MM-DD.`;
-                        } else {
-                            errorMsg += ' Please check your CSV file format and ensure columns match: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout';
-                        }
-                        
-                        showCSVMessage(errorMsg, 'error');
+                    } catch (error) {
+                        console.error('Error during CSV import:', error);
+                        showCSVMessage(`Error importing CSV: ${error.message}. Please try again.`, 'error');
                     }
                     
                 } catch (error) {
