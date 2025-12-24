@@ -1846,19 +1846,21 @@
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
                             <div>
                                 <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Number of Bookings</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${djBookings.length}</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${upcomingBookings.length}</div>
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Revenue</div>
                                 <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${formatCurrency(djRevenue)}</div>
                             </div>
+                            ${nextBooking ? `
                             <div>
                                 <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Next Booking</div>
                                 <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
-                                    ${nextBooking ? formatDate(nextBooking.date) : 'None'}
+                                    ${formatDate(nextBooking.date)}
                                 </div>
-                                ${nextBooking ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${nextBooking.eventType || 'Project'}</div>` : ''}
+                                <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${nextBooking.eventType || 'Project'}</div>
                             </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
