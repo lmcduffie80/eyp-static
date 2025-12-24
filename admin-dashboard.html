@@ -825,7 +825,7 @@
             <div class="section-card">
                 <h2>Master Calendar - All Blocked Dates & Projects</h2>
                 <div class="filter-controls">
-                    <select id="calendar-filter-dj" onchange="generateMasterCalendar()">
+                    <select id="calendar-filter-dj" onchange="(async () => { await generateMasterCalendar(); })()">
                         <option value="">All DJs</option>
                     </select>
                 </div>
@@ -1249,7 +1249,7 @@
             }
 
             if (tabName === 'calendar') {
-                generateMasterCalendar();
+                await generateMasterCalendar();
             } else if (tabName === 'bookings') {
                 await filterAllBookings();
             } else if (tabName === 'users') {
@@ -2498,11 +2498,11 @@
                 if (!document.getElementById('calendar-tab').classList.contains('active')) {
                     switchTab('calendar');
                     // Generate calendar after tab switch
-                    setTimeout(() => {
-                        generateMasterCalendar();
+                    setTimeout(async () => {
+                        await generateMasterCalendar();
                     }, 100);
                 } else {
-                    generateMasterCalendar();
+                    await generateMasterCalendar();
                 }
                 // Add active class to blocked dates card
                 document.getElementById(`stat-card-${filterType}`).classList.add('active');
@@ -3427,9 +3427,9 @@
         }
 
         // Generate master calendar
-        function generateMasterCalendar() {
-            const blockedDates = getAllBlockedDates();
-            const bookings = getAllBookings();
+        async function generateMasterCalendar() {
+            const blockedDates = await getAllBlockedDates();
+            const bookings = await getAllBookings();
             const selectedDJ = document.getElementById('calendar-filter-dj').value;
 
             let filteredBlocked = blockedDates;
