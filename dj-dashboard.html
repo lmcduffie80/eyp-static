@@ -1960,7 +1960,26 @@
             
             const currentUsername = localStorage.getItem('dj_user');
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const currentDJIndex = allDJs.findIndex(dj => dj.username === currentUsername);
+            
+            // Find user by username, firstName+lastName, or email (more robust matching)
+            const currentDJIndex = allDJs.findIndex(dj => {
+                // Match by username
+                if (dj.username && dj.username.toLowerCase().trim() === currentUsername.toLowerCase().trim()) {
+                    return true;
+                }
+                // Match by firstName + lastName
+                if (dj.firstName && dj.lastName) {
+                    const fullName = `${dj.firstName} ${dj.lastName}`;
+                    if (fullName.toLowerCase().trim() === currentUsername.toLowerCase().trim()) {
+                        return true;
+                    }
+                }
+                // Match by email (if username is email)
+                if (dj.email && dj.email.toLowerCase().trim() === currentUsername.toLowerCase().trim()) {
+                    return true;
+                }
+                return false;
+            });
             
             let email = document.getElementById('dropdown-email').value.trim();
             let phone = document.getElementById('dropdown-phone').value.trim();
