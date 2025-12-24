@@ -280,8 +280,15 @@
             // For development: check against localStorage
             const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
             
-            // Initialize super user if doesn't exist
-            if (adminUsers.length === 0) {
+            // Initialize default admin users if they don't exist
+            let usersUpdated = false;
+            
+            // Initialize super user (admin)
+            const adminExists = adminUsers.find(u => 
+                (u.username && u.username.toLowerCase() === 'admin') || 
+                (u.email && u.email.toLowerCase() === 'admin@externallyyoursproductions.com')
+            );
+            if (!adminExists) {
                 adminUsers.push({
                     username: 'admin',
                     password: 'admin123', // In production, this should be hashed
@@ -289,6 +296,28 @@
                     isSuperUser: true,
                     createdAt: new Date().toISOString()
                 });
+                usersUpdated = true;
+                console.log('Initialized admin user');
+            }
+            
+            // Initialize lee admin user
+            const leeExists = adminUsers.find(u => 
+                (u.username && u.username.toLowerCase() === 'lee') || 
+                (u.email && u.email.toLowerCase() === 'lee@externallyyoursproductions.com')
+            );
+            if (!leeExists) {
+                adminUsers.push({
+                    username: 'lee',
+                    password: 'admin123', // In production, this should be hashed
+                    email: 'lee@externallyyoursproductions.com',
+                    isSuperUser: false,
+                    createdAt: new Date().toISOString()
+                });
+                usersUpdated = true;
+                console.log('Initialized lee admin user');
+            }
+            
+            if (usersUpdated) {
                 localStorage.setItem('admin_users', JSON.stringify(adminUsers));
             }
 
