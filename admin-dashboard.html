@@ -890,6 +890,11 @@
                             <input type="email" id="new-email" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                         </div>
                         <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Phone Number</label>
+                            <input type="tel" id="new-phone" placeholder="(555) 123-4567" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <small style="display: block; margin-top: 0.25rem; color: var(--text-light); font-size: 0.85rem;">Required for SMS reminders</small>
+                        </div>
+                        <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
                             <input type="password" id="new-password" minlength="8" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                             <small id="password-hint" style="display: block; margin-top: 0.25rem; color: var(--text-light); font-size: 0.85rem;">Leave blank to keep existing password</small>
@@ -1371,10 +1376,11 @@
             const isEditMode = document.getElementById('edit-mode').value === 'true';
             const originalUsername = document.getElementById('edit-original-username').value;
             const originalUserType = document.getElementById('edit-original-usertype').value;
-            const firstName = document.getElementById('new-firstname').value.trim();
-            const lastName = document.getElementById('new-lastname').value.trim();
-            const email = document.getElementById('new-email').value.trim();
-            const password = document.getElementById('new-password').value;
+                    const firstName = document.getElementById('new-firstname').value.trim();
+                    const lastName = document.getElementById('new-lastname').value.trim();
+                    const email = document.getElementById('new-email').value.trim();
+                    const phone = document.getElementById('new-phone').value.trim();
+                    const password = document.getElementById('new-password').value;
             const userType = document.getElementById('new-user-type').value;
             const messageDiv = document.getElementById('create-user-message');
 
@@ -1499,6 +1505,7 @@
                         lastName: lastName,
                         username: `${firstName} ${lastName}`, // Keep for backward compatibility
                         email: email,
+                        phone: phone || '',
                         password: password, // Should be hashed in production
                         createdAt: new Date().toISOString()
                     };
@@ -1837,9 +1844,16 @@
                     <div class="dj-card">
                         <div class="dj-card-header">
                             <div class="dj-name">${djDisplayName}</div>
+                            ${upcomingBookings.length > 0 ? `
+                            <button onclick="sendDJReminder('${djDisplayName}', '${dj.phone || ''}', ${JSON.stringify(upcomingBookings).replace(/'/g, "&apos;")})" 
+                                    style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">
+                                📱 Send Reminder
+                            </button>
+                            ` : ''}
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
                             <div>Email: ${dj.email}</div>
+                            ${dj.phone ? `<div>Phone: ${dj.phone}</div>` : ''}
                             <div>Member since: ${new Date(dj.createdAt).toLocaleDateString()}</div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
@@ -2917,6 +2931,43 @@
             `;
 
             document.getElementById('master-calendar-container').innerHTML = calendarHTML;
+        }
+
+        // Send DJ reminder SMS
+        async function sendDJReminder(djName, djPhone, bookings) {
+            if (!djPhone) {
+                alert('This DJ does not have a phone number on file. Please add a phone number in User Management first.');
+                return;
+            }
+
+            if (!confirm(`Send SMS reminder to ${djName} about ${bookings.length} upcoming booking${bookings.length > 1 ? 's' : ''}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/send-dj-reminder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        djName: djName,
+                        djPhone: djPhone,
+                        bookings: bookings
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`SMS reminder sent successfully to ${djName}!`);
+                } else {
+                    alert(`Failed to send SMS: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Send reminder error:', error);
+                alert('Error sending SMS reminder: ' + error.message);
+            }
         }
 
         // Logout
