@@ -820,31 +820,31 @@
                             <span style="font-size: 1.5rem; line-height: 1;">☰</span>
                         </button>
                         <div class="hamburger-menu-dropdown" id="hamburger-menu-dropdown">
-                            <a class="hamburger-menu-item active" onclick="switchTab('djs'); toggleHamburgerMenu();" id="hamburger-nav-djs">
+                            <a class="hamburger-menu-item active" onclick="switchTab('djs'); closeHamburgerMenu();" id="hamburger-nav-djs">
                                 <span>
                                     <span class="hamburger-menu-icon">🏠</span>
                                     <span>Home</span>
                                 </span>
                             </a>
-                            <a class="hamburger-menu-item" onclick="switchTab('bookings'); toggleHamburgerMenu();" id="hamburger-nav-bookings">
+                            <a class="hamburger-menu-item" onclick="switchTab('bookings'); closeHamburgerMenu();" id="hamburger-nav-bookings">
                                 <span>
                                     <span class="hamburger-menu-icon">📋</span>
                                     <span>Projects</span>
                                 </span>
                             </a>
-                            <a class="hamburger-menu-item" onclick="switchTab('users'); toggleHamburgerMenu();" id="hamburger-nav-users">
+                            <a class="hamburger-menu-item" onclick="switchTab('users'); closeHamburgerMenu();" id="hamburger-nav-users">
                                 <span>
                                     <span class="hamburger-menu-icon">👥</span>
                                     <span>Users</span>
                                 </span>
                             </a>
-                            <a class="hamburger-menu-item" onclick="switchTab('calendar'); toggleHamburgerMenu();" id="hamburger-nav-calendar">
+                            <a class="hamburger-menu-item" onclick="switchTab('calendar'); closeHamburgerMenu();" id="hamburger-nav-calendar">
                                 <span>
                                     <span class="hamburger-menu-icon">📅</span>
                                     <span>Calendar</span>
                                 </span>
                             </a>
-                            <a class="hamburger-menu-item" onclick="switchTab('analytics'); toggleHamburgerMenu();" id="hamburger-nav-analytics">
+                            <a class="hamburger-menu-item" onclick="switchTab('analytics'); closeHamburgerMenu();" id="hamburger-nav-analytics">
                                 <span>
                                     <span class="hamburger-menu-icon">📊</span>
                                     <span>Analytics</span>
@@ -1413,17 +1413,25 @@
             }
         }
 
+        // Close hamburger menu
+        function closeHamburgerMenu() {
+            const dropdown = document.getElementById('hamburger-menu-dropdown');
+            const btn = document.querySelector('.hamburger-btn');
+            if (dropdown && btn) {
+                dropdown.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        }
+
         // Close hamburger menu when clicking outside
         document.addEventListener('click', function(event) {
             const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
             const dropdown = document.getElementById('hamburger-menu-dropdown');
-            const btn = document.querySelector('.hamburger-btn');
             
-            if (hamburgerMenu && dropdown && btn && dropdown.classList.contains('show')) {
+            if (hamburgerMenu && dropdown && dropdown.classList.contains('show')) {
                 // Check if click is outside the hamburger menu
                 if (!hamburgerMenu.contains(event.target)) {
-                    dropdown.classList.remove('show');
-                    btn.classList.remove('active');
+                    closeHamburgerMenu();
                 }
             }
         });
@@ -1488,13 +1496,8 @@
             // Close sidebar on mobile after selection
             if (isMobile()) {
                 closeSidebar();
-                // Also close hamburger menu if open
-                const dropdown = document.getElementById('hamburger-menu-dropdown');
-                const btn = document.querySelector('.hamburger-btn');
-                if (dropdown && btn && dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
-                    btn.classList.remove('active');
-                }
+                // Close hamburger menu after tab switch
+                closeHamburgerMenu();
             }
 
             if (tabName === 'calendar') {
