@@ -2539,7 +2539,7 @@
         }
 
         // Sort table function
-        function sortTable(column) {
+        async function sortTable(column) {
             // If clicking the same column, toggle direction; otherwise, set to ascending
             if (sortState.column === column) {
                 sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
@@ -2548,7 +2548,7 @@
                 sortState.direction = 'asc';
             }
             
-            // Update visual indicators
+            // Update visual indicators immediately
             document.querySelectorAll('.bookings-table th').forEach(th => {
                 th.classList.remove('sort-asc', 'sort-desc');
                 if (th.dataset.column === column) {
@@ -2556,8 +2556,8 @@
                 }
             });
             
-            // Re-filter and display (sorting will be applied)
-            filterAllBookings();
+            // Re-filter and display (sorting will be applied in filterAllBookings)
+            await filterAllBookings();
         }
 
         // Helper function to parse date consistently (handles Date objects, ISO strings, YYYY-MM-DD strings)
