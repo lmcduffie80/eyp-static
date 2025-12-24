@@ -1501,35 +1501,73 @@
         function filterAllBookings() {
             const bookings = getAllBookings();
             const selectedDJ = document.getElementById('booking-filter-dj').value;
+            const selectedTime = document.getElementById('booking-filter-time').value;
+            const selectedYear = document.getElementById('booking-filter-year').value;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
             // Populate DJ dropdown with unique DJs from bookings
             const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
             const djSelect = document.getElementById('booking-filter-dj');
-            const currentValue = djSelect.value;
+            const currentDJValue = djSelect.value;
             djSelect.innerHTML = '<option value="">All DJs</option>' + 
                 uniqueDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
             // Restore selected value
-            if (currentValue) {
-                djSelect.value = currentValue;
+            if (currentDJValue) {
+                djSelect.value = currentDJValue;
+            }
+
+            // Populate Year dropdown with unique years from bookings
+            const uniqueYears = [...new Set(bookings.map(b => {
+                const dateParts = b.date.split('-');
+                return dateParts[0]; // Get year from YYYY-MM-DD format
+            }).filter(y => y))].sort((a, b) => parseInt(b) - parseInt(a)); // Sort descending (newest first)
+            const yearSelect = document.getElementById('booking-filter-year');
+            const currentYearValue = yearSelect.value;
+            yearSelect.innerHTML = '<option value="">All Years</option>' + 
+                uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
+            // Restore selected value
+            if (currentYearValue) {
+                yearSelect.value = currentYearValue;
             }
 
             let filteredBookings = bookings;
             
-            // Apply status filter (from stat card click)
-            if (currentStatusFilter === 'completed') {
+            // Apply status filter (from stat card click) - only if time filter is not set
+            if (!selectedTime) {
+                if (currentStatusFilter === 'completed') {
+                    filteredBookings = filteredBookings.filter(b => {
+                        const bookingDate = new Date(b.date + 'T00:00:00');
+                        return bookingDate < today;
+                    });
+                } else if (currentStatusFilter === 'uncompleted') {
+                    filteredBookings = filteredBookings.filter(b => {
+                        const bookingDate = new Date(b.date + 'T00:00:00');
+                        return bookingDate >= today;
+                    });
+                }
+            }
+            
+            // Apply time period filter (dropdown)
+            if (selectedTime === 'past') {
                 filteredBookings = filteredBookings.filter(b => {
                     const bookingDate = new Date(b.date + 'T00:00:00');
                     return bookingDate < today;
                 });
-            } else if (currentStatusFilter === 'uncompleted') {
+            } else if (selectedTime === 'future') {
                 filteredBookings = filteredBookings.filter(b => {
                     const bookingDate = new Date(b.date + 'T00:00:00');
                     return bookingDate >= today;
                 });
             }
-            // 'all' or null shows all bookings
+            
+            // Apply year filter
+            if (selectedYear) {
+                filteredBookings = filteredBookings.filter(b => {
+                    const dateParts = b.date.split('-');
+                    return dateParts[0] === selectedYear;
+                });
+            }
             
             // Apply DJ filter (dropdown)
             if (selectedDJ) {
