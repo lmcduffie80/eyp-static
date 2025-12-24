@@ -686,15 +686,15 @@
                     </div>
                     <div class="stat-value" id="completed-projects">0</div>
                 </div>
-                <div class="stat-card" onclick="filterByStat('uncompleted')" id="stat-card-uncompleted">
+                <div class="stat-card" onclick="filterByStat('future-bookings')" id="stat-card-future-bookings">
                     <div class="stat-card-header">
                         <h3>
                             <span class="stat-icon">⏳</span>
-                            Uncompleted
+                            Future Bookings
                         </h3>
-                        <span class="stat-info-icon" title="Click to filter uncompleted projects">ℹ️</span>
+                        <span class="stat-info-icon" title="Click to filter future bookings">ℹ️</span>
                     </div>
-                    <div class="stat-value" id="uncompleted-projects">0</div>
+                    <div class="stat-value" id="future-bookings-projects">0</div>
                 </div>
                 <div class="stat-card" onclick="filterByStat('revenue')" id="stat-card-revenue">
                     <div class="stat-card-header">
@@ -2024,7 +2024,7 @@
         };
 
         // Filter state for stats cards
-        let currentStatusFilter = null; // 'all', 'completed', 'uncompleted', or null
+        let currentStatusFilter = null; // 'all', 'completed', 'future-bookings', or null
 
         // Update dashboard statistics
         function updateDashboardStats() {
@@ -2032,7 +2032,7 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Calculate completed (past dates) and uncompleted (future dates)
+            // Calculate completed (past dates) and future bookings (future dates)
             const completedBookings = bookings.filter(b => {
                 const bookingDate = new Date(b.date + 'T00:00:00');
                 return bookingDate < today;
@@ -2107,7 +2107,7 @@
             // Update stat values
             document.getElementById('total-projects').textContent = bookings.length;
             document.getElementById('completed-projects').textContent = completedBookings.length;
-            document.getElementById('uncompleted-projects').textContent = uncompletedBookings.length;
+            document.getElementById('future-bookings-projects').textContent = uncompletedBookings.length;
             document.getElementById('dj-revenue').textContent = formatCurrency(djRevenue);
             document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
             document.getElementById('blocked-dates-count').textContent = blockedDatesCount;
@@ -2214,11 +2214,11 @@
                 document.getElementById(`stat-card-${filterType}`).classList.add('active');
             }
 
-            // Update revenue stats when filter changes (especially for uncompleted)
+            // Update revenue stats when filter changes (especially for future-bookings)
             updateDashboardStats();
 
             // Clear time filter dropdown when status filter is applied
-            if (currentStatusFilter === 'uncompleted' || currentStatusFilter === 'completed') {
+            if (currentStatusFilter === 'future-bookings' || currentStatusFilter === 'completed') {
                 document.getElementById('booking-filter-time').value = '';
             }
 
@@ -2298,7 +2298,7 @@
                     const bookingDate = new Date(b.date + 'T00:00:00');
                     return bookingDate < today;
                 });
-            } else if (currentStatusFilter === 'uncompleted') {
+            } else if (currentStatusFilter === 'future-bookings') {
                 filteredBookings = filteredBookings.filter(b => {
                     const bookingDate = new Date(b.date + 'T00:00:00');
                     return bookingDate >= today;
