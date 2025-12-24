@@ -2719,15 +2719,16 @@
                         }
                         console.log(`Row ${i} date "${dateStr}" parsed to "${formattedDate}"`);
                         
-                        // Check if booking already exists (same DJ, date, and project name)
-                        const exists = existingBookings.some(b => 
-                            b.djUser === djName && 
+                        // Check if booking already exists in the current CSV import (same DJ, date, and project name within this import)
+                        // Note: We're not checking against existingBookings since we're replacing all data
+                        const exists = newBookings.some(b => 
+                            b.djUser === normalizedDJName && 
                             b.date === formattedDate && 
                             b.eventType === projectName
                         );
                         
                         if (exists) {
-                            console.log(`Row ${i} skipped: Duplicate entry (already exists)`);
+                            console.log(`Row ${i} skipped: Duplicate entry within this CSV file`);
                             skipReasons.duplicate++;
                             skippedCount++;
                             continue;
