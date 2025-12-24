@@ -2248,17 +2248,26 @@
             container.innerHTML = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
                 const djMatchName = djDisplayName; // Use display name for matching with bookings
+                // Match bookings to this DJ - case-insensitive matching
                 const djBookings = bookings.filter(b => {
-                    const bookingDJ = b.djUser || '';
-                    return bookingDJ === djDisplayName || bookingDJ === dj.username || !b.djUser;
+                    const bookingDJ = (b.djUser || '').trim();
+                    if (!bookingDJ) return false; // Don't include bookings without a DJ assigned
+                    // Case-insensitive comparison
+                    return bookingDJ.toLowerCase() === djDisplayName.toLowerCase() || 
+                           bookingDJ.toLowerCase() === (dj.username || '').toLowerCase();
                 });
                 const djBlocked = blockedDates.filter(bd => {
                     const blockedDJ = bd.djUser || '';
                     return blockedDJ === djDisplayName || blockedDJ === dj.username || !bd.djUser;
                 });
+                // Filter upcoming bookings using local date parsing to avoid timezone issues
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
                 const upcomingBookings = djBookings.filter(b => {
-                    const bookingDate = new Date(b.date + 'T00:00:00');
-                    return bookingDate >= new Date();
+                    const bookingDate = parseBookingDate(b.date);
+                    if (!bookingDate) return false;
+                    bookingDate.setHours(0, 0, 0, 0);
+                    return bookingDate >= today;
                 });
 
                 // Calculate revenue for this DJ (only DJ payout from future bookings)
