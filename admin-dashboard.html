@@ -2275,10 +2275,25 @@
                     return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 };
 
-                // Find next booking
+                // Find next booking - parse dates as local dates
                 let nextBooking = null;
                 if (upcomingBookings.length > 0) {
-                    upcomingBookings.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    upcomingBookings.sort((a, b) => {
+                        const parseLocalDate = (dateValue) => {
+                            if (!dateValue) return new Date(0);
+                            if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                const parts = dateValue.split('-');
+                                return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            }
+                            if (typeof dateValue === 'string' && dateValue.includes('T')) {
+                                const datePart = dateValue.split('T')[0];
+                                const parts = datePart.split('-');
+                                return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            }
+                            return new Date(dateValue);
+                        };
+                        return parseLocalDate(a.date) - parseLocalDate(b.date);
+                    });
                     nextBooking = upcomingBookings[0];
                 }
 
