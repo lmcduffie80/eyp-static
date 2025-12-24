@@ -1692,6 +1692,153 @@
             throw new Error('Authentication failed');
         }
 
+        // ========================================
+        // API Helper Functions
+        // ========================================
+        const API_BASE = ''; // Use relative URLs for same domain
+        const CACHE_DURATION = 30000; // 30 seconds
+        
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: response.statusText }));
+                    throw new Error(error.error || `HTTP ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', endpoint, error);
+                throw error;
+            }
+        }
+        
+        // Bookings API
+        async function apiGetBookings(djUser = null) {
+            const url = djUser ? `/api/bookings?dj_user=${encodeURIComponent(djUser)}` : '/api/bookings';
+            const result = await apiRequest(url);
+            return result.data || [];
+        }
+        
+        // Blocked Dates API
+        async function apiGetBlockedDates(djUser = null) {
+            const url = djUser ? `/api/blocked-dates?dj_user=${encodeURIComponent(djUser)}` : '/api/blocked-dates';
+            const result = await apiRequest(url);
+            return result.data || [];
+        }
+        
+        async function apiCreateBlockedDate(blockedDate) {
+            const result = await apiRequest('/api/blocked-dates', {
+                method: 'POST',
+                body: JSON.stringify(blockedDate)
+            });
+            return result.data;
+        }
+        
+        async function apiDeleteBlockedDate(id) {
+            await apiRequest(`/api/blocked-dates/${id}`, { method: 'DELETE' });
+        }
+        
+        // Reviews API
+        async function apiGetReviews(djUsername = null) {
+            const url = djUsername ? `/api/reviews?dj_username=${encodeURIComponent(djUsername)}` : '/api/reviews';
+            const result = await apiRequest(url);
+            return result.data || [];
+        }
+        
+        // Users API (for getting current user info)
+        async function apiGetUsers(userType = null) {
+            const url = userType ? `/api/users?user_type=${userType}` : '/api/users';
+            const result = await apiRequest(url);
+            return result.data || [];
+        }
+        
+        // Helper: Get all bookings for current DJ
+        let bookingsCache = null;
+        let bookingsCacheTime = null;
+        
+        async function getAllBookingsForDJ() {
+            const currentUsername = localStorage.getItem('dj_user');
+            if (!currentUsername) return [];
+            
+            // Use cache if available and recent
+            const now = Date.now();
+            if (bookingsCache && bookingsCacheTime && (now - bookingsCacheTime) < CACHE_DURATION) {
+                return bookingsCache;
+            }
+            
+            try {
+                // Get all bookings and filter for this DJ
+                const allBookings = await apiGetBookings();
+                
+                // Get DJ user info to match by firstName/lastName or username
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                if (!currentDJ) {
+                    console.warn('Current DJ user not found in database');
+                    return [];
+                }
+                
+                // Create possible names to match
+                const possibleNames = [];
+                if (currentDJ.firstName && currentDJ.lastName) {
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+                }
+                if (currentDJ.username) {
+                    possibleNames.push(currentDJ.username);
+                }
+                
+                // Filter bookings for this DJ
+                const djBookings = allBookings.filter(b => {
+                    if (!b.djUser) return false;
+                    return possibleNames.some(name => 
+                        b.djUser.toLowerCase() === name.toLowerCase()
+                    );
+                });
+                
+                // Transform to match expected format
+                const transformed = djBookings.map(b => ({
+                    id: b.id,
+                    djUser: b.djUser,
+                    clientName: b.clientName,
+                    eventType: b.eventType,
+                    date: b.date,
+                    time: b.time,
+                    location: b.location,
+                    contactEmail: b.contactEmail,
+                    contactPhone: b.contactPhone,
+                    notes: b.notes,
+                    totalRevenue: b.totalRevenue,
+                    ccPayment: b.ccPayment,
+                    payout: b.payout
+                }));
+                
+                bookingsCache = transformed;
+                bookingsCacheTime = now;
+                return transformed;
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+                // Fallback to localStorage for backward compatibility
+                const fallback = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+                return fallback.filter(b => {
+                    if (!b.djUser) return false;
+                    const currentUsername = localStorage.getItem('dj_user');
+                    return b.djUser.toLowerCase().includes(currentUsername.toLowerCase());
+                });
+            }
+        }
+
         // Set token expiry on page load (30 minutes from now)
         const tokenExpiry = Date.now() + SESSION_TIMEOUT;
         localStorage.setItem(TOKEN_EXPIRY_KEY, tokenExpiry.toString());
@@ -2338,7 +2485,7 @@
         currentCalendarDate.setDate(1); // Start at first day of month
 
         // Generate single calendar widget
-        function generateCalendar() {
+        async function generateCalendar() {
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
             
@@ -2349,32 +2496,21 @@
             if (headerElement) {
                 headerElement.textContent = `${monthNames[month]} ${year}`;
             }
-
+            
             // Get blocked dates
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]').map(b => b.date);
-            
-            // Get bookings for current DJ
             const currentUsername = localStorage.getItem('dj_user');
-            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
-            
-            // Build possible matching names
-            const possibleNames = [currentUsername];
-            if (currentDJ) {
-                if (currentDJ.firstName && currentDJ.lastName) {
-                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
-                }
-                if (currentDJ.username && currentDJ.username !== currentUsername) {
-                    possibleNames.push(currentDJ.username);
-                }
+            let blockedDates = [];
+            try {
+                const blockedDatesData = await apiGetBlockedDates(currentUsername);
+                blockedDates = blockedDatesData.map(b => b.date);
+            } catch (error) {
+                console.error('Error fetching blocked dates:', error);
+                // Fallback to localStorage
+                blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]').map(b => b.date);
             }
             
-            // Filter bookings for current DJ
-            const allBookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
-            const djBookings = allBookings.filter(b => {
-                if (!b.djUser) return false;
-                return possibleNames.includes(b.djUser);
-            });
+            // Get bookings for current DJ
+            const djBookings = await getAllBookingsForDJ();
             
             // Create a map of date to bookings for quick lookup
             const bookingsByDate = {};
@@ -2456,38 +2592,23 @@
         }
 
         // Navigate calendar months
-        function previousMonth() {
+        async function previousMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            generateCalendar();
+            await generateCalendar();
         }
 
-        function nextMonth() {
+        async function nextMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            generateCalendar();
+            await generateCalendar();
         }
 
         // Show booking details modal
-        function showBookingDetails(dateStr) {
-            const currentUsername = localStorage.getItem('dj_user');
-            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
-            
-            // Build possible matching names
-            const possibleNames = [currentUsername];
-            if (currentDJ) {
-                if (currentDJ.firstName && currentDJ.lastName) {
-                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
-                }
-                if (currentDJ.username && currentDJ.username !== currentUsername) {
-                    possibleNames.push(currentDJ.username);
-                }
-            }
-            
+        async function showBookingDetails(dateStr) {
             // Get bookings for this date
-            const allBookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+            const allBookings = await getAllBookingsForDJ();
             const bookingsForDate = allBookings.filter(b => {
-                if (!b.djUser || b.date !== dateStr) return false;
-                return possibleNames.includes(b.djUser);
+                if (!b.date || b.date !== dateStr) return false;
+                return true; // Already filtered in getAllBookingsForDJ
             });
             
             if (bookingsForDate.length === 0) return;
@@ -2714,37 +2835,12 @@
         }
 
         // Load bookings
-        function loadBookings(filter = null) {
-            // TODO: Fetch from backend API
-            // For now, use sample data
-            const bookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+        async function loadBookings(filter = null) {
+            const bookings = await getAllBookingsForDJ();
             
-            // If no bookings, create sample data
+            // If no bookings, don't create sample data (data comes from database)
             if (bookings.length === 0) {
-                const sampleBookings = [
-                    {
-                        id: 1,
-                        clientName: 'John & Jane Smith',
-                        eventType: 'Wedding',
-                        date: '2025-12-15',
-                        time: '6:00 PM - 11:00 PM',
-                        location: 'PeachBarn at TimberMill Acres, Tifton, GA',
-                        contactEmail: 'john.smith@email.com',
-                        contactPhone: '555-0123',
-                        notes: 'Outdoor ceremony, indoor reception'
-                    },
-                    {
-                        id: 2,
-                        clientName: 'Sarah & Mike Johnson',
-                        eventType: 'Corporate Event',
-                        date: '2025-11-20',
-                        time: '7:00 PM - 10:00 PM',
-                        location: 'Valdosta Conference Center',
-                        contactEmail: 'sarah.j@email.com',
-                        contactPhone: '555-0456',
-                        notes: 'Holiday party, 200 guests'
-                    }
-                ];
+                const sampleBookings = [];
                 localStorage.setItem('dj_bookings', JSON.stringify(sampleBookings));
                 displayBookings(sampleBookings, filter || 'all');
             } else {
@@ -2886,8 +2982,8 @@
             });
             event.target.classList.add('active');
 
-            const bookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
-            displayBookings(bookings, filter);
+            // Reload bookings from API
+            loadBookings(filter);
         }
 
         // Check and send reminders (2 weeks prior)
@@ -3308,8 +3404,8 @@
         }
 
         // Update dashboard statistics
-        function updateDashboardStats() {
-            const bookings = JSON.parse(localStorage.getItem('dj_bookings') || '[]');
+        async function updateDashboardStats() {
+            const bookings = await getAllBookingsForDJ();
             const currentUsername = localStorage.getItem('dj_user');
             
             // Get DJ user info to check for firstName/lastName
@@ -3415,7 +3511,7 @@
 
         // Initialize - Load dashboard by default and initial data
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeDashboard);
+            document.addEventListener('DOMContentLoaded', () => initializeDashboard());
         } else {
             initializeDashboard();
         }
