@@ -1900,10 +1900,10 @@
             });
 
             // Determine which bookings to use for revenue calculation
-            // If uncompleted filter is active, only use uncompleted bookings
-            const revenueBookings = currentStatusFilter === 'uncompleted' ? uncompletedBookings : bookings;
+            // Always use future bookings (from current date forward) for revenue
+            const revenueBookings = uncompletedBookings; // Only future bookings
 
-            // Calculate DJ revenue (sum of all payouts to DJs)
+            // Calculate DJ revenue (sum of all payouts to DJs from future bookings)
             const djRevenue = revenueBookings.reduce((sum, booking) => {
                 if (booking.payout) {
                     const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
@@ -1912,7 +1912,7 @@
                 return sum;
             }, 0);
 
-            // Calculate total revenue (use totalRevenue field if available, otherwise use payout)
+            // Calculate total revenue (use totalRevenue field if available, otherwise use payout) from future bookings
             const totalRevenue = revenueBookings.reduce((sum, booking) => {
                 // Use totalRevenue field if it exists, otherwise fall back to payout
                 const revenueSource = booking.totalRevenue || booking.payout;
