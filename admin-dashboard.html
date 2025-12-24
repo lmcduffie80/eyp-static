@@ -2694,11 +2694,38 @@
             // Date formatting helper function - formats date as mm-dd-yyyy
             function formatDateMMDDYYYY(dateStr) {
                 if (!dateStr) return '';
-                const dateParts = dateStr.split('-');
-                if (dateParts.length === 3) {
-                    return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+                
+                // Handle Date objects
+                let date;
+                if (dateStr instanceof Date) {
+                    date = dateStr;
+                } else if (typeof dateStr === 'string') {
+                    // Handle ISO format strings (e.g., "2025-04-10T00:00:00.000Z")
+                    if (dateStr.includes('T')) {
+                        date = new Date(dateStr);
+                    } else {
+                        // Handle YYYY-MM-DD format
+                        const dateParts = dateStr.split('-');
+                        if (dateParts.length === 3) {
+                            date = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+                        } else {
+                            return dateStr; // Return as-is if can't parse
+                        }
+                    }
+                } else {
+                    return dateStr; // Return as-is if not a string or Date
                 }
-                return dateStr;
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    return dateStr; // Return original if invalid
+                }
+                
+                // Format as MM-DD-YYYY
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${month}-${day}-${year}`;
             }
 
             container.innerHTML = filteredBookings.map(booking => {
