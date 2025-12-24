@@ -574,6 +574,11 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" onclick="switchTab('analytics')" id="nav-analytics">
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link">
                         <span>Files</span>
                         <span class="sidebar-nav-arrow">▼</span>
@@ -885,7 +890,8 @@
                 'djs': 'nav-djs',
                 'bookings': 'nav-bookings',
                 'calendar': 'nav-calendar',
-                'users': 'nav-users'
+                'users': 'nav-users',
+                'analytics': 'nav-analytics'
             };
             
             const navId = navMap[tabName];
@@ -910,11 +916,311 @@
                 loadAllUsers();
             } else if (tabName === 'djs') {
                 loadAllDJs();
+            } else if (tabName === 'analytics') {
+                loadAnalytics();
+            }
+        }
+
+        // Analytics Functions
+        // Initialize analytics data structure
+        function initializeAnalytics() {
+            if (!localStorage.getItem('analytics_data')) {
+                const initialData = {
+                    visits: [],
+                    pageViews: [],
+                    sessions: {},
+                    lastReset: new Date().toISOString()
+                };
+                localStorage.setItem('analytics_data', JSON.stringify(initialData));
+            }
+        }
+
+        // Track a visit (call this from your main website)
+        function trackVisit(page, referrer, userAgent, ip) {
+            initializeAnalytics();
+            const analytics = JSON.parse(localStorage.getItem('analytics_data'));
+            
+            const visit = {
+                timestamp: new Date().toISOString(),
+                page: page || 'index.html',
+                referrer: referrer || 'direct',
+                userAgent: userAgent || navigator.userAgent,
+                ip: ip || 'unknown',
+                sessionId: getOrCreateSessionId()
+            };
+
+            analytics.visits.push(visit);
+            analytics.pageViews.push({
+                page: visit.page,
+                timestamp: visit.timestamp
+            });
+
+            // Track session
+            if (!analytics.sessions[visit.sessionId]) {
+                analytics.sessions[visit.sessionId] = {
+                    startTime: visit.timestamp,
+                    pageViews: 0,
+                    pages: []
+                };
+            }
+            analytics.sessions[visit.sessionId].pageViews++;
+            analytics.sessions[visit.sessionId].pages.push(visit.page);
+            analytics.sessions[visit.sessionId].lastActivity = visit.timestamp;
+
+            localStorage.setItem('analytics_data', JSON.stringify(analytics));
+        }
+
+        // Get or create session ID
+        function getOrCreateSessionId() {
+            let sessionId = sessionStorage.getItem('analytics_session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('analytics_session_id', sessionId);
+            }
+            return sessionId;
+        }
+
+        // Load and display analytics
+        function loadAnalytics() {
+            initializeAnalytics();
+            const analytics = JSON.parse(localStorage.getItem('analytics_data'));
+            const timeRange = parseInt(document.getElementById('analytics-time-range').value);
+            const now = new Date();
+            
+            // Filter data based on time range
+            let filteredVisits = analytics.visits;
+            if (timeRange !== 'all') {
+                const cutoffDate = new Date(now.getTime() - (timeRange * 24 * 60 * 60 * 1000));
+                filteredVisits = analytics.visits.filter(v => new Date(v.timestamp) >= cutoffDate);
+            }
+
+            // Calculate metrics
+            const totalVisits = filteredVisits.length;
+            const totalPageViews = filteredVisits.length;
+            const uniqueVisitors = new Set(filteredVisits.map(v => v.ip || v.userAgent)).size;
+            
+            // Calculate average session duration
+            const sessions = Object.values(analytics.sessions);
+            let totalDuration = 0;
+            let sessionCount = 0;
+            sessions.forEach(session => {
+                if (session.lastActivity && session.startTime) {
+                    const duration = new Date(session.lastActivity) - new Date(session.startTime);
+                    totalDuration += duration;
+                    sessionCount++;
+                }
+            });
+            const avgSessionDuration = sessionCount > 0 ? Math.round(totalDuration / sessionCount / 1000 / 60) : 0;
+
+            // Update overview cards
+            document.getElementById('total-visits').textContent = totalVisits.toLocaleString();
+            document.getElementById('total-page-views').textContent = totalPageViews.toLocaleString();
+            document.getElementById('unique-visitors').textContent = uniqueVisitors.toLocaleString();
+            document.getElementById('avg-session-duration').textContent = avgSessionDuration + 'm';
+
+            // Generate visits chart
+            generateVisitsChart(filteredVisits, timeRange);
+
+            // Generate top pages
+            generateTopPages(filteredVisits);
+
+            // Generate traffic sources
+            generateTrafficSources(filteredVisits);
+
+            // Generate device types
+            generateDeviceTypes(filteredVisits);
+
+            // Generate recent activity
+            generateRecentActivity(filteredVisits.slice(-20).reverse());
+        }
+
+        // Generate visits chart
+        function generateVisitsChart(visits, timeRange) {
+            const chartContainer = document.getElementById('visits-chart');
+            const days = timeRange === 'all' ? 30 : Math.min(timeRange, 30);
+            const now = new Date();
+            
+            // Group visits by day
+            const dailyData = {};
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+                const dateKey = date.toISOString().split('T')[0];
+                dailyData[dateKey] = 0;
+            }
+
+            visits.forEach(visit => {
+                const dateKey = visit.timestamp.split('T')[0];
+                if (dailyData.hasOwnProperty(dateKey)) {
+                    dailyData[dateKey]++;
+                }
+            });
+
+            // Find max value for scaling
+            const maxVisits = Math.max(...Object.values(dailyData), 1);
+
+            // Generate chart bars
+            chartContainer.innerHTML = Object.entries(dailyData).map(([date, count]) => {
+                const height = (count / maxVisits) * 100;
+                const dateObj = new Date(date);
+                const dayLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                return `
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                        <div style="width: 100%; background: var(--accent-color); border-radius: 4px 4px 0 0; min-height: ${Math.max(height, 2)}%; margin-bottom: 0.5rem; position: relative;" title="${count} visits on ${dayLabel}">
+                            <div style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); padding: 0.25rem; background: var(--primary-color); color: white; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; margin-bottom: 0.25rem; opacity: 0; transition: opacity 0.2s;">
+                                ${count}
+                            </div>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-light); writing-mode: vertical-rl; text-orientation: mixed;">${dayLabel}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Generate top pages
+        function generateTopPages(visits) {
+            const pageCounts = {};
+            visits.forEach(visit => {
+                pageCounts[visit.page] = (pageCounts[visit.page] || 0) + 1;
+            });
+
+            const topPages = Object.entries(pageCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const container = document.getElementById('top-pages-list');
+            if (topPages.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-light);">No page views yet</p>';
+                return;
+            }
+
+            container.innerHTML = topPages.map(([page, count]) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-radius: 5px; margin-bottom: 0.5rem;">
+                    <div style="font-weight: 500;">${page}</div>
+                    <div style="color: var(--accent-color); font-weight: 700;">${count}</div>
+                </div>
+            `).join('');
+        }
+
+        // Generate traffic sources
+        function generateTrafficSources(visits) {
+            const sources = {};
+            visits.forEach(visit => {
+                const source = visit.referrer === 'direct' ? 'Direct' : 
+                              visit.referrer.includes('google') ? 'Google' :
+                              visit.referrer.includes('facebook') ? 'Facebook' :
+                              visit.referrer.includes('instagram') ? 'Instagram' :
+                              'Other';
+                sources[source] = (sources[source] || 0) + 1;
+            });
+
+            const total = visits.length;
+            const container = document.getElementById('traffic-sources-list');
+            container.innerHTML = Object.entries(sources)
+                .sort((a, b) => b[1] - a[1])
+                .map(([source, count]) => {
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                    return `
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-weight: 500;">${source}</span>
+                                <span style="color: var(--text-light);">${count} (${percentage}%)</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${percentage}%; height: 100%; background: var(--accent-color); transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        // Generate device types
+        function generateDeviceTypes(visits) {
+            const devices = { Desktop: 0, Mobile: 0, Tablet: 0 };
+            visits.forEach(visit => {
+                const ua = visit.userAgent.toLowerCase();
+                if (/tablet|ipad|playbook|silk/i.test(ua)) {
+                    devices.Tablet++;
+                } else if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(ua)) {
+                    devices.Mobile++;
+                } else {
+                    devices.Desktop++;
+                }
+            });
+
+            const total = visits.length;
+            const container = document.getElementById('device-types-list');
+            container.innerHTML = Object.entries(devices)
+                .filter(([_, count]) => count > 0)
+                .sort((a, b) => b[1] - a[1])
+                .map(([device, count]) => {
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                    return `
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-weight: 500;">${device}</span>
+                                <span style="color: var(--text-light);">${count} (${percentage}%)</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${percentage}%; height: 100%; background: var(--accent-color); transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        // Generate recent activity
+        function generateRecentActivity(visits) {
+            const container = document.getElementById('recent-activity-list');
+            if (visits.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No recent activity</p>';
+                return;
+            }
+
+            container.innerHTML = visits.map(visit => {
+                const date = new Date(visit.timestamp);
+                const timeAgo = getTimeAgo(date);
+                const pageName = visit.page.replace('.html', '').replace('index.html', 'Home');
+                
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-radius: 5px; margin-bottom: 0.5rem; border-left: 4px solid var(--accent-color);">
+                        <div>
+                            <div style="font-weight: 500; color: var(--primary-color);">${pageName}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-light);">${visit.referrer === 'direct' ? 'Direct visit' : 'From ' + new URL(visit.referrer).hostname}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.85rem; color: var(--text-light);">${date.toLocaleString()}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-light);">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Get time ago string
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + 'm ago';
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            const days = Math.floor(hours / 24);
+            return days + 'd ago';
+        }
+
+        // Clear analytics data
+        function clearAnalyticsData() {
+            if (confirm('Are you sure you want to clear all analytics data? This action cannot be undone.')) {
+                localStorage.removeItem('analytics_data');
+                initializeAnalytics();
+                loadAnalytics();
             }
         }
 
         // Initialize dashboard on load
         document.addEventListener('DOMContentLoaded', function() {
+            initializeAnalytics();
             updateDashboardStats();
             loadAllDJs();
         });
