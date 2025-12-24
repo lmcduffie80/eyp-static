@@ -1128,41 +1128,53 @@
         initializeSuperUser();
         
         // Sync existing bookings with DJ user names (normalize djUser field)
-        function syncBookingsWithDJUsers() {
-            const bookings = getAllBookings();
-            const djs = getAllDJs();
-            let updated = false;
-            
-            const updatedBookings = bookings.map(booking => {
-                if (!booking.djUser) return booking;
+        async function syncBookingsWithDJUsers() {
+            try {
+                const bookings = await getAllBookings();
+                const djs = await getAllDJs();
+                let updatedCount = 0;
                 
-                // Try to find matching DJ user
-                const matchingDJ = djs.find(dj => {
-                    const djFullName = dj.firstName && dj.lastName ? `${dj.firstName} ${dj.lastName}` : dj.username;
-                    // Case-insensitive match
-                    return djFullName.toLowerCase() === booking.djUser.toLowerCase().trim() ||
-                           dj.username.toLowerCase() === booking.djUser.toLowerCase().trim() ||
-                           (dj.firstName && dj.firstName.toLowerCase() === booking.djUser.toLowerCase().trim()) ||
-                           (dj.lastName && dj.lastName.toLowerCase() === booking.djUser.toLowerCase().trim());
-                });
-                
-                if (matchingDJ) {
-                    const normalizedName = matchingDJ.firstName && matchingDJ.lastName 
-                        ? `${matchingDJ.firstName} ${matchingDJ.lastName}` 
-                        : matchingDJ.username;
+                for (const booking of bookings) {
+                    if (!booking.djUser) continue;
                     
-                    if (booking.djUser !== normalizedName) {
-                        updated = true;
-                        return { ...booking, djUser: normalizedName };
+                    // Try to find matching DJ user
+                    const matchingDJ = djs.find(dj => {
+                        const djFullName = dj.firstName && dj.lastName ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                        // Case-insensitive match
+                        return djFullName.toLowerCase() === booking.djUser.toLowerCase().trim() ||
+                               dj.username.toLowerCase() === booking.djUser.toLowerCase().trim() ||
+                               (dj.firstName && dj.firstName.toLowerCase() === booking.djUser.toLowerCase().trim()) ||
+                               (dj.lastName && dj.lastName.toLowerCase() === booking.djUser.toLowerCase().trim());
+                    });
+                    
+                    if (matchingDJ) {
+                        const normalizedName = matchingDJ.firstName && matchingDJ.lastName 
+                            ? `${matchingDJ.firstName} ${matchingDJ.lastName}` 
+                            : matchingDJ.username;
+                        
+                        if (booking.djUser !== normalizedName) {
+                            // Update booking via API
+                            try {
+                                await apiUpdateBooking(booking.id, {
+                                    ...booking,
+                                    djUser: normalizedName
+                                });
+                                updatedCount++;
+                            } catch (error) {
+                                console.warn('Error updating booking during sync:', error);
+                            }
+                        }
                     }
                 }
                 
-                return booking;
-            });
-            
-            if (updated) {
-                localStorage.setItem('dj_bookings', JSON.stringify(updatedBookings));
-                console.log('Synced bookings with DJ user names');
+                if (updatedCount > 0) {
+                    // Clear cache to force refresh
+                    bookingsCache = null;
+                    bookingsCacheTime = null;
+                    console.log(`Synced ${updatedCount} booking(s) with DJ user names`);
+                }
+            } catch (error) {
+                console.error('Error syncing bookings with DJ users:', error);
             }
         }
         
