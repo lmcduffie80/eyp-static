@@ -59,6 +59,37 @@
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
             z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-right: 1rem;
+        }
+
+        .mobile-menu-btn:hover {
+            opacity: 0.8;
         }
 
         .sidebar-nav {
@@ -608,9 +639,15 @@
             </ul>
         </nav>
 
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
         <!-- Main Content Area -->
         <div class="main-content">
             <div class="dashboard-header">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    ☰
+                </button>
                 <h1 style="margin: 0; display: flex; align-items: center; gap: 1rem;">
                     <span>Admin Dashboard</span>
                     <span id="welcome-message" style="font-size: 1rem; font-weight: 400;">Welcome</span>
@@ -994,6 +1031,30 @@
         const firstName = adminUser.split(' ')[0]; // Get first word (first name)
         document.getElementById('welcome-message').textContent = `Welcome, ${firstName}`;
 
+        // Sidebar toggle functions for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('show');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+        }
+
+        // Check if we're on mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
         // Tab switching
         function switchTab(tabName) {
             // Update sidebar navigation
@@ -1023,6 +1084,11 @@
                 content.classList.remove('active');
             });
             document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Close sidebar on mobile after selection
+            if (isMobile()) {
+                closeSidebar();
+            }
 
             if (tabName === 'calendar') {
                 generateMasterCalendar();
