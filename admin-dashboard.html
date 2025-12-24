@@ -2650,7 +2650,7 @@
                     }
                     
                     // Parse data rows (skip first 5 data rows, start at row 6)
-                    const existingBookings = getAllBookings();
+                    // Note: We will replace all existing bookings with the new CSV data
                     const newBookings = [];
                     let importedCount = 0;
                     let skippedCount = 0;
