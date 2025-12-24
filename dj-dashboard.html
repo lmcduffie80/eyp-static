@@ -1894,7 +1894,34 @@
         // Date formatting helper function - formats date as mm-dd-yyyy
         function formatDateMMDDYYYY(date) {
             if (!date) return '';
-            const dateObj = date instanceof Date ? date : new Date(date);
+            
+            let dateObj;
+            if (date instanceof Date) {
+                dateObj = date;
+            } else if (typeof date === 'string') {
+                // Handle YYYY-MM-DD format - parse as local date to avoid timezone issues
+                if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = date.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                    const day = parseInt(parts[2], 10);
+                    dateObj = new Date(year, month, day); // Creates local date (no timezone shift)
+                } else if (date.includes('T')) {
+                    // Handle ISO format - extract date part and parse as local
+                    const datePart = date.split('T')[0];
+                    const parts = datePart.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    dateObj = new Date(year, month, day); // Creates local date
+                } else {
+                    // Try to parse as-is (fallback)
+                    dateObj = new Date(date);
+                }
+            } else {
+                dateObj = new Date(date);
+            }
+            
             if (isNaN(dateObj.getTime())) return '';
             
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
