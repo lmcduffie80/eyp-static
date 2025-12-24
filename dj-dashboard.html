@@ -3253,7 +3253,15 @@
             twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
 
             bookings.forEach(booking => {
-                const bookingDate = new Date(booking.date);
+                // Parse date as local date to avoid timezone issues
+                let bookingDate;
+                if (typeof booking.date === 'string' && booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = booking.date.split('-');
+                    bookingDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                } else {
+                    bookingDate = new Date(booking.date);
+                }
+                bookingDate.setHours(0, 0, 0, 0);
                 const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
 
                 // If booking is exactly 14 days away and reminder hasn't been sent
@@ -3316,8 +3324,18 @@
                 return;
             }
             
-            // Sort reviews by date (newest first)
-            reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Sort reviews by date (newest first) - parse as local dates
+            reviews.sort((a, b) => {
+                const parseLocalDate = (dateValue) => {
+                    if (!dateValue) return new Date(0);
+                    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = dateValue.split('-');
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    }
+                    return new Date(dateValue);
+                };
+                return parseLocalDate(b.date) - parseLocalDate(a.date);
+            });
             
             container.innerHTML = reviews.map(review => {
                 // Parse date string to avoid timezone issues
@@ -3745,10 +3763,16 @@
                 bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate >= today;
             }).sort((a, b) => {
-                // Sort by date ascending
-                const dateA = new Date(a.date);
-                const dateB = new Date(b.date);
-                return dateA - dateB;
+                // Sort by date ascending - parse as local dates to avoid timezone issues
+                const parseLocalDate = (dateValue) => {
+                    if (!dateValue) return new Date(0);
+                    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = dateValue.split('-');
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    }
+                    return new Date(dateValue);
+                };
+                return parseLocalDate(a.date) - parseLocalDate(b.date);
             });
             
             const nextBookingElement = document.getElementById('next-booking-stat');
