@@ -2331,12 +2331,16 @@
 
             // Calculate completed (past dates) and future bookings (future dates)
             const completedBookings = bookings.filter(b => {
-                const bookingDate = new Date(b.date + 'T00:00:00');
+                const bookingDate = parseBookingDate(b.date);
+                if (!bookingDate) return false;
+                bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate < today;
             });
 
             const uncompletedBookings = bookings.filter(b => {
-                const bookingDate = new Date(b.date + 'T00:00:00');
+                const bookingDate = parseBookingDate(b.date);
+                if (!bookingDate) return false;
+                bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate >= today;
             });
 
@@ -2367,7 +2371,9 @@
             // Calculate 2025 revenue
             const revenue2025 = bookings.reduce((sum, booking) => {
                 if (!booking.date) return sum;
-                const bookingYear = new Date(booking.date + 'T00:00:00').getFullYear();
+                const bookingDate = parseBookingDate(booking.date);
+                if (!bookingDate) return sum;
+                const bookingYear = bookingDate.getFullYear();
                 if (bookingYear === 2025) {
                     const revenueSource = booking.totalRevenue || booking.payout;
                     if (revenueSource) {
@@ -2381,7 +2387,9 @@
             // Calculate 2026 revenue
             const revenue2026 = bookings.reduce((sum, booking) => {
                 if (!booking.date) return sum;
-                const bookingYear = new Date(booking.date + 'T00:00:00').getFullYear();
+                const bookingDate = parseBookingDate(booking.date);
+                if (!bookingDate) return sum;
+                const bookingYear = bookingDate.getFullYear();
                 if (bookingYear === 2026) {
                     const revenueSource = booking.totalRevenue || booking.payout;
                     if (revenueSource) {
@@ -2398,7 +2406,7 @@
             }
 
             // Get blocked dates count
-            const blockedDates = getAllBlockedDates();
+            const blockedDates = await getAllBlockedDates();
             const blockedDatesCount = blockedDates.length;
 
             // Update stat values
