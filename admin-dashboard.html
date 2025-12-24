@@ -2761,21 +2761,6 @@
                         }
                         console.log(`Row ${i} date "${dateStr}" parsed to "${formattedDate}"`);
                         
-                        // Check if booking already exists in the current CSV import (same DJ, date, and project name within this import)
-                        // Note: We're not checking against existingBookings since we're replacing all data
-                        const exists = newBookings.some(b => 
-                            b.djUser === normalizedDJName && 
-                            b.date === formattedDate && 
-                            b.eventType === projectName
-                        );
-                        
-                        if (exists) {
-                            console.log(`Row ${i} skipped: Duplicate entry within this CSV file`);
-                            skipReasons.duplicate++;
-                            skippedCount++;
-                            continue;
-                        }
-                        
                         // Normalize DJ name to match user format (firstName + lastName)
                         // Try to match DJ name from CSV to existing DJ users
                         const allDJs = getAllDJs();
@@ -2796,6 +2781,21 @@
                             normalizedDJName = matchingDJ.firstName && matchingDJ.lastName 
                                 ? `${matchingDJ.firstName} ${matchingDJ.lastName}` 
                                 : matchingDJ.username;
+                        }
+                        
+                        // Check if booking already exists in the current CSV import (same DJ, date, and project name within this import)
+                        // Note: We're not checking against existingBookings since we're replacing all data
+                        const exists = newBookings.some(b => 
+                            b.djUser === normalizedDJName && 
+                            b.date === formattedDate && 
+                            b.eventType === projectName
+                        );
+                        
+                        if (exists) {
+                            console.log(`Row ${i} skipped: Duplicate entry within this CSV file`);
+                            skipReasons.duplicate++;
+                            skippedCount++;
+                            continue;
                         }
                         
                         // Create booking object
