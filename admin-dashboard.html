@@ -948,6 +948,11 @@
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Last Name</label>
                             <input type="text" id="new-lastname" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                         </div>
+                        <div id="username-field-container">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
+                            <input type="text" id="new-username" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <small id="username-hint" style="display: none; margin-top: 0.25rem; color: var(--text-light); font-size: 0.85rem;">For admin users, username is the same as first name</small>
+                        </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
                             <input type="email" id="new-email" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
@@ -1593,10 +1598,19 @@
                         return;
                     }
 
-                    // Check if name or email is changed and conflicts with another user
+                    // Check if name, username, or email is changed and conflicts with another user
                     const currentDJ = djs[userIndex];
                     const originalFirstName = currentDJ.firstName || (originalUsername.includes('|') ? originalUsername.split('|')[0] : '');
                     const originalLastName = currentDJ.lastName || (originalUsername.includes('|') ? originalUsername.split('|')[1] : '');
+                    const originalUsernameValue = currentDJ.username || '';
+                    
+                    // Check username uniqueness if changed
+                    if (username !== originalUsernameValue) {
+                        if (djs.find(u => u.username === username && u !== currentDJ)) {
+                            showMessage('Username already exists.', 'error');
+                            return;
+                        }
+                    }
                     
                     if ((firstName.toLowerCase() !== originalFirstName.toLowerCase() || 
                          lastName.toLowerCase() !== originalLastName.toLowerCase()) || 
@@ -1616,10 +1630,9 @@
                     // Update DJ user
                     djs[userIndex].firstName = firstName;
                     djs[userIndex].lastName = lastName;
+                    djs[userIndex].username = username;
                     djs[userIndex].email = email;
                     djs[userIndex].phone = phone || '';
-                    // Keep username for backward compatibility (set to full name)
-                    djs[userIndex].username = `${firstName} ${lastName}`;
                     if (password) {
                         djs[userIndex].password = password; // Should be hashed in production
                     }
@@ -1670,6 +1683,11 @@
                         showMessage('A DJ with this first and last name already exists.', 'error');
                         return;
                     }
+                    // Check if username already exists
+                    if (djs.find(u => u.username === username)) {
+                        showMessage('Username already exists.', 'error');
+                        return;
+                    }
                     if (djs.find(u => u.email === email)) {
                         showMessage('Email already exists.', 'error');
                         return;
@@ -1679,7 +1697,7 @@
                     const newDJ = {
                         firstName: firstName,
                         lastName: lastName,
-                        username: `${firstName} ${lastName}`, // Keep for backward compatibility
+                        username: username,
                         email: email,
                         phone: phone || '',
                         password: password, // Should be hashed in production
@@ -1687,7 +1705,7 @@
                     };
                     djs.push(newDJ);
                     localStorage.setItem('dj_users', JSON.stringify(djs));
-                    showMessage(`DJ user "${firstName} ${lastName}" created successfully!`, 'success');
+                    showMessage(`DJ user "${username}" created successfully!`, 'success');
                 } else {
                     const admins = getAllAdmins();
                     // For admins, use firstName as username
@@ -1793,6 +1811,13 @@
             document.getElementById('submit-user-button').style.background = 'var(--accent-color)';
             document.getElementById('cancel-edit-button').style.display = 'none';
             document.getElementById('new-user-type').disabled = false;
+            
+            // Reset username field
+            const usernameInput = document.getElementById('new-username');
+            const usernameHint = document.getElementById('username-hint');
+            usernameInput.readOnly = false;
+            usernameInput.style.background = 'white';
+            usernameHint.style.display = 'none';
         }
 
         function showMessage(message, type) {
