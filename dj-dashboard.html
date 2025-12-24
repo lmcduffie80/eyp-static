@@ -1146,11 +1146,6 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a class="sidebar-nav-link" onclick="showSection('calendar')" id="nav-calendar">
-                        <span>Calendar</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="showSection('projects')" id="nav-projects">
                         <span>Projects</span>
                     </a>
@@ -2656,7 +2651,7 @@
         // Section navigation function
         function showSection(sectionName) {
             // Hide all sections
-            const sections = ['dashboard', 'calendar', 'projects', 'reviews'];
+            const sections = ['dashboard', 'projects', 'reviews'];
             sections.forEach(sec => {
                 const section = document.getElementById(`${sec}-section`);
                 if (section) {
@@ -2693,9 +2688,6 @@
                 updateDashboardStats();
                 generateCalendar();
                 displayBlockedDates();
-            } else if (sectionName === 'calendar') {
-                if (typeof generateCalendarPage === 'function') generateCalendarPage();
-                if (typeof displayBlockedDatesPage === 'function') displayBlockedDatesPage();
             } else if (sectionName === 'projects') {
                 if (typeof loadBookings === 'function') loadBookings();
             } else if (sectionName === 'reviews') {
