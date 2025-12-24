@@ -2752,29 +2752,34 @@
             const totalBookings = upcomingBookingsForStats.length;
             document.getElementById('total-bookings-stat').textContent = totalBookings;
             
-            // Calculate total revenue and previous year revenue
-            // Use same calculation method as admin dashboard (totalRevenue field if available, otherwise payout)
+            // Calculate total revenue (only DJ payout from upcoming bookings) and previous year revenue
+            // Only use payout field for upcoming bookings
             let totalRevenue = 0;
             let previousYearRevenue = 0;
             const currentYear = new Date().getFullYear();
             const previousYear = currentYear - 1;
             
-            djBookings.forEach(booking => {
-                // Use totalRevenue field if it exists, otherwise fall back to payout (matching admin dashboard logic)
-                const revenueSource = booking.totalRevenue || booking.payout;
-                if (revenueSource) {
+            // Only calculate revenue from upcoming bookings using payout field
+            upcomingBookingsForStats.forEach(booking => {
+                // Only use payout field for DJ revenue (not totalRevenue)
+                if (booking.payout) {
                     // Remove $ and commas, convert to number
-                    const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
-                    const revenueAmount = parseFloat(revenueValue) || 0;
-                    totalRevenue += revenueAmount;
-                    
-                    // Check if booking is from previous year
-                    if (booking.date) {
-                        const dateParts = booking.date.split('-');
-                        const bookingYear = parseInt(dateParts[0], 10);
-                        if (bookingYear === previousYear) {
-                            previousYearRevenue += revenueAmount;
-                        }
+                    const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                    const payoutAmount = parseFloat(payoutValue) || 0;
+                    totalRevenue += payoutAmount;
+                }
+            });
+            
+            // Calculate previous year revenue from all bookings (past bookings are fine for historical data)
+            djBookings.forEach(booking => {
+                // Check if booking is from previous year
+                if (booking.date && booking.payout) {
+                    const dateParts = booking.date.split('-');
+                    const bookingYear = parseInt(dateParts[0], 10);
+                    if (bookingYear === previousYear) {
+                        const payoutValue = String(booking.payout).replace(/[$,]/g, '').trim();
+                        const payoutAmount = parseFloat(payoutValue) || 0;
+                        previousYearRevenue += payoutAmount;
                     }
                 }
             });
