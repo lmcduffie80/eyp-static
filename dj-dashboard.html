@@ -2245,73 +2245,133 @@
         loadDJUserInfo();
 
         // Display blocked dates
-        function displayBlockedDates() {
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
+        async function displayBlockedDates() {
             const container = document.getElementById('blocked-dates-container');
+            
+            try {
+                const currentUsername = localStorage.getItem('dj_user');
+                // Get current DJ user info to match by full name
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                    : currentUsername;
+                
+                // Fetch all blocked dates and filter by DJ name
+                const allBlockedDates = await apiGetBlockedDates();
+                const blockedDates = allBlockedDates.filter(bd => 
+                    bd.djUser === djFullName || bd.djUser === currentUsername
+                );
 
-            if (blockedDates.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No dates blocked</p></div>';
-                return;
+                if (blockedDates.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No dates blocked</p></div>';
+                    return;
+                }
+
+                container.innerHTML = blockedDates.map(item => {
+                    // Normalize date to YYYY-MM-DD format
+                    let dateStr = item.date;
+                    if (dateStr && typeof dateStr === 'string') {
+                        if (dateStr.includes('T')) {
+                            dateStr = dateStr.split('T')[0];
+                        }
+                    }
+                    
+                    // Parse date string to avoid timezone issues
+                    const dateParts = dateStr.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1;
+                    const day = parseInt(dateParts[2], 10);
+                    const dateObj = new Date(year, month, day);
+                    const formattedDate = formatDateMMDDYYYY(dateObj);
+                    // Sanitize date and reason to prevent XSS
+                    const safeDate = escapeHtml(dateStr);
+                    const safeFormattedDate = escapeHtml(formattedDate);
+                    const safeReason = item.reason ? escapeHtml(item.reason) : '';
+                    return `
+                        <div class="blocked-date-item">
+                            <div class="blocked-date-info">
+                                <span class="date-badge">${safeFormattedDate}</span>
+                                ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
+                            </div>
+                            <div class="blocked-date-actions">
+                                <button class="btn btn-secondary" onclick="editBlockedDate('${safeDate}')">Edit</button>
+                                <button class="btn btn-danger" onclick="openDeleteBlockedDateConfirmModal('${safeDate}')">Remove</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error displaying blocked dates:', error);
+                container.innerHTML = '<div class="empty-state"><p>Error loading blocked dates</p></div>';
             }
+        }
 
-            container.innerHTML = blockedDates.map(item => {
-                // Parse date string to avoid timezone issues
-                const dateParts = item.date.split('-');
+        // Open edit blocked date modal
+        async function openEditBlockedDateModal(date) {
+            try {
+                // Get current DJ user info to find blocked date
+                const currentUsername = localStorage.getItem('dj_user');
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                    : currentUsername;
+                
+                // Fetch all blocked dates to find the one to edit
+                const allBlockedDates = await apiGetBlockedDates();
+                const blockedDate = allBlockedDates.find(bd => {
+                    // Normalize date for comparison
+                    let bdDate = bd.date;
+                    if (bdDate && typeof bdDate === 'string' && bdDate.includes('T')) {
+                        bdDate = bdDate.split('T')[0];
+                    }
+                    return (bd.djUser === djFullName || bd.djUser === currentUsername) && bdDate === date;
+                });
+                
+                if (!blockedDate) {
+                    alert('Blocked date not found.');
+                    return;
+                }
+
+                // Parse and format date for display
+                let dateStr = blockedDate.date;
+                if (dateStr && typeof dateStr === 'string' && dateStr.includes('T')) {
+                    dateStr = dateStr.split('T')[0];
+                }
+                const dateParts = dateStr.split('-');
                 const year = parseInt(dateParts[0], 10);
                 const month = parseInt(dateParts[1], 10) - 1;
                 const day = parseInt(dateParts[2], 10);
                 const dateObj = new Date(year, month, day);
                 const formattedDate = formatDateMMDDYYYY(dateObj);
-                // Sanitize date and reason to prevent XSS
-                const safeDate = escapeHtml(item.date);
-                const safeFormattedDate = escapeHtml(formattedDate);
-                const safeReason = item.reason ? escapeHtml(item.reason) : '';
-                return `
-                    <div class="blocked-date-item">
-                        <div class="blocked-date-info">
-                            <span class="date-badge">${safeFormattedDate}</span>
-                            ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
-                        </div>
-                        <div class="blocked-date-actions">
-                            <button class="btn btn-secondary" onclick="editBlockedDate('${safeDate}')">Edit</button>
-                            <button class="btn btn-danger" onclick="openDeleteBlockedDateConfirmModal('${safeDate}')">Remove</button>
-                        </div>
+
+                const modal = document.getElementById('blocked-date-modal');
+                const title = document.getElementById('blocked-date-modal-title');
+                const content = document.getElementById('blocked-date-modal-content');
+
+                title.textContent = 'Edit Blocked Date';
+                content.innerHTML = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">Date: ${escapeHtml(formattedDate)}</div>
+                        <label for="edit-reason" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">Reason:</label>
+                        <textarea id="edit-reason" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Enter reason (optional)">${escapeHtml(blockedDate.reason || '')}</textarea>
+                        <input type="hidden" id="edit-blocked-date-id" value="${blockedDate.id}">
+                        <input type="hidden" id="edit-blocked-date-dj-user" value="${escapeHtml(blockedDate.djUser || djFullName)}">
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button onclick="closeBlockedDateModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Cancel</button>
+                        <button onclick="saveEditedBlockedDate('${escapeHtml(dateStr)}')" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Save Changes</button>
                     </div>
                 `;
-            }).join('');
-        }
-
-        // Open edit blocked date modal
-        function openEditBlockedDateModal(date) {
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
-            const blockedDate = blockedDates.find(item => item.date === date);
-            
-            if (!blockedDate) return;
-
-            // Parse and format date for display
-            const dateParts = blockedDate.date.split('-');
-            const year = parseInt(dateParts[0], 10);
-            const month = parseInt(dateParts[1], 10) - 1;
-            const day = parseInt(dateParts[2], 10);
-            const dateObj = new Date(year, month, day);
-            const formattedDate = formatDateMMDDYYYY(dateObj);
-
-            const modal = document.getElementById('blocked-date-modal');
-            const title = document.getElementById('blocked-date-modal-title');
-            const content = document.getElementById('blocked-date-modal-content');
-
-            title.textContent = 'Edit Blocked Date';
-            content.innerHTML = `
-                <div style="margin-bottom: 1.5rem;">
-                    <div style="font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">Date: ${escapeHtml(formattedDate)}</div>
-                    <label for="edit-reason" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">Reason:</label>
-                    <textarea id="edit-reason" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Enter reason (optional)">${escapeHtml(blockedDate.reason || '')}</textarea>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                    <button onclick="closeBlockedDateModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Cancel</button>
-                    <button onclick="saveEditedBlockedDate('${escapeHtml(blockedDate.date)}')" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Save Changes</button>
-                </div>
-            `;
 
             modal.style.display = 'flex';
         }
@@ -2360,7 +2420,7 @@
         }
 
         // Save edited blocked date
-        function saveEditedBlockedDate(date) {
+        async function saveEditedBlockedDate(date) {
             // Validate token before allowing action
             if (!validateToken()) {
                 return;
@@ -2368,36 +2428,42 @@
 
             const reasonInput = document.getElementById('edit-reason');
             const newReason = reasonInput ? reasonInput.value.trim() : '';
-
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
-            const blockedDateIndex = blockedDates.findIndex(item => item.date === date);
-            
-            if (blockedDateIndex === -1) {
-                alert('Blocked date not found.');
-                closeBlockedDateModal();
-                return;
-            }
+            const blockedDateId = document.getElementById('edit-blocked-date-id')?.value;
+            const djUser = document.getElementById('edit-blocked-date-dj-user')?.value;
 
             // Sanitize reason
-            const sanitizedReason = newReason.replace(/[<>]/g, '') || 'No reason provided';
+            const sanitizedReason = newReason.replace(/[<>]/g, '') || null;
 
-            // Update the blocked date
-            blockedDates[blockedDateIndex] = {
-                ...blockedDates[blockedDateIndex],
-                reason: sanitizedReason,
-                blockedAt: new Date().toISOString()
-            };
+            try {
+                if (!blockedDateId) {
+                    alert('Blocked date ID not found.');
+                    closeBlockedDateModal();
+                    return;
+                }
 
-            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
-            
-            logSecurityEvent('edit_blocked_date', { date: date, reason: sanitizedReason });
+                // Delete the old blocked date and create a new one with updated reason
+                // (Since there's no PUT endpoint, we delete and recreate)
+                await apiDeleteBlockedDate(blockedDateId);
+                
+                // Recreate with updated reason
+                await apiCreateBlockedDate({
+                    djUser: djUser,
+                    date: date,
+                    reason: sanitizedReason,
+                    blockedBy: localStorage.getItem('dj_user') || djUser
+                });
+                
+                logSecurityEvent('edit_blocked_date', { date: date, reason: sanitizedReason });
 
-            // Refresh display and calendars
-            displayBlockedDates();
-            displayBlockedDatesPage();
-            generateCalendar();
-            generateCalendarPage();
-            closeBlockedDateModal();
+                // Close modal and refresh
+                closeBlockedDateModal();
+                
+                // Refresh entire page to show updated blocked dates
+                window.location.reload();
+            } catch (error) {
+                console.error('Error saving edited blocked date:', error);
+                alert(`Failed to update blocked date: ${error.message || 'Unknown error'}. Please try again.`);
+            }
         }
 
         // Confirm and delete blocked date (redirects to confirmation modal)
@@ -2407,46 +2473,75 @@
         }
 
         // Open delete blocked date confirmation modal
-        function openDeleteBlockedDateConfirmModal(date) {
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
-            const blockedDate = blockedDates.find(bd => bd.date === date);
-            
-            if (!blockedDate) {
-                showBlockDateMessage('Blocked date not found.', 'error');
-                return;
+        async function openDeleteBlockedDateConfirmModal(date) {
+            try {
+                // Get current DJ user info to find blocked date
+                const currentUsername = localStorage.getItem('dj_user');
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                    : currentUsername;
+                
+                // Fetch all blocked dates to find the one to delete
+                const allBlockedDates = await apiGetBlockedDates();
+                const blockedDate = allBlockedDates.find(bd => {
+                    // Normalize date for comparison
+                    let bdDate = bd.date;
+                    if (bdDate && typeof bdDate === 'string' && bdDate.includes('T')) {
+                        bdDate = bdDate.split('T')[0];
+                    }
+                    return (bd.djUser === djFullName || bd.djUser === currentUsername) && bdDate === date;
+                });
+                
+                if (!blockedDate) {
+                    showBlockDateMessage('Blocked date not found.', 'error');
+                    return;
+                }
+                
+                // Format date for display
+                let dateStr = blockedDate.date;
+                if (dateStr && typeof dateStr === 'string' && dateStr.includes('T')) {
+                    dateStr = dateStr.split('T')[0];
+                }
+                const dateParts = dateStr.split('-');
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                const dateObj = new Date(year, month, day);
+                const formattedDate = formatDateMMDDYYYY(dateObj);
+                
+                const modal = document.getElementById('block-date-confirm-modal');
+                const content = document.getElementById('block-date-confirm-content');
+                
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="margin-bottom: 1rem; display: flex; justify-content: center; align-items: center;">
+                            <img src="EYP Logo_New.png" alt="EYP Logo" style="max-width: 180px; max-height: 96px; width: auto; height: auto;">
+                        </div>
+                        <div style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 500;">
+                            Are you sure you want to remove this blocked date?
+                        </div>
+                        <div style="font-weight: 600; color: var(--primary-color); font-size: 1.2rem; margin-bottom: 1rem;">
+                            ${escapeHtml(formattedDate)}
+                        </div>
+                        ${blockedDate.reason ? `<div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">Reason: ${escapeHtml(blockedDate.reason)}</div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-direction: row;">
+                        <button onclick="confirmUnblockDate('${escapeHtml(date)}')" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">Remove</button>
+                        <button onclick="closeBlockDateConfirmModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            } catch (error) {
+                console.error('Error opening delete blocked date modal:', error);
+                showBlockDateMessage('Error loading blocked date information.', 'error');
             }
-            
-            // Format date for display
-            const dateParts = date.split('-');
-            const year = parseInt(dateParts[0], 10);
-            const month = parseInt(dateParts[1], 10) - 1;
-            const day = parseInt(dateParts[2], 10);
-            const dateObj = new Date(year, month, day);
-            const formattedDate = formatDateMMDDYYYY(dateObj);
-            
-            const modal = document.getElementById('block-date-confirm-modal');
-            const content = document.getElementById('block-date-confirm-content');
-            
-            content.innerHTML = `
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="margin-bottom: 1rem; display: flex; justify-content: center; align-items: center;">
-                        <img src="EYP Logo_New.png" alt="EYP Logo" style="max-width: 180px; max-height: 96px; width: auto; height: auto;">
-                    </div>
-                    <div style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 500;">
-                        Are you sure you want to remove this blocked date?
-                    </div>
-                    <div style="font-weight: 600; color: var(--primary-color); font-size: 1.2rem; margin-bottom: 1rem;">
-                        ${escapeHtml(formattedDate)}
-                    </div>
-                    ${blockedDate.reason ? `<div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">Reason: ${escapeHtml(blockedDate.reason)}</div>` : ''}
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: center; flex-direction: row;">
-                    <button onclick="confirmUnblockDate('${escapeHtml(date)}')" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">Remove</button>
-                    <button onclick="closeBlockDateConfirmModal()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
-                </div>
-            `;
-            
-            modal.style.display = 'flex';
         }
 
         // Confirm and remove blocked date
@@ -2455,7 +2550,7 @@
         }
 
         // Remove blocked date - Enhanced with security
-        function unblockDate(date) {
+        async function unblockDate(date) {
             // Validate token before allowing action
             if (!validateToken()) {
                 return;
@@ -2467,17 +2562,49 @@
                 return;
             }
 
-            const blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]');
-            const filtered = blockedDates.filter(item => item.date !== date);
-            localStorage.setItem('blocked_dates', JSON.stringify(filtered));
-            
-            logSecurityEvent('unblock_date', { date: date });
-            
-            // Close modal first
-            closeBlockDateConfirmModal();
-            
-            // Refresh entire page
-            window.location.reload();
+            try {
+                // Get current DJ user info to find blocked date
+                const currentUsername = localStorage.getItem('dj_user');
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                    : currentUsername;
+                
+                // Fetch all blocked dates to find the one to delete
+                const allBlockedDates = await apiGetBlockedDates();
+                const blockedDateToDelete = allBlockedDates.find(bd => {
+                    // Normalize date for comparison
+                    let bdDate = bd.date;
+                    if (bdDate && typeof bdDate === 'string' && bdDate.includes('T')) {
+                        bdDate = bdDate.split('T')[0];
+                    }
+                    return (bd.djUser === djFullName || bd.djUser === currentUsername) && bdDate === date;
+                });
+                
+                if (!blockedDateToDelete || !blockedDateToDelete.id) {
+                    alert('Blocked date not found.');
+                    return;
+                }
+                
+                // Delete via API
+                await apiDeleteBlockedDate(blockedDateToDelete.id);
+                
+                logSecurityEvent('unblock_date', { date: date });
+                
+                // Close modal first
+                closeBlockDateConfirmModal();
+                
+                // Refresh entire page
+                window.location.reload();
+            } catch (error) {
+                console.error('Error unblocking date:', error);
+                alert(`Failed to unblock date: ${error.message || 'Unknown error'}. Please try again.`);
+            }
         }
 
         // Calendar state
@@ -2497,16 +2624,41 @@
                 headerElement.textContent = `${monthNames[month]} ${year}`;
             }
             
-            // Get blocked dates
+            // Get blocked dates - fetch all and filter by current DJ's name
             const currentUsername = localStorage.getItem('dj_user');
             let blockedDates = [];
             try {
-                const blockedDatesData = await apiGetBlockedDates(currentUsername);
-                blockedDates = blockedDatesData.map(b => b.date);
+                // Get current DJ user info to match by full name
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                    : currentUsername;
+                
+                // Fetch all blocked dates and filter by DJ name
+                const allBlockedDates = await apiGetBlockedDates();
+                const djBlockedDates = allBlockedDates.filter(bd => 
+                    bd.djUser === djFullName || bd.djUser === currentUsername
+                );
+                
+                // Normalize dates to YYYY-MM-DD format for comparison
+                blockedDates = djBlockedDates.map(bd => {
+                    let dateStr = bd.date;
+                    if (dateStr && typeof dateStr === 'string') {
+                        // If it's an ISO string, extract just the date part
+                        if (dateStr.includes('T')) {
+                            return dateStr.split('T')[0];
+                        }
+                    }
+                    return dateStr;
+                }).filter(d => d);
             } catch (error) {
                 console.error('Error fetching blocked dates:', error);
-                // Fallback to localStorage
-                blockedDates = JSON.parse(localStorage.getItem('blocked_dates') || '[]').map(b => b.date);
+                blockedDates = [];
             }
             
             // Get bookings for current DJ
