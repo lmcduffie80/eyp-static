@@ -547,9 +547,30 @@
                 padding: 0.5rem;
             }
         }
-    </style>
-</head>
-<body>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        </style>
+    </head>
+    <body>
     <div class="dashboard-wrapper">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
@@ -695,6 +716,11 @@
                     <!-- DJs will be populated here -->
                 </div>
             </div>
+        </div>
+
+        <!-- Global Toast Notification -->
+        <div id="toast-notification" style="display: none; position: fixed; top: 20px; right: 20px; background: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; max-width: 400px; animation: slideIn 0.3s ease-out;">
+            <div id="toast-message" style="font-size: 0.95rem; font-weight: 500;"></div>
         </div>
 
         <!-- Bookings Tab -->
@@ -2935,10 +2961,45 @@
             document.getElementById('master-calendar-container').innerHTML = calendarHTML;
         }
 
+        // Show toast notification
+        function showToast(message, type) {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            
+            // Set message and styling based on type
+            toastMessage.textContent = message;
+            
+            if (type === 'success') {
+                toast.style.background = '#d4edda';
+                toast.style.borderLeft = '4px solid #28a745';
+                toast.style.color = '#155724';
+            } else if (type === 'error') {
+                toast.style.background = '#f8d7da';
+                toast.style.borderLeft = '4px solid #dc3545';
+                toast.style.color = '#721c24';
+            } else if (type === 'info') {
+                toast.style.background = '#d1ecf1';
+                toast.style.borderLeft = '4px solid #17a2b8';
+                toast.style.color = '#0c5460';
+            }
+            
+            // Show toast
+            toast.style.display = 'block';
+            toast.style.animation = 'slideIn 0.3s ease-out';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 300);
+            }, 5000);
+        }
+
         // Send DJ reminder SMS
         async function sendDJReminder(djName, djPhone, bookings) {
             if (!djPhone) {
-                showMessage('This DJ does not have a phone number on file. Please add a phone number in User Management first.', 'error');
+                showToast('This DJ does not have a phone number on file. Please add a phone number in User Management first.', 'error');
                 return;
             }
 
@@ -2947,7 +3008,7 @@
             }
 
             // Show loading message
-            showMessage(`Sending SMS reminder to ${djName}...`, 'info');
+            showToast(`Sending SMS reminder to ${djName}...`, 'info');
 
             try {
                 const response = await fetch('/api/send-dj-reminder', {
@@ -2965,13 +3026,13 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage(`✅ SMS reminder sent successfully to ${djName}! They should receive it shortly.`, 'success');
+                    showToast(`✅ SMS reminder sent successfully to ${djName}! They should receive it shortly.`, 'success');
                 } else {
-                    showMessage(`❌ Failed to send SMS: ${data.message}`, 'error');
+                    showToast(`❌ Failed to send SMS: ${data.message}`, 'error');
                 }
             } catch (error) {
                 console.error('Send reminder error:', error);
-                showMessage(`❌ Error sending SMS reminder: ${error.message}`, 'error');
+                showToast(`❌ Error sending SMS reminder: ${error.message}`, 'error');
             }
         }
 
