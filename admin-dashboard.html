@@ -692,9 +692,17 @@
                         Clear All Projects
                     </button>
                 </div>
-                <div class="filter-controls" style="margin-bottom: 1rem;">
-                    <select id="booking-filter-dj" onchange="filterAllBookings()">
+                <div class="filter-controls" style="margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <select id="booking-filter-dj" onchange="filterAllBookings()" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                         <option value="">All DJs</option>
+                    </select>
+                    <select id="booking-filter-time" onchange="filterAllBookings()" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        <option value="">All Time Periods</option>
+                        <option value="past">Past/Now</option>
+                        <option value="future">Looking Forward</option>
+                    </select>
+                    <select id="booking-filter-year" onchange="filterAllBookings()" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        <option value="">All Years</option>
                     </select>
                 </div>
                 
@@ -1528,8 +1536,17 @@
                 filteredBookings = filteredBookings.filter(b => b.djUser === selectedDJ);
             }
 
-            // Apply sorting
-            if (sortState.column) {
+            // Apply sorting - default to date (newest first) if no column is selected, or use selected column
+            if (!sortState.column) {
+                // Default sort by date (newest first)
+                filteredBookings.sort((a, b) => {
+                    const aDateParts = a.date.split('-');
+                    const bDateParts = b.date.split('-');
+                    const aValue = new Date(parseInt(aDateParts[0], 10), parseInt(aDateParts[1], 10) - 1, parseInt(aDateParts[2], 10)).getTime();
+                    const bValue = new Date(parseInt(bDateParts[0], 10), parseInt(bDateParts[1], 10) - 1, parseInt(bDateParts[2], 10)).getTime();
+                    return bValue - aValue; // Descending (newest first)
+                });
+            } else {
                 filteredBookings.sort((a, b) => {
                     let aValue, bValue;
                     
