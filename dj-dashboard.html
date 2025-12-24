@@ -3125,6 +3125,10 @@
                 const filter = urlParams.get('filter') || null;
                 if (typeof loadBookings === 'function') loadBookings(filter);
             } else if (sectionName === 'reviews') {
+                // Sync website testimonials before loading reviews
+                if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
+                    syncWebsiteTestimonialsToDJReviews();
+                }
                 if (typeof loadReviews === 'function') loadReviews();
             }
         }
