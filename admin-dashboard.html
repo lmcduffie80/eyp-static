@@ -565,7 +565,7 @@
                 </li>
                 <li class="sidebar-nav-item">
                     <a class="sidebar-nav-link" onclick="switchTab('users')" id="nav-users">
-                        <span>Contacts</span>
+                        <span>Users</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -1797,21 +1797,68 @@
                     const blockedDJ = bd.djUser || '';
                     return blockedDJ === djDisplayName || blockedDJ === dj.username || !bd.djUser;
                 });
-                const upcomingBookings = djBookings.filter(b => new Date(b.date) >= new Date());
+                const upcomingBookings = djBookings.filter(b => {
+                    const bookingDate = new Date(b.date + 'T00:00:00');
+                    return bookingDate >= new Date();
+                });
+
+                // Calculate revenue for this DJ
+                const djRevenue = djBookings.reduce((sum, booking) => {
+                    const revenueSource = booking.totalRevenue || booking.payout;
+                    if (revenueSource) {
+                        const revenueValue = String(revenueSource).replace(/[$,]/g, '').trim();
+                        return sum + (parseFloat(revenueValue) || 0);
+                    }
+                    return sum;
+                }, 0);
+
+                // Format currency
+                const formatCurrency = (amount) => {
+                    return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                };
+
+                // Find next booking
+                let nextBooking = null;
+                if (upcomingBookings.length > 0) {
+                    upcomingBookings.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    nextBooking = upcomingBookings[0];
+                }
+
+                // Format date for display (MM-DD-YYYY)
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '';
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        return `${parts[1]}-${parts[2]}-${parts[0]}`;
+                    }
+                    return dateStr;
+                };
                 
                 return `
                     <div class="dj-card">
                         <div class="dj-card-header">
                             <div class="dj-name">${djDisplayName}</div>
-                            <div class="dj-stats">
-                                <span>📅 ${upcomingBookings.length} Upcoming</span>
-                                <span>🚫 ${djBlocked.length} Blocked</span>
-                                <span>📋 ${djBookings.length} Total Projects</span>
-                            </div>
                         </div>
-                        <div style="color: var(--text-light); font-size: 0.9rem;">
+                        <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
                             <div>Email: ${dj.email}</div>
                             <div>Member since: ${new Date(dj.createdAt).toLocaleDateString()}</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Number of Bookings</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${djBookings.length}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Revenue</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${formatCurrency(djRevenue)}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Next Booking</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
+                                    ${nextBooking ? formatDate(nextBooking.date) : 'None'}
+                                </div>
+                                ${nextBooking ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${nextBooking.eventType || 'Project'}</div>` : ''}
+                            </div>
                         </div>
                     </div>
                 `;
