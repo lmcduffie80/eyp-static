@@ -36,6 +36,7 @@ export default async function handler(req, res) {
                     date: row.date,
                     reason: row.reason,
                     blockedBy: row.blocked_by,
+                    status: row.status || 'approved', // Default to 'approved' for backward compatibility
                     createdAt: row.created_at
                 }))
             });
@@ -57,20 +58,23 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Check if date is already blocked for this DJ
+            // Check if date is already blocked for this DJ (only check approved or pending)
             const existing = await sql`
-                SELECT id FROM blocked_dates WHERE dj_user = ${djUser} AND date = ${date}
+                SELECT id FROM blocked_dates 
+                WHERE dj_user = ${djUser} AND date = ${date} 
+                AND (status = 'approved' OR status = 'pending' OR status IS NULL)
             `;
             if (existing.rows.length > 0) {
                 return res.status(409).json({
                     success: false,
-                    error: 'Date is already blocked for this DJ'
+                    error: 'Date is already blocked or pending for this DJ'
                 });
             }
 
+            // New blocked dates default to 'pending' status (requires admin approval)
             const result = await sql`
-                INSERT INTO blocked_dates (dj_user, date, reason, blocked_by)
-                VALUES (${djUser}, ${date}, ${reason || null}, ${blockedBy || djUser})
+                INSERT INTO blocked_dates (dj_user, date, reason, blocked_by, status)
+                VALUES (${djUser}, ${date}, ${reason || null}, ${blockedBy || djUser}, 'pending')
                 RETURNING *
             `;
 
@@ -83,6 +87,7 @@ export default async function handler(req, res) {
                     date: blockedDate.date,
                     reason: blockedDate.reason,
                     blockedBy: blockedDate.blocked_by,
+                    status: blockedDate.status || 'pending',
                     createdAt: blockedDate.created_at
                 }
             });

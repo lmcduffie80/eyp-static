@@ -1,5 +1,6 @@
 // API endpoint for individual blocked date operations
 // DELETE /api/blocked-dates/[id] - Delete blocked date
+// PUT /api/blocked-dates/[id] - Update blocked date (e.g., approve/reject)
 
 import sql from '../db/connection.js';
 import { setSecurityHeaders, setCORSHeaders } from '../security-headers.js';
@@ -22,7 +23,44 @@ export default async function handler(req, res) {
     }
 
     try {
-        if (req.method === 'DELETE') {
+        if (req.method === 'PUT') {
+            // Update blocked date status (approve/reject)
+            const { status } = req.body;
+
+            if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Valid status is required: pending, approved, or rejected'
+                });
+            }
+
+            const result = await sql`
+                UPDATE blocked_dates 
+                SET status = ${status}, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ${id}
+                RETURNING *
+            `;
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ success: false, error: 'Blocked date not found' });
+            }
+
+            const blockedDate = result.rows[0];
+            return res.status(200).json({
+                success: true,
+                data: {
+                    id: blockedDate.id,
+                    djUser: blockedDate.dj_user,
+                    date: blockedDate.date,
+                    reason: blockedDate.reason,
+                    blockedBy: blockedDate.blocked_by,
+                    status: blockedDate.status,
+                    createdAt: blockedDate.created_at,
+                    updatedAt: blockedDate.updated_at
+                }
+            });
+
+        } else if (req.method === 'DELETE') {
             // Delete blocked date
             const result = await sql`DELETE FROM blocked_dates WHERE id = ${id} RETURNING id`;
             

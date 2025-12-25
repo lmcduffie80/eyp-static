@@ -1017,6 +1017,15 @@
 
         <!-- Calendar Tab -->
         <div id="calendar-tab" class="tab-content">
+            <!-- Pending Blocked Dates Section -->
+            <div class="section-card" style="margin-bottom: 2rem;">
+                <h2>Pending Blocked Date Requests</h2>
+                <p style="color: var(--text-light); margin-bottom: 1rem;">Review and approve or reject blocked date requests from DJs</p>
+                <div id="pending-blocked-dates-container">
+                    <!-- Pending blocked dates will be displayed here -->
+                </div>
+            </div>
+            
             <div class="section-card">
                 <h2>Master Calendar - All Blocked Dates & Projects</h2>
                 <div class="filter-controls">
@@ -1025,7 +1034,7 @@
                     </select>
                 </div>
                 <div id="blocked-dates-list" style="margin-bottom: 2rem; display: none;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Blocked Dates Details</h3>
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Approved Blocked Dates</h3>
                     <div id="blocked-dates-list-content" style="background: var(--bg-light); padding: 1rem; border-radius: 8px;">
                         <!-- Blocked dates list will be displayed here -->
                     </div>
@@ -1531,6 +1540,7 @@
             }
 
             if (tabName === 'calendar') {
+                await loadPendingBlockedDates();
                 await generateMasterCalendar();
             } else if (tabName === 'bookings') {
                 await filterAllBookings();
@@ -2490,7 +2500,7 @@
         let blockedDatesCache = null;
         let blockedDatesCacheTime = null;
         
-        // Function to clear blocked dates cache (call after create/delete)
+        // Function to clear blocked dates cache (call after create/delete/approve/reject)
         function clearBlockedDatesCache() {
             blockedDatesCache = null;
             blockedDatesCacheTime = null;
@@ -2523,7 +2533,8 @@
                         djUser: bd.djUser,
                         date: dateStr,
                         reason: bd.reason,
-                        blockedBy: bd.blockedBy
+                        blockedBy: bd.blockedBy,
+                        status: bd.status || 'approved' // Default to 'approved' for backward compatibility
                     };
                 });
                 console.log('Transformed blocked dates:', transformed);
@@ -2820,8 +2831,9 @@
                 return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
 
-            // Use provided blocked dates (already fetched)
-            const blockedDatesCount = blockedDates ? blockedDates.length : 0;
+            // Use provided blocked dates (already fetched) - only count approved ones
+            const approvedBlockedDates = blockedDates ? blockedDates.filter(bd => (bd.status || 'approved') === 'approved') : [];
+            const blockedDatesCount = approvedBlockedDates.length;
 
             // Update stat values
             document.getElementById('total-projects').textContent = bookings.length;
@@ -3975,11 +3987,12 @@
                 djSelect.value = currentValue;
             }
 
-            let filteredBlocked = blockedDates;
+            // Only show approved blocked dates in calendar
+            let filteredBlocked = approvedBlockedDates;
             let filteredBookings = bookings;
 
             if (selectedDJ) {
-                filteredBlocked = blockedDates.filter(bd => bd.djUser === selectedDJ);
+                filteredBlocked = approvedBlockedDates.filter(bd => bd.djUser === selectedDJ);
                 filteredBookings = bookings.filter(b => b.djUser === selectedDJ);
             }
 
