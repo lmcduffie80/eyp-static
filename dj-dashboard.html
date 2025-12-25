@@ -1728,6 +1728,9 @@
                     }
                     
                     return await response.json();
+                } catch (error) {
+                    console.error('API request failed:', endpoint, error);
+                    throw error;
                 } finally {
                     // Remove from in-flight requests when done
                     inFlightRequests.delete(requestKey);
