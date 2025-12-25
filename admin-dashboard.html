@@ -3966,14 +3966,16 @@
 
         // Generate master calendar
         async function generateMasterCalendar() {
-            const blockedDates = await getAllBlockedDates();
+            const allBlockedDates = await getAllBlockedDates();
+            // Filter to only show approved blocked dates in calendar
+            const approvedBlockedDates = allBlockedDates.filter(bd => (bd.status || 'approved') === 'approved');
             const bookings = await getAllBookings();
             const selectedDJ = document.getElementById('calendar-filter-dj').value;
             
             // Populate DJ dropdown with unique DJs from bookings and blocked dates
             const allDJs = [...new Set([
                 ...bookings.map(b => b.djUser).filter(dj => dj),
-                ...blockedDates.map(bd => bd.djUser).filter(dj => dj)
+                ...approvedBlockedDates.map(bd => bd.djUser).filter(dj => dj)
             ])].sort();
             const djSelect = document.getElementById('calendar-filter-dj');
             const currentValue = djSelect.value;
