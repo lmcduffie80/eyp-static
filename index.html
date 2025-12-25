@@ -6,6 +6,13 @@
     <meta name="description" content="Externally Yours Productions, LLC - Professional video and film production services">
     <title>Externally Yours Productions, LLC</title>
     <link rel="icon" type="image/png" href="EYP Logo_New.png">
+    
+    <!-- Performance optimizations: Resource hints for faster external resource loading -->
+    <link rel="dns-prefetch" href="https://www.honeybook.com">
+    <link rel="preconnect" href="https://widget.honeybook.com" crossorigin>
+    
+    <!-- Preload critical hero image for faster LCP (Largest Contentful Paint) -->
+    <link rel="preload" as="image" href="Grace and Dillon Wedding/7L8A5712.jpg" fetchpriority="high">
     <style>
         * {
             margin: 0;
@@ -68,6 +75,14 @@
             height: 80px;
             width: auto;
             max-width: 400px;
+            loading: eager;
+            fetchpriority: high;
+        }
+        
+        /* Optimize image loading */
+        img {
+            max-width: 100%;
+            height: auto;
         }
 
         .nav-links {
@@ -710,7 +725,7 @@
                     <!-- Random selection from Grace and Dillon Wedding -->
                     <a href="photography.html#grace-dillon-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding">
+                            <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Grace and Dillon Wedding</h3>
                             </div>
@@ -718,7 +733,7 @@
                     </a>
                     <a href="photography.html#grace-dillon-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding">
+                            <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Grace and Dillon Wedding</h3>
                             </div>
@@ -728,7 +743,7 @@
                     <!-- Random selection from Yazmine and Josh Wedding -->
                     <a href="photography.html#yazmine-josh-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding">
+                            <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Yazmine and Josh Wedding</h3>
                             </div>
@@ -736,7 +751,7 @@
                     </a>
                     <a href="photography.html#yazmine-josh-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding">
+                            <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Yazmine and Josh Wedding</h3>
                             </div>
@@ -746,7 +761,7 @@
                     <!-- Random selection from Prom 2025 -->
                     <a href="photography.html#prom-2025-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Prom 2025/7L8A9552.jpg" alt="Prom 2025">
+                            <img src="Prom 2025/7L8A9552.jpg" alt="Prom 2025" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Prom 2025</h3>
                             </div>
@@ -754,7 +769,7 @@
                     </a>
                     <a href="photography.html#prom-2025-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Prom 2025/7L8A9613.jpg" alt="Prom 2025">
+                            <img src="Prom 2025/7L8A9613.jpg" alt="Prom 2025" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Prom 2025</h3>
                             </div>
@@ -764,7 +779,7 @@
                     <!-- Random selection from Amy and Cody Hardy Wedding -->
                     <a href="photography.html#amy-cody-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Amy and Cody Hardy Wedding/E72A0917.jpg" alt="Amy and Cody Hardy Wedding">
+                            <img src="Amy and Cody Hardy Wedding/E72A0917.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Amy and Cody Hardy Wedding</h3>
                             </div>
@@ -772,7 +787,7 @@
                     </a>
                     <a href="photography.html#amy-cody-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Amy and Cody Hardy Wedding/E72A0956.jpg" alt="Amy and Cody Hardy Wedding">
+                            <img src="Amy and Cody Hardy Wedding/E72A0956.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Amy and Cody Hardy Wedding</h3>
                             </div>
@@ -780,7 +795,7 @@
                     </a>
                     <a href="photography.html#amy-cody-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Amy and Cody Hardy Wedding/E72A0984.jpg" alt="Amy and Cody Hardy Wedding">
+                            <img src="Amy and Cody Hardy Wedding/E72A0984.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async">
                             <div class="portfolio-overlay">
                                 <h3>Amy and Cody Hardy Wedding</h3>
                             </div>
@@ -911,11 +926,12 @@
                     <p><strong>Address:</strong> Tifton, Georgia 31794</p>
                 </div>
                 <div class="hb-p-64f2adb3998a8300079826c0-1"></div>
-                <img height="1" width="1" style="display:none" src="https://www.honeybook.com/p.png?pid=64f2adb3998a8300079826c0">
+                <img height="1" width="1" style="display:none" src="https://www.honeybook.com/p.png?pid=64f2adb3998a8300079826c0" loading="lazy" decoding="async">
                 <script>
+                  // Defer Honeybook script to improve page load performance
                   (function(h,b,s,n,i,p,e,t) {
                     h._HB_ = h._HB_ || {};h._HB_.pid = i;;;;
-                    t=b.createElement(s);t.type="text/javascript";t.async=!0;t.src=n;
+                    t=b.createElement(s);t.type="text/javascript";t.async=!0;t.defer=!0;t.src=n;
                     e=b.getElementsByTagName(s)[0];e.parentNode.insertBefore(t,e);
                   })(window,document,"script","https://widget.honeybook.com/assets_users_production/websiteplacements/placement-controller.min.js","64f2adb3998a8300079826c0");
                 </script>
@@ -930,25 +946,25 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Grace and Dillon Wedding</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>
@@ -961,28 +977,28 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Yazmine and Josh Wedding</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_3957.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_3957.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4058.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4058.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4116.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4116.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4133.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4133.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4324.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4324.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4385.jpg" alt="Yazmine and Josh Wedding">
+                    <img src="Yazmine and Josh Wedding/IMG_4385.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>
