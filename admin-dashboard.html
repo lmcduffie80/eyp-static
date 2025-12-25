@@ -1317,6 +1317,14 @@
             await apiRequest(`/api/blocked-dates/${id}`, { method: 'DELETE' });
         }
         
+        // Security: Escape HTML to prevent XSS attacks
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+        
         // Check admin authentication
         if (!localStorage.getItem('admin_token')) {
             window.location.href = 'admin-login.html';
@@ -3321,13 +3329,13 @@
 
                 return `
                     <tr>
-                        <td>${formattedDate}</td>
-                        <td>${booking.djUser || 'Unassigned'}</td>
-                        <td>${booking.eventType}</td>
-                        <td>${booking.location}</td>
-                        <td>${formattedPayment}</td>
-                        <td>${formattedCCPayment}</td>
-                        <td>${formattedPayout}</td>
+                        <td>${escapeHtml(formattedDate)}</td>
+                        <td>${escapeHtml(booking.djUser || 'Unassigned')}</td>
+                        <td>${escapeHtml(booking.eventType)}</td>
+                        <td>${escapeHtml(booking.location || '')}</td>
+                        <td>${escapeHtml(formattedPayment)}</td>
+                        <td>${escapeHtml(formattedCCPayment)}</td>
+                        <td>${escapeHtml(formattedPayout)}</td>
                         <td>
                             <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
                                 Delete
