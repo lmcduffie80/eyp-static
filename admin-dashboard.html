@@ -1709,15 +1709,18 @@
                 const height = (count / maxVisits) * 100;
                 const dateObj = new Date(date);
                 const dayLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const escapedCount = escapeHtml(String(count));
+                const escapedDayLabel = escapeHtml(dayLabel);
+                const escapedTitle = escapeHtml(`${count} visits on ${dayLabel}`).replace(/"/g, "&quot;");
                 
                 return `
                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                        <div style="width: 100%; background: var(--accent-color); border-radius: 4px 4px 0 0; min-height: ${Math.max(height, 2)}%; margin-bottom: 0.5rem; position: relative;" title="${count} visits on ${dayLabel}">
+                        <div style="width: 100%; background: var(--accent-color); border-radius: 4px 4px 0 0; min-height: ${Math.max(height, 2)}%; margin-bottom: 0.5rem; position: relative;" title="${escapedTitle}">
                             <div style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); padding: 0.25rem; background: var(--primary-color); color: white; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; margin-bottom: 0.25rem; opacity: 0; transition: opacity 0.2s;">
-                                ${count}
+                                ${escapedCount}
                             </div>
                         </div>
-                        <div style="font-size: 0.7rem; color: var(--text-light); writing-mode: vertical-rl; text-orientation: mixed;">${dayLabel}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-light); writing-mode: vertical-rl; text-orientation: mixed;">${escapedDayLabel}</div>
                     </div>
                 `;
             }).join('');
@@ -1746,8 +1749,8 @@
 
             container.innerHTML = topPages.map(([page, count]) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-radius: 5px; margin-bottom: 0.5rem;">
-                    <div style="font-weight: 500;">${page}</div>
-                    <div style="color: var(--accent-color); font-weight: 700;">${count}</div>
+                    <div style="font-weight: 500;">${escapeHtml(page)}</div>
+                    <div style="color: var(--accent-color); font-weight: 700;">${escapeHtml(String(count))}</div>
                 </div>
             `).join('');
         }
@@ -1772,11 +1775,12 @@
                 .sort((a, b) => b[1] - a[1])
                 .map(([source, count]) => {
                     const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                    const escapedSource = escapeHtml(source);
                     return `
                         <div style="margin-bottom: 1rem;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-weight: 500;">${source}</span>
-                                <span style="color: var(--text-light);">${count} (${percentage}%)</span>
+                                <span style="font-weight: 500;">${escapedSource}</span>
+                                <span style="color: var(--text-light);">${escapeHtml(String(count))} (${escapeHtml(percentage)}%)</span>
                             </div>
                             <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
                                 <div style="width: ${percentage}%; height: 100%; background: var(--accent-color); transition: width 0.3s;"></div>
@@ -1816,11 +1820,12 @@
                 .sort((a, b) => b[1] - a[1])
                 .map(([device, count]) => {
                     const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                    const escapedDevice = escapeHtml(device);
                     return `
                         <div style="margin-bottom: 1rem;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-weight: 500;">${device}</span>
-                                <span style="color: var(--text-light);">${count} (${percentage}%)</span>
+                                <span style="font-weight: 500;">${escapedDevice}</span>
+                                <span style="color: var(--text-light);">${escapeHtml(String(count))} (${escapeHtml(percentage)}%)</span>
                             </div>
                             <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
                                 <div style="width: ${percentage}%; height: 100%; background: var(--accent-color); transition: width 0.3s;"></div>
@@ -1866,12 +1871,12 @@
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-radius: 5px; margin-bottom: 0.5rem; border-left: 4px solid var(--accent-color);">
                         <div>
-                            <div style="font-weight: 500; color: var(--primary-color);">${pageName}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-light);">${referrerText} • ${deviceType}</div>
+                            <div style="font-weight: 500; color: var(--primary-color);">${escapeHtml(pageName)}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-light);">${escapeHtml(referrerText)} • ${escapeHtml(deviceType)}</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 0.85rem; color: var(--text-light);">${date.toLocaleString()}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-light);">${timeAgo}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-light);">${escapeHtml(date.toLocaleString())}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(timeAgo)}</div>
                         </div>
                     </div>
                 `;
@@ -2257,18 +2262,22 @@
             
             admins.forEach(admin => {
                 const superUserBadge = admin.isSuperUser ? '<span style="background: var(--accent-color); color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">Super User</span>' : '';
+                const escapedUsername = escapeHtml(admin.username);
+                const escapedEmail = escapeHtml(admin.email || 'No email');
+                const escapedUsernameForJS = escapedUsername.replace(/'/g, "\\'");
+                const createdDate = admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'N/A';
                 usersHTML += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
                         <div>
-                            <strong>${admin.username}</strong> ${superUserBadge}
+                            <strong>${escapedUsername}</strong> ${superUserBadge}
                             <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
-                                ${admin.email} • Created: ${new Date(admin.createdAt).toLocaleDateString()}
+                                ${escapedEmail} • Created: ${createdDate}
                             </div>
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
                             ${!admin.isSuperUser ? `
-                                <button onclick="editUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
-                                <button onclick="deleteUser('admin', '${admin.username}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                                <button onclick="editUser('admin', '${escapedUsernameForJS}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                <button onclick="deleteUser('admin', '${escapedUsernameForJS}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
                             ` : ''}
                         </div>
                     </div>
@@ -2287,17 +2296,22 @@
                     // Display firstName and lastName for DJs
                     const displayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
                     const djIdentifier = (dj.firstName && dj.lastName) ? `${dj.firstName}|${dj.lastName}` : dj.username;
+                    const escapedDisplayName = escapeHtml(displayName);
+                    const escapedEmail = escapeHtml(dj.email || 'No email');
+                    const escapedPhone = dj.phone ? escapeHtml(dj.phone) : '';
+                    const escapedDjIdentifier = escapeHtml(djIdentifier).replace(/'/g, "\\'");
+                    const createdDate = dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A';
                     usersHTML += `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
                             <div>
-                                <strong>${displayName}</strong>
+                                <strong>${escapedDisplayName}</strong>
                                 <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
-                                    ${dj.email || 'No email'}${dj.phone ? ' • ' + dj.phone : ''} • Created: ${dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A'}
+                                    ${escapedEmail}${escapedPhone ? ' • ' + escapedPhone : ''} • Created: ${createdDate}
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="editUser('dj', '${djIdentifier}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
-                                <button onclick="deleteUser('dj', '${djIdentifier}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                                <button onclick="editUser('dj', '${escapedDjIdentifier}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                <button onclick="deleteUser('dj', '${escapedDjIdentifier}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
                             </div>
                         </div>
                     `;
@@ -2667,18 +2681,22 @@
                 };
                 
                 // Escape DJ name for use in HTML attribute (escape single quotes and double quotes)
-                const escapedDJName = djDisplayName.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                const escapedDJName = escapeHtml(djDisplayName).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
                 const escapedDJNameForJS = djDisplayName.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, "\\\"");
+                const escapedUsername = escapeHtml(dj.username || 'No username');
+                const escapedEmail = escapeHtml(dj.email || 'No email');
+                const escapedPhone = dj.phone ? escapeHtml(dj.phone) : '';
+                const memberSince = dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A';
                 return `
                     <div class="dj-card">
                         <div class="dj-card-header">
-                            <div class="dj-name" onclick="filterByDJ('${escapedDJNameForJS}')" title="Click to view all projects for ${escapedDJName}">${djDisplayName}</div>
+                            <div class="dj-name" onclick="filterByDJ('${escapedDJNameForJS}')" title="Click to view all projects for ${escapedDJName}">${escapedDJName}</div>
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
-                            <div>Username: ${dj.username || 'No username'}</div>
-                            <div>Email: ${dj.email || 'No email'}</div>
-                            ${dj.phone ? `<div>Phone: ${dj.phone}</div>` : ''}
-                            <div>Member since: ${dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A'}</div>
+                            <div>Username: ${escapedUsername}</div>
+                            <div>Email: ${escapedEmail}</div>
+                            ${escapedPhone ? `<div>Phone: ${escapedPhone}</div>` : ''}
+                            <div>Member since: ${memberSince}</div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
                             <div>
@@ -2693,9 +2711,9 @@
                             <div>
                                 <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">Next Booking</div>
                                 <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
-                                    ${formatDate(nextBooking.date)}
+                                    ${escapeHtml(formatDate(nextBooking.date))}
                                 </div>
-                                <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${nextBooking.eventType || 'Project'}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">${escapeHtml(nextBooking.eventType || 'Project')}</div>
                             </div>
                             ` : ''}
                         </div>
@@ -2706,7 +2724,8 @@
             // Populate calendar filter dropdown (bookings filter is populated from bookings in filterAllBookings)
             const djOptions = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
-                return `<option value="${djDisplayName}">${djDisplayName}</option>`;
+                const escapedDJDisplayName = escapeHtml(djDisplayName).replace(/"/g, "&quot;");
+                return `<option value="${escapedDJDisplayName}">${escapedDJDisplayName}</option>`;
             }).join('');
             document.getElementById('calendar-filter-dj').innerHTML = '<option value="">All DJs</option>' + djOptions;
         }
@@ -3005,7 +3024,10 @@
                 
                 // Always populate dropdown to ensure the value we want to set is available
                 djFilterSelect.innerHTML = '<option value="">All DJs</option>' + 
-                    uniqueDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+                    uniqueDJs.map(dj => {
+                        const escapedDJ = escapeHtml(dj).replace(/"/g, "&quot;");
+                        return `<option value="${escapedDJ}">${escapedDJ}</option>`;
+                    }).join('');
                 
                 // Set the DJ filter value
                 djFilterSelect.value = matchingDJName;
@@ -3113,7 +3135,10 @@
             const djSelect = document.getElementById('booking-filter-dj');
             const currentDJValue = djSelect.value;
             djSelect.innerHTML = '<option value="">All DJs</option>' + 
-                uniqueDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+                uniqueDJs.map(dj => {
+                    const escapedDJ = escapeHtml(dj).replace(/"/g, "&quot;");
+                    return `<option value="${escapedDJ}">${escapedDJ}</option>`;
+                }).join('');
             // Restore selected value
             if (currentDJValue) {
                 djSelect.value = currentDJValue;
@@ -3124,7 +3149,10 @@
             const yearSelect = document.getElementById('booking-filter-year');
             const currentYearValue = yearSelect.value;
             yearSelect.innerHTML = '<option value="">All Years</option>' + 
-                uniqueYears.map(year => `<option value="${year}">${year}</option>`).join('');
+                uniqueYears.map(year => {
+                    const escapedYear = escapeHtml(year).replace(/"/g, "&quot;");
+                    return `<option value="${escapedYear}">${escapedYear}</option>`;
+                }).join('');
             // Restore selected value
             if (currentYearValue) {
                 yearSelect.value = currentYearValue;
@@ -3938,7 +3966,10 @@
             const djSelect = document.getElementById('calendar-filter-dj');
             const currentValue = djSelect.value;
             djSelect.innerHTML = '<option value="">All DJs</option>' + 
-                allDJs.map(dj => `<option value="${dj}">${dj}</option>`).join('');
+                allDJs.map(dj => {
+                    const escapedDJ = escapeHtml(dj).replace(/"/g, "&quot;");
+                    return `<option value="${escapedDJ}">${escapedDJ}</option>`;
+                }).join('');
             // Restore selected value
             if (currentValue) {
                 djSelect.value = currentValue;
