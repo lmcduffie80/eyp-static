@@ -4,12 +4,14 @@
 // DELETE /api/users/[id] - Delete user
 
 import sql from '../db/connection.js';
+import { setSecurityHeaders, setCORSHeaders } from '../security-headers.js';
 
 export default async function handler(req, res) {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // Set security headers
+    setSecurityHeaders(res);
+    
+    // Set CORS headers with specific origins
+    setCORSHeaders(req, res);
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
