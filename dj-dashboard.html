@@ -1738,25 +1738,6 @@
             inFlightRequests.set(requestKey, requestPromise);
             
             return requestPromise;
-            try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    ...options,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    }
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({ error: response.statusText }));
-                    throw new Error(error.error || `HTTP ${response.status}`);
-                }
-                
-                return await response.json();
-            } catch (error) {
-                console.error('API request failed:', endpoint, error);
-                throw error;
-            }
         }
         
         // Bookings API
