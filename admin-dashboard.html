@@ -1198,9 +1198,47 @@
     <script>
         // API Helper Functions
         const API_BASE = ''; // Use relative URLs for same domain
-        const CACHE_DURATION = 30000; // 30 seconds
+        const CACHE_DURATION = 120000; // 2 minutes (increased for better performance)
+        
+        // Request deduplication - prevents multiple identical requests
+        const inFlightRequests = new Map();
         
         async function apiRequest(endpoint, options = {}) {
+            // Create a unique key for this request
+            const requestKey = `${endpoint}_${JSON.stringify(options)}`;
+            
+            // If this request is already in flight, return the existing promise
+            if (inFlightRequests.has(requestKey)) {
+                return inFlightRequests.get(requestKey);
+            }
+            
+            // Create new request promise
+            const requestPromise = (async () => {
+                try {
+                    const response = await fetch(`${API_BASE}${endpoint}`, {
+                        ...options,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => ({ error: response.statusText }));
+                        throw new Error(error.error || `HTTP ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } finally {
+                    // Remove from in-flight requests when done
+                    inFlightRequests.delete(requestKey);
+                }
+            })();
+            
+            // Store the promise
+            inFlightRequests.set(requestKey, requestPromise);
+            
+            return requestPromise;
             try {
                 const response = await fetch(`${API_BASE}${endpoint}`, {
                     ...options,
@@ -2503,14 +2541,7 @@
                 return;
             }
 
-            // Debug: Log bookings and DJs to console
-            console.log('All bookings:', bookings);
-            console.log('All DJs:', djs.map(dj => ({
-                username: dj.username,
-                firstName: dj.firstName,
-                lastName: dj.lastName,
-                displayName: (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username
-            })));
+            // Removed debug console.logs for better performance
 
             container.innerHTML = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
@@ -2547,13 +2578,7 @@
                     return false;
                 });
                 
-                console.log(`DJ: ${djDisplayName} (username: ${dj.username})`, {
-                    nameVariations: Array.from(nameVariations),
-                    totalBookings: bookings.length,
-                    matchedBookings: djBookings.length,
-                    sampleBookingDJs: bookings.slice(0, 5).map(b => b.djUser),
-                    matchedBookingDetails: djBookings.map(b => ({ djUser: b.djUser, date: b.date, payout: b.payout }))
-                });
+                // Removed debug console.log for better performance
                 const djBlocked = blockedDates.filter(bd => {
                     const blockedDJ = bd.djUser || '';
                     return blockedDJ === djDisplayName || blockedDJ === dj.username || !bd.djUser;
@@ -3391,8 +3416,7 @@
                         return;
                     }
                     
-                    console.log('First line of CSV:', JSON.stringify(lines[0]));
-                    console.log('First 3 lines:', lines.slice(0, 3));
+                    // Removed debug console.logs for better performance
                     
                     // Parse header row - try multiple methods
                     let headerValues = [];
@@ -3427,8 +3451,7 @@
                         headers = headerValues.map(h => h.toLowerCase());
                     }
                                                         
-                    console.log('CSV Headers (parsed):', headers);
-                    console.log('CSV Headers (raw, cleaned):', headerValues);
+                    // Removed debug console.logs for better performance
                     
                     // Check if headers are empty
                     if (headers.length === 0 || headers.every(h => !h)) {
@@ -3443,7 +3466,7 @@
                     } else if (lines[0].includes(';') && !lines[0].includes(',')) {
                         csvSeparator = ';';
                     }
-                    console.log('Detected CSV separator:', csvSeparator);
+                    // Removed debug console.log for better performance
                     
                     // Find column indices (flexible matching) - be more specific to avoid wrong matches
                     const dateIndex = findColumnIndex(headers, ['data', 'date', 'date of project']);
@@ -3579,7 +3602,7 @@
                         // Map Payment to totalRevenue, DJ Payout to payout
                         const totalRevenue = payment || '';
                         
-                        console.log(`Row ${i} parsed:`, { djName, dateStr, projectName, location, payment, ccPayment, payout, totalRevenue });
+                        // Removed debug console.log for better performance
                         
                         if (!djName || !dateStr || !projectName || !location) {
                             const missingFields = [];
@@ -3587,7 +3610,7 @@
                             if (!dateStr) missingFields.push('Date');
                             if (!projectName) missingFields.push('Project Name');
                             if (!location) missingFields.push('Location');
-                            console.log(`Row ${i} skipped: Missing required fields: ${missingFields.join(', ')}`);
+                            // Removed debug console.log for better performance
                             skipReasons.missingFields++;
                             skippedCount++;
                             continue;
@@ -3607,7 +3630,7 @@
                             skippedCount++;
                             continue;
                         }
-                        console.log(`Row ${i} date "${dateStr}" parsed to "${formattedDate}"`);
+                        // Removed debug console.log for better performance
                         
                         // Normalize DJ name to match user format (firstName + lastName)
                         // Try to match DJ name from CSV to existing DJ users
@@ -3640,7 +3663,7 @@
                         );
                         
                         if (exists) {
-                            console.log(`Row ${i} skipped: Duplicate entry within this CSV file`);
+                            // Removed debug console.log for better performance
                             skipReasons.duplicate++;
                             skippedCount++;
                             continue;
@@ -3675,18 +3698,17 @@
                         
                         newBookings.push(booking);
                         importedCount++;
-                        console.log(`Row ${i} imported successfully:`, booking);
+                        // Removed debug console.log for better performance
                     }
                     
-                    console.log(`Import complete: ${importedCount} imported, ${skippedCount} skipped`);
-                    console.log('Skip reasons:', skipReasons);
+                    // Removed debug console.logs for better performance
                     
                     // Replace all existing bookings with new ones (don't merge)
                     // This ensures each CSV import replaces the previous data
                     try {
                         // First, get all existing bookings and delete them
                         const existingBookings = await getAllBookings();
-                        console.log(`Deleting ${existingBookings.length} existing bookings...`);
+                        // Removed debug console.log for better performance
                         
                         for (const booking of existingBookings) {
                             try {
@@ -3698,7 +3720,7 @@
                         }
                         
                         // Create all new bookings via API
-                        console.log(`Creating ${newBookings.length} new bookings...`);
+                        // Removed debug console.log for better performance
                         let createdCount = 0;
                         let failedCount = 0;
                         const creationErrors = [];
@@ -3739,8 +3761,7 @@
                         bookingsCache = null;
                         bookingsCacheTime = null;
                         
-                        console.log(`CSV import complete: ${createdCount} created, ${failedCount} failed, ${existingBookings.length} deleted`);
-                        console.log('Previous bookings cleared. New CSV data stored in database.');
+                        // Removed debug console.logs for better performance
                         
                         // Build detailed error message
                         let errorDetails = [];

@@ -1697,9 +1697,47 @@
         // API Helper Functions
         // ========================================
         const API_BASE = ''; // Use relative URLs for same domain
-        const CACHE_DURATION = 30000; // 30 seconds
+        const CACHE_DURATION = 120000; // 2 minutes (increased for better performance)
+        
+        // Request deduplication - prevents multiple identical requests
+        const inFlightRequests = new Map();
         
         async function apiRequest(endpoint, options = {}) {
+            // Create a unique key for this request
+            const requestKey = `${endpoint}_${JSON.stringify(options)}`;
+            
+            // If this request is already in flight, return the existing promise
+            if (inFlightRequests.has(requestKey)) {
+                return inFlightRequests.get(requestKey);
+            }
+            
+            // Create new request promise
+            const requestPromise = (async () => {
+                try {
+                    const response = await fetch(`${API_BASE}${endpoint}`, {
+                        ...options,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => ({ error: response.statusText }));
+                        throw new Error(error.error || `HTTP ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } finally {
+                    // Remove from in-flight requests when done
+                    inFlightRequests.delete(requestKey);
+                }
+            })();
+            
+            // Store the promise
+            inFlightRequests.set(requestKey, requestPromise);
+            
+            return requestPromise;
             try {
                 const response = await fetch(`${API_BASE}${endpoint}`, {
                     ...options,
