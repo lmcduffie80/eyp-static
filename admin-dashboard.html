@@ -3964,6 +3964,129 @@
             return null;
         }
 
+        // Load and display pending blocked dates
+        async function loadPendingBlockedDates() {
+            try {
+                const allBlockedDates = await getAllBlockedDates();
+                const pendingDates = allBlockedDates.filter(bd => (bd.status || 'approved') === 'pending');
+                const container = document.getElementById('pending-blocked-dates-container');
+                
+                if (!container) {
+                    console.error('Pending blocked dates container not found');
+                    return;
+                }
+                
+                if (pendingDates.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No pending blocked date requests</p>';
+                    return;
+                }
+                
+                // Format date for display
+                const formatDateForDisplay = (dateStr) => {
+                    if (!dateStr) return '';
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        return `${parts[1]}-${parts[2]}-${parts[0]}`;
+                    }
+                    return dateStr;
+                };
+                
+                container.innerHTML = pendingDates.map(bd => {
+                    const escapedDjName = escapeHtml(bd.djUser || 'Unknown DJ');
+                    const escapedReason = escapeHtml(bd.reason || 'No reason provided');
+                    const escapedDate = escapeHtml(formatDateForDisplay(bd.date));
+                    const createdDate = bd.createdAt ? new Date(bd.createdAt).toLocaleDateString() : 'N/A';
+                    
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-left: 4px solid var(--warning-color); border-radius: 4px; margin-bottom: 1rem;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">
+                                    ${escapedDate} - ${escapedDjName}
+                                </div>
+                                <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.25rem;">
+                                    <strong>Reason:</strong> ${escapedReason}
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--text-light);">
+                                    Requested: ${createdDate}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                                <button onclick="approveBlockedDate(${bd.id})" style="padding: 0.5rem 1rem; background: var(--success-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                    Approve
+                                </button>
+                                <button onclick="rejectBlockedDate(${bd.id})" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading pending blocked dates:', error);
+                const container = document.getElementById('pending-blocked-dates-container');
+                if (container) {
+                    container.innerHTML = '<p style="color: var(--error-color);">Error loading pending blocked dates</p>';
+                }
+            }
+        }
+        
+        // Approve blocked date
+        async function approveBlockedDate(id) {
+            try {
+                const response = await fetch(`/api/blocked-dates/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'approved' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Blocked date approved successfully', 'success');
+                    // Clear cache and reload
+                    clearBlockedDatesCache();
+                    await loadPendingBlockedDates();
+                    await generateMasterCalendar();
+                    await updateDashboardStats();
+                } else {
+                    showToast('Error approving blocked date: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error approving blocked date:', error);
+                showToast('Error approving blocked date. Please try again.', 'error');
+            }
+        }
+        
+        // Reject blocked date
+        async function rejectBlockedDate(id) {
+            if (!confirm('Are you sure you want to reject this blocked date request?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/blocked-dates/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'rejected' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Blocked date rejected', 'info');
+                    // Clear cache and reload
+                    clearBlockedDatesCache();
+                    await loadPendingBlockedDates();
+                    await generateMasterCalendar();
+                } else {
+                    showToast('Error rejecting blocked date: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting blocked date:', error);
+                showToast('Error rejecting blocked date. Please try again.', 'error');
+            }
+        }
+
         // Generate master calendar
         async function generateMasterCalendar() {
             const allBlockedDates = await getAllBlockedDates();
