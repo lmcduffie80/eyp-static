@@ -5,6 +5,7 @@
 
 import sql from '../db/connection.js';
 import { setSecurityHeaders, setCORSHeaders } from '../security-headers.js';
+import { hashPassword, validatePasswordStrength } from '../utils/password.js';
 
 export default async function handler(req, res) {
     // Set security headers
@@ -62,12 +63,25 @@ export default async function handler(req, res) {
                 profilePicture
             } = req.body;
 
+            // If password is being updated, validate and hash it
+            let hashedPassword = null;
+            if (password) {
+                const passwordValidation = validatePasswordStrength(password);
+                if (!passwordValidation.valid) {
+                    return res.status(400).json({
+                        success: false,
+                        error: passwordValidation.message
+                    });
+                }
+                hashedPassword = await hashPassword(password);
+            }
+
             // Update user - use COALESCE to only update provided fields
             const result = await sql`
                 UPDATE users SET
                     username = COALESCE(${username || null}, username),
                     email = COALESCE(${email || null}, email),
-                    password = COALESCE(${password || null}, password),
+                    password = COALESCE(${hashedPassword || null}, password),
                     first_name = COALESCE(${firstName !== undefined ? firstName : null}, first_name),
                     last_name = COALESCE(${lastName !== undefined ? lastName : null}, last_name),
                     phone = COALESCE(${phone !== undefined ? phone : null}, phone),

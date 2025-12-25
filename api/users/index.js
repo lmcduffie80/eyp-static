@@ -5,6 +5,7 @@
 
 import sql from '../db/connection.js';
 import { setSecurityHeaders, setCORSHeaders } from '../security-headers.js';
+import { hashPassword, validatePasswordStrength } from '../utils/password.js';
 
 export default async function handler(req, res) {
     // Set security headers
@@ -68,6 +69,15 @@ export default async function handler(req, res) {
                 });
             }
 
+            // Validate password strength
+            const passwordValidation = validatePasswordStrength(password);
+            if (!passwordValidation.valid) {
+                return res.status(400).json({
+                    success: false,
+                    error: passwordValidation.message
+                });
+            }
+
             // Check if username or email already exists
             const existing = await sql`
                 SELECT id FROM users WHERE username = ${username} OR email = ${email}
@@ -79,12 +89,15 @@ export default async function handler(req, res) {
                 });
             }
 
+            // Hash password before storing
+            const hashedPassword = await hashPassword(password);
+
             const result = await sql`
                 INSERT INTO users (
                     username, email, password, first_name, last_name, phone,
                     user_type, is_super_user, profile_picture
                 ) VALUES (
-                    ${username}, ${email}, ${password}, ${firstName || null}, ${lastName || null},
+                    ${username}, ${email}, ${hashedPassword}, ${firstName || null}, ${lastName || null},
                     ${phone || null}, ${userType || 'dj'}, ${isSuperUser || false}, ${profilePicture || null}
                 ) RETURNING *
             `;
@@ -126,12 +139,25 @@ export default async function handler(req, res) {
                 });
             }
 
+            // If password is being updated, validate and hash it
+            let hashedPassword = null;
+            if (password) {
+                const passwordValidation = validatePasswordStrength(password);
+                if (!passwordValidation.valid) {
+                    return res.status(400).json({
+                        success: false,
+                        error: passwordValidation.message
+                    });
+                }
+                hashedPassword = await hashPassword(password);
+            }
+
             // Update user - use COALESCE to only update provided fields
             const result = await sql`
                 UPDATE users SET
                     username = COALESCE(${username || null}, username),
                     email = COALESCE(${email || null}, email),
-                    password = COALESCE(${password || null}, password),
+                    password = COALESCE(${hashedPassword || null}, password),
                     first_name = COALESCE(${firstName !== undefined ? firstName : null}, first_name),
                     last_name = COALESCE(${lastName !== undefined ? lastName : null}, last_name),
                     phone = COALESCE(${phone !== undefined ? phone : null}, phone),
