@@ -3879,15 +3879,45 @@
             initializeDashboard();
         }
 
-        function initializeDashboard() {
+        async function initializeDashboard() {
             showSection('dashboard');
-            // Pre-load data
-            updateDashboardStats();
+            
+            // Optimize: Load all required data in parallel first
+            const currentUsername = localStorage.getItem('dj_user');
+            if (!currentUsername) {
+                console.error('No DJ user found');
+                return;
+            }
+            
+            // Fetch data in parallel for faster loading
+            const [djUsers, bookings, blockedDates] = await Promise.all([
+                apiGetUsers('dj').catch(() => []),
+                getAllBookingsForDJ().catch(() => []),
+                apiGetBlockedDates().catch(() => [])
+            ]);
+            
+            // Find current DJ user info
+            const currentDJ = djUsers.find(u => 
+                u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+            );
+            
+            const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                : currentUsername;
+            
+            // Filter blocked dates for current DJ
+            const djBlockedDates = blockedDates.filter(bd => 
+                bd.djUser === djFullName || bd.djUser === currentUsername
+            );
+            
+            // Now update UI with pre-fetched data
+            await updateDashboardStats();
             if (typeof generateCalendar === 'function') generateCalendar();
             if (typeof displayBlockedDates === 'function') displayBlockedDates();
             if (typeof loadBookings === 'function') loadBookings();
             
-            // Sync website testimonials to DJ reviews on page load
+            // Sync website testimonials to DJ reviews on page load (these don't need API calls)
             if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
                 syncWebsiteTestimonialsToDJReviews();
             }

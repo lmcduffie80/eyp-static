@@ -1869,11 +1869,23 @@
             }
         }
 
-        // Initialize dashboard on load
+        // Initialize dashboard on load - optimized to parallelize API calls
         document.addEventListener('DOMContentLoaded', async function() {
             initializeAnalytics();
-            await updateDashboardStats();
-            await loadAllDJs();
+            
+            // Load all data in parallel for faster initial load
+            const [bookings, blockedDates, djs, admins] = await Promise.all([
+                getAllBookings(),
+                getAllBlockedDates(),
+                getAllDJs(),
+                getAllAdmins()
+            ]);
+            
+            // Update dashboard stats with already-fetched data
+            await updateDashboardStatsWithData(bookings, blockedDates);
+            
+            // Load DJs display with already-fetched data
+            await loadAllDJsWithData(djs, bookings, blockedDates);
         });
 
         // Get all DJ data
@@ -2482,15 +2494,9 @@
             }
         }
 
-        // Load and display all DJs
-        async function loadAllDJs() {
-            const djs = await getAllDJs();
-            const bookings = await getAllBookings();
-            const blockedDates = await getAllBlockedDates();
+        // Load and display all DJs - optimized version that accepts pre-fetched data
+        async function loadAllDJsWithData(djs, bookings, blockedDates) {
             const container = document.getElementById('djs-container');
-
-            // Update dashboard stats
-            await updateDashboardStats();
 
             if (djs.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No DJs registered yet</p></div>';
@@ -2697,9 +2703,8 @@
         // Filter state for stats cards
         let currentStatusFilter = null; // 'all', 'completed', 'future-bookings', or null
 
-        // Update dashboard statistics
-        async function updateDashboardStats() {
-            const bookings = await getAllBookings();
+        // Update dashboard statistics - optimized version that accepts pre-fetched data
+        async function updateDashboardStatsWithData(bookings, blockedDates) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
@@ -2779,9 +2784,8 @@
                 return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
 
-            // Get blocked dates count
-            const blockedDates = await getAllBlockedDates();
-            const blockedDatesCount = blockedDates.length;
+            // Use provided blocked dates (already fetched)
+            const blockedDatesCount = blockedDates ? blockedDates.length : 0;
 
             // Update stat values
             document.getElementById('total-projects').textContent = bookings.length;
@@ -2792,6 +2796,15 @@
             document.getElementById('blocked-dates-count').textContent = blockedDatesCount;
             document.getElementById('revenue-2025').textContent = formatCurrency(revenue2025);
             document.getElementById('revenue-2026').textContent = formatCurrency(revenue2026);
+        }
+
+        // Original updateDashboardStats function (for backward compatibility)
+        async function updateDashboardStats() {
+            const [bookings, blockedDates] = await Promise.all([
+                getAllBookings(),
+                getAllBlockedDates()
+            ]);
+            return updateDashboardStatsWithData(bookings, blockedDates);
         }
 
         // Update revenue stats based on filtered bookings
@@ -4112,10 +4125,8 @@
             }
         }
 
-        // Initialize
-        loadAllDJs();
-        filterAllBookings();
-        loadAllUsers();
+        // Note: Initialization is handled by DOMContentLoaded event listener above
+        // These calls are removed to avoid duplicate initialization
     </script>
 </body>
 </html>
