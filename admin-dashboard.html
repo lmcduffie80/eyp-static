@@ -4009,14 +4009,17 @@
                             // Get DJ name - prefer djUser field, fallback to blockedBy, then 'Unknown DJ'
                             const djName = bd.djUser || bd.blockedBy || 'Unknown DJ';
                             const reason = bd.reason || bd.notes || '';
+                            const escapedDjName = escapeHtml(djName);
+                            const escapedReason = escapeHtml(reason);
+                            const escapedDate = escapeHtml(formatDateForDisplay(bd.date));
                             return `
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-left: 4px solid var(--warning-color); border-radius: 4px;">
                                     <div>
-                                        <div style="font-weight: 600; color: var(--primary-color);">${formatDateForDisplay(bd.date)}</div>
+                                        <div style="font-weight: 600; color: var(--primary-color);">${escapedDate}</div>
                                         <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
-                                            <strong>DJ:</strong> ${djName}
+                                            <strong>DJ:</strong> ${escapedDjName}
                                         </div>
-                                        ${reason ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;"><strong>Reason:</strong> ${reason}</div>` : ''}
+                                        ${reason ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;"><strong>Reason:</strong> ${escapedReason}</div>` : ''}
                                     </div>
                                     <div style="font-size: 1.5rem;">🚫</div>
                                 </div>
