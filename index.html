@@ -1499,7 +1499,7 @@
                 <button class="chatbot-close" id="chatbotClose" aria-label="Close chat">×</button>
             </div>
             <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-message bot">
+                <div class="chatbot-message bot" id="chatbotWelcomeMessage">
                     <p>Hello! 👋 Welcome to Externally Yours Productions. How can we help you today?</p>
                 </div>
             </div>
@@ -1977,14 +1977,93 @@
             }
         };
 
+        // Business availability information
+        const businessHours = {
+            monday: { open: 9, close: 17, available: true },
+            tuesday: { open: 9, close: 17, available: true },
+            wednesday: { open: 9, close: 17, available: true },
+            thursday: { open: 9, close: 17, available: true },
+            friday: { open: 9, close: 17, available: true },
+            saturday: { open: 10, close: 14, available: true }, // Limited hours on Saturday
+            sunday: { open: null, close: null, available: false } // Closed on Sunday
+        };
+
+        // Holidays or special dates when business is closed (format: 'MM-DD')
+        const closedDates = [
+            '01-01', // New Year's Day
+            '07-04', // Independence Day
+            '12-25', // Christmas
+            '12-31', // New Year's Eve
+        ];
+
+        function getCurrentBusinessStatus() {
+            const now = new Date();
+            const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()];
+            const currentHour = now.getHours();
+            const currentDate = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            
+            // Check if it's a holiday
+            if (closedDates.includes(currentDate)) {
+                return {
+                    isAvailable: false,
+                    reason: 'holiday',
+                    message: 'We are currently closed for a holiday. We\'ll be back to normal business hours tomorrow!'
+                };
+            }
+
+            const dayInfo = businessHours[dayOfWeek];
+            
+            if (!dayInfo.available) {
+                return {
+                    isAvailable: false,
+                    reason: 'closed_day',
+                    message: `We are currently closed (${dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1)}). Our regular business hours are Monday-Friday 9am-5pm and Saturday 10am-2pm.`
+                };
+            }
+
+            if (currentHour < dayInfo.open || currentHour >= dayInfo.close) {
+                const nextOpen = dayInfo.close > currentHour ? 
+                    `We'll be open today until ${dayInfo.close === 17 ? '5pm' : dayInfo.close === 14 ? '2pm' : dayInfo.close + ':00'}.` :
+                    `We'll be open tomorrow at ${businessHours[dayOfWeek === 'saturday' ? 'monday' : dayOfWeek === 'friday' ? 'monday' : 'tuesday'].open}am.`;
+                
+                return {
+                    isAvailable: false,
+                    reason: 'outside_hours',
+                    message: `We are currently closed. ${nextOpen} Our business hours are Monday-Friday 9am-5pm and Saturday 10am-2pm.`
+                };
+            }
+
+            return {
+                isAvailable: true,
+                reason: 'open',
+                message: 'We are currently available! How can we help you today?'
+            };
+        }
+
+        function getBusinessHoursMessage() {
+            return `📅 Our Business Hours:\n\n` +
+                   `Monday - Friday: 9:00 AM - 5:00 PM\n` +
+                   `Saturday: 10:00 AM - 2:00 PM\n` +
+                   `Sunday: Closed\n\n` +
+                   `We're available for events on weekends and evenings! For immediate assistance, please call 229-326-5408 or email lee@externallyyoursproductions.com`;
+        }
+
         // Simple responses - can be replaced with API calls
         const chatbotResponses = [
-            { keywords: ['hello', 'hi', 'hey'], response: 'Hello! 👋 I\'m here to help you learn about our packages and services. What would you like to know?' },
+            { keywords: ['hello', 'hi', 'hey'], response: () => {
+                const status = getCurrentBusinessStatus();
+                if (status.isAvailable) {
+                    return 'Hello! 👋 We\'re here and ready to help! What would you like to know about our packages and services?';
+                } else {
+                    return `Hello! 👋 ${status.message}\n\nYou can still reach us via email at lee@externallyyoursproductions.com and we'll get back to you as soon as possible!`;
+                }
+            }},
             { keywords: ['service', 'services', 'what do you do'], response: 'We offer videography, photography, and DJ entertainment services for weddings, events, and special occasions. Would you like to know about our packages?' },
             { keywords: ['price', 'cost', 'how much', 'pricing'], response: 'Our packages start at different price points:\n📸 Photography: Starting at $1,200\n🎥 Videography: Starting at $1,500\n🎧 DJ Services: Starting at $800\n\nWould you like details on a specific package?' },
             { keywords: ['contact', 'email', 'phone', 'number'], response: 'You can reach us at:\n📧 Email: lee@externallyyoursproductions.com\n📞 Phone: 229-326-5408\n📍 Location: Tifton, Georgia 31794' },
             { keywords: ['wedding', 'weddings'], response: 'We specialize in wedding photography, videography, and DJ services! We offer packages for every budget. Would you like to hear about our wedding packages?' },
             { keywords: ['portfolio', 'gallery', 'photos', 'videos'], response: 'Check out our portfolio section above to see samples of our work! You can also visit our Photography, Videography, and DJ Entertainment pages for more galleries.' },
+            { keywords: ['hours', 'open', 'closed', 'available', 'when are you open', 'business hours'], response: getBusinessHoursMessage },
         ];
 
         const defaultResponse = "Thank you for your message! For detailed inquiries, please contact us at lee@externallyyoursproductions.com or call 229-326-5408. We'll get back to you as soon as possible!";
@@ -2226,7 +2305,22 @@
             // Check other keyword responses
             for (const item of chatbotResponses) {
                 if (item.keywords.some(keyword => lowerMessage.includes(keyword))) {
+                    // Handle function responses (for dynamic content like business hours)
+                    if (typeof item.response === 'function') {
+                        return item.response();
+                    }
                     return item.response;
+                }
+            }
+            
+            // Check if user is asking about current availability
+            if (lowerMessage.includes('are you available') || lowerMessage.includes('are you open') || 
+                lowerMessage.includes('are you there') || lowerMessage.includes('can you help')) {
+                const status = getCurrentBusinessStatus();
+                if (status.isAvailable) {
+                    return 'Yes! We\'re here and ready to help! What would you like to know?';
+                } else {
+                    return `${status.message}\n\n${getBusinessHoursMessage()}`;
                 }
             }
             
@@ -2279,12 +2373,28 @@
             }, 1000 + Math.random() * 1000);
         }
 
+        // Update welcome message based on current availability
+        function updateWelcomeMessage() {
+            const welcomeMessage = document.getElementById('chatbotWelcomeMessage');
+            if (welcomeMessage) {
+                const status = getCurrentBusinessStatus();
+                if (!status.isAvailable) {
+                    welcomeMessage.innerHTML = `<p>Hello! 👋 ${status.message}<br><br>You can still reach us via email at lee@externallyyoursproductions.com and we'll get back to you as soon as possible!</p>`;
+                }
+            }
+        }
+
+        // Update welcome message on page load
+        updateWelcomeMessage();
+
         if (chatbotToggle && chatbotWindow) {
             chatbotToggle.addEventListener('click', () => {
                 chatbotWindow.classList.toggle('active');
                 chatbotToggle.classList.toggle('active');
                 if (chatbotWindow.classList.contains('active')) {
                     chatbotInput.focus();
+                    // Refresh availability status when opening
+                    updateWelcomeMessage();
                 }
             });
 
