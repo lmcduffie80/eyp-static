@@ -657,6 +657,129 @@
             color: white;
             font-size: 1.2rem;
         }
+
+        /* Available Dates Calendar Styles */
+        .dates-calendar {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-nav button {
+            padding: 0.5rem 1rem;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .calendar-nav button:hover {
+            background: var(--primary-color);
+        }
+
+        .calendar-nav h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .calendar-day {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day.available {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .calendar-day.blocked {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+            background: var(--bg-light);
+        }
+
+        .calendar-day.today {
+            background: var(--accent-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+
+        .legend-color.available {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .legend-color.blocked {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .legend-color.today {
+            background: var(--accent-color);
+        }
     </style>
 </head>
 <body>
@@ -906,6 +1029,22 @@
                         <p class="testimonial-service-label">DJ Entertainment</p>
                         <p class="testimonial-date">2025</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Available Dates Section -->
+    <section id="available-dates" style="padding: 4rem 0; background: var(--bg-light);">
+        <div class="container">
+            <h2 class="section-title">Available Dates</h2>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 2rem;">
+                Check our availability for upcoming Saturday bookings. Dates are blocked if we have one or more events scheduled.
+            </p>
+            <div id="dates-calendar-container" style="max-width: 900px; margin: 0 auto;">
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--bg-light); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">Loading available dates...</p>
                 </div>
             </div>
         </div>
