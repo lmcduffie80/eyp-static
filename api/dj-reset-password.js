@@ -216,7 +216,58 @@ async function sendResetEmail(email, resetLink) {
         `
     };
 
-    // Option 1: Using Gmail SMTP (via Nodemailer) - CHECK THIS FIRST
+    // Option 1: Using Gmail API (via googleapis) - PREFERRED METHOD
+    if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+        const { google } = await import('googleapis');
+        
+        // Authenticate using service account
+        const auth = new google.auth.JWT(
+            process.env.GOOGLE_CLIENT_EMAIL,
+            null,
+            process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            ['https://www.googleapis.com/auth/gmail.send']
+        );
+        
+        // Set the user to impersonate (the email address that will send the email)
+        const sendAsEmail = process.env.EMAIL_FROM || process.env.GOOGLE_CLIENT_EMAIL;
+        auth.subject = sendAsEmail;
+        
+        await auth.authorize();
+        
+        const gmail = google.gmail({ version: 'v1', auth });
+        
+        // Create email message in RFC 2822 format
+        const messageParts = [
+            `From: ${sendAsEmail}`,
+            `To: ${email}`,
+            `Subject: ${emailContent.subject}`,
+            'Content-Type: text/html; charset=utf-8',
+            '',
+            emailContent.html
+        ];
+        
+        const message = messageParts.join('\n');
+        
+        // Encode message in base64url format (required by Gmail API)
+        const encodedMessage = Buffer.from(message)
+            .toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+        
+        // Send email via Gmail API
+        await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: {
+                raw: encodedMessage
+            }
+        });
+        
+        console.log(`Password reset email sent to ${email} via Gmail API`);
+        return;
+    }
+    
+    // Option 2: Fallback to Gmail SMTP (via Nodemailer) if Gmail API not configured
     if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
         const nodemailer = (await import('nodemailer')).default;
         
@@ -237,7 +288,7 @@ async function sendResetEmail(email, resetLink) {
         };
 
         await transporter.sendMail(msg);
-        console.log(`Password reset email sent to ${email} via Gmail`);
+        console.log(`Password reset email sent to ${email} via Gmail SMTP`);
         return;
     }
 
