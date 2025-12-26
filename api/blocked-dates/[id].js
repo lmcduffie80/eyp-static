@@ -27,48 +27,6 @@ export default async function handler(req, res) {
             // Update blocked date - can update status, djUser, reason, or date
             const { status, djUser, reason, date } = req.body;
             
-            // Build dynamic update query based on provided fields
-            const updates = [];
-            const values = [];
-            let paramIndex = 1;
-            
-            if (status !== undefined) {
-                if (!['pending', 'approved', 'rejected'].includes(status)) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Valid status is required: pending, approved, or rejected'
-                    });
-                }
-                updates.push(`status = $${paramIndex}`);
-                values.push(status);
-                paramIndex++;
-            }
-            
-            if (djUser !== undefined) {
-                updates.push(`dj_user = $${paramIndex}`);
-                values.push(djUser);
-                paramIndex++;
-            }
-            
-            if (reason !== undefined) {
-                updates.push(`reason = $${paramIndex}`);
-                values.push(reason);
-                paramIndex++;
-            }
-            
-            if (date !== undefined) {
-                updates.push(`date = $${paramIndex}`);
-                values.push(date);
-                paramIndex++;
-            }
-            
-            if (updates.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'At least one field must be provided for update (status, djUser, reason, or date)'
-                });
-            }
-            
             // Build SET clause dynamically - construct query string parts
             const setClauses = [];
             const setValues = [];
