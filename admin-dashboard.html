@@ -1038,6 +1038,7 @@
             
             <div class="section-card">
                 <h2>Master Calendar - All Blocked Dates & Projects</h2>
+                <p style="color: var(--text-light); margin-bottom: 1rem;">Click on any date in the calendar to block it for a DJ. Blocked dates are automatically approved.</p>
                 <div class="filter-controls">
                     <select id="calendar-filter-dj" onchange="(async () => { await generateMasterCalendar(); })()">
                         <option value="">All DJs</option>
@@ -1051,6 +1052,17 @@
                 </div>
                 <div id="master-calendar-container">
                     <!-- Master calendar will be generated here -->
+                </div>
+            </div>
+            
+            <!-- Admin Block Date Modal -->
+            <div id="admin-block-date-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 10px; padding: 2rem; max-width: 500px; width: 90%; position: relative; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
+                    <button onclick="closeAdminBlockDateModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">&times;</button>
+                    <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Block Date</h2>
+                    <div id="admin-block-date-content">
+                        <!-- Modal content will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -4257,21 +4269,26 @@
                 const dateObj = new Date(calendarYear, calendarMonth, day);
                 dateObj.setHours(0, 0, 0, 0);
                 
-                let style = 'padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 5px; text-align: center;';
+                let style = 'padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 5px; text-align: center; cursor: pointer; transition: all 0.2s ease;';
                 let indicators = '';
+                let onclickAction = `selectAdminCalendarDate('${dateStr}')`;
 
                 if (dateObj.getTime() === today.getTime()) {
                     style += ' background: var(--accent-color); color: white; font-weight: bold;';
                 } else if (blockedDatesList.includes(dateStr)) {
                     style += ' background: var(--warning-color); font-weight: bold;';
                     indicators += '<div style="font-size: 0.7rem;">🚫</div>';
+                    onclickAction = `selectAdminCalendarDate('${dateStr}')`; // Still allow clicking to view/edit
                 } else if (bookingDatesList.includes(dateStr)) {
                     style += ' background: var(--success-color); color: white; font-weight: bold;';
                     indicators += '<div style="font-size: 0.7rem;">📅</div>';
+                } else {
+                    style += ' background: var(--secondary-color);';
+                    style += ' hover:background: var(--bg-light);';
                 }
 
                 calendarHTML += `
-                    <div style="${style}">
+                    <div style="${style}" onclick="${onclickAction}" title="Click to block this date">
                         <div>${day}</div>
                         ${indicators}
                     </div>
