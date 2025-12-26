@@ -4077,7 +4077,7 @@
             statusEl.style.color = '#666';
             
             try {
-                const response = await fetch('/api/db/migrate-blocked-dates-status', {
+                const response = await fetch('/api/migrate-blocked-dates-status', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
