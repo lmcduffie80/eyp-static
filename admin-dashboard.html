@@ -857,6 +857,16 @@
             </div>
 
             <div class="dashboard-container">
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10000; text-align: center;">
+            <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem;">Loading dashboard...</div>
+            <div style="width: 40px; height: 40px; border: 4px solid var(--bg-light); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        </div>
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
         <!-- DJs Tab -->
         <div id="djs-tab" class="tab-content active">
             <!-- Statistics -->
@@ -1945,21 +1955,35 @@
         } else {
             // Initialize dashboard on load - optimized to parallelize API calls
             document.addEventListener('DOMContentLoaded', async function() {
-                initializeAnalytics();
+                // Show loading indicator
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) loadingIndicator.style.display = 'block';
                 
-                // Load all data in parallel for faster initial load
-                const [bookings, blockedDates, djs, admins] = await Promise.all([
-                    getAllBookings(),
-                    getAllBlockedDates(),
-                    getAllDJs(),
-                    getAllAdmins()
-                ]);
-                
-                // Update dashboard stats with already-fetched data
-                await updateDashboardStatsWithData(bookings, blockedDates);
-                
-                // Load DJs display with already-fetched data
-                await loadAllDJsWithData(djs, bookings, blockedDates);
+                try {
+                    initializeAnalytics();
+                    
+                    // Load all data in parallel for faster initial load
+                    const [bookings, blockedDates, djs, admins] = await Promise.all([
+                        getAllBookings(),
+                        getAllBlockedDates(),
+                        getAllDJs(),
+                        getAllAdmins()
+                    ]);
+                    
+                    // Update dashboard stats with already-fetched data (use requestAnimationFrame for non-blocking)
+                    requestAnimationFrame(async () => {
+                        await updateDashboardStatsWithData(bookings, blockedDates);
+                        
+                        // Load DJs display with already-fetched data
+                        await loadAllDJsWithData(djs, bookings, blockedDates);
+                        
+                        // Hide loading indicator
+                        if (loadingIndicator) loadingIndicator.style.display = 'none';
+                    });
+                } catch (error) {
+                    console.error('Error loading dashboard:', error);
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                }
             });
         }
 
@@ -2537,7 +2561,6 @@
             
             try {
                 const blockedDates = await apiGetBlockedDates();
-                console.log('Raw blocked dates from API:', blockedDates);
                 // Transform API response to match expected format
                 const transformed = blockedDates.map(bd => {
                     // Ensure date is in YYYY-MM-DD format
@@ -2559,7 +2582,6 @@
                         status: bd.status || 'approved' // Default to 'approved' for backward compatibility
                     };
                 });
-                console.log('Transformed blocked dates:', transformed);
                 blockedDatesCache = transformed;
                 blockedDatesCacheTime = now;
                 return transformed;
@@ -2999,10 +3021,7 @@
         // Filter by DJ name click (from All DJs Overview)
         async function filterByDJ(djName) {
             try {
-                console.log('filterByDJ called with:', djName);
-                
                 if (!djName) {
-                    console.error('filterByDJ: djName is empty');
                     return;
                 }
                 
@@ -3017,10 +3036,9 @@
                 // Switch to bookings tab if not already there
                 const bookingsTab = document.getElementById('bookings-tab');
                 if (!bookingsTab || !bookingsTab.classList.contains('active')) {
-                    console.log('Switching to bookings tab...');
                     await switchTab('bookings');
                     // Give it a moment for the tab to render
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 50));
                 }
                 
                 // Get filter elements
@@ -3029,14 +3047,12 @@
                 const yearFilterSelect = document.getElementById('booking-filter-year');
                 
                 if (!djFilterSelect) {
-                    console.error('filterByDJ: booking-filter-dj element not found');
                     return;
                 }
                 
                 // Get bookings to find matching DJ name
                 const bookings = await getAllBookings();
                 const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
-                console.log('Available DJs in bookings:', uniqueDJs);
                 
                 // Find exact or case-insensitive match
                 let matchingDJName = djName;
@@ -3044,9 +3060,7 @@
                     const match = uniqueDJs.find(dj => dj.toLowerCase() === djName.toLowerCase());
                     if (match) {
                         matchingDJName = match;
-                        console.log('Matched DJ name:', match, 'from input:', djName);
                     } else {
-                        console.warn('DJ name not found in bookings. Input:', djName, 'Available:', uniqueDJs);
                         alert(`DJ "${djName}" not found in bookings. Available DJs: ${uniqueDJs.join(', ')}`);
                         return; // Exit early if no match found
                     }
@@ -3065,19 +3079,16 @@
                 
                 // Set the DJ filter value
                 djFilterSelect.value = matchingDJName;
-                console.log('Set DJ filter to:', matchingDJName, 'Current value:', djFilterSelect.value);
                 
                 // Verify the value was set
                 if (djFilterSelect.value !== matchingDJName) {
-                    console.error('Failed to set DJ filter value. Expected:', matchingDJName, 'Got:', djFilterSelect.value);
                     // Try setting it again after a brief delay
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    await new Promise(resolve => setTimeout(resolve, 25));
                     djFilterSelect.value = matchingDJName;
                 }
                 
                 // Now call filterAllBookings which will preserve this value and apply the filter
                 await filterAllBookings();
-                console.log('Filter applied, current DJ filter value:', djFilterSelect.value);
             } catch (error) {
                 console.error('Error in filterByDJ:', error);
                 alert('Error filtering by DJ: ' + error.message);
@@ -3253,7 +3264,6 @@
                 });
             } else {
                 // Apply custom sorting based on sortState
-                console.log('Applying sort:', sortState.column, sortState.direction, 'on', filteredBookings.length, 'bookings');
                 filteredBookings.sort((a, b) => {
                     let aValue, bValue;
                     
@@ -3302,11 +3312,6 @@
                     if (aValue > bValue) return sortState.direction === 'asc' ? 1 : -1;
                     return 0;
                 });
-                console.log('Sort applied. First booking:', filteredBookings[0] ? {
-                    date: filteredBookings[0].date,
-                    dj: filteredBookings[0].djUser,
-                    [sortState.column]: filteredBookings[0][sortState.column]
-                } : 'none');
             }
 
             const container = document.getElementById('all-bookings-container');
@@ -3637,10 +3642,8 @@
                     
                     for (let i = startRow; i < lines.length; i++) {
                         const values = parseRow(lines[i]);
-                        console.log(`Row ${i}:`, values);
                         
                         if (values.length < Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1) {
-                            console.log(`Row ${i} skipped: Not enough columns (${values.length} found, need at least ${Math.max(djNameIndex, dateIndex, projectNameIndex, locationIndex) + 1})`);
                             skipReasons.notEnoughColumns++;
                             skippedCount++;
                             continue;
@@ -4217,9 +4220,6 @@
             
             const blockedDatesList = filteredBlocked.map(bd => normalizeDate(bd.date)).filter(d => d);
             const bookingDatesList = filteredBookings.map(b => normalizeDate(b.date)).filter(d => d);
-            
-            console.log('Blocked dates list for calendar:', blockedDatesList);
-            console.log('Booking dates list for calendar:', bookingDatesList);
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
