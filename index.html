@@ -1604,26 +1604,260 @@
         const chatbotMessages = document.getElementById('chatbotMessages');
         const chatbotTyping = document.getElementById('chatbotTyping');
 
+        // Package information
+        const packages = {
+            photography: {
+                basic: {
+                    name: 'Basic Photography Package',
+                    price: 'Starting at $1,200',
+                    includes: [
+                        '4 hours of coverage',
+                        '1 professional photographer',
+                        '100+ edited high-resolution images',
+                        'Online gallery for viewing and sharing',
+                        'Digital download of all images'
+                    ],
+                    description: 'Perfect for smaller events or shorter celebrations.'
+                },
+                standard: {
+                    name: 'Standard Photography Package',
+                    price: 'Starting at $2,000',
+                    includes: [
+                        '6-8 hours of coverage',
+                        '1 professional photographer',
+                        '200+ edited high-resolution images',
+                        'Online gallery with print release',
+                        'Digital download of all images',
+                        'Engagement session (optional add-on)'
+                    ],
+                    description: 'Our most popular package for weddings and major events.'
+                },
+                premium: {
+                    name: 'Premium Photography Package',
+                    price: 'Starting at $3,500',
+                    includes: [
+                        'Full day coverage (up to 10 hours)',
+                        '2 professional photographers',
+                        '400+ edited high-resolution images',
+                        'Online gallery with print release',
+                        'Digital download of all images',
+                        'Engagement session included',
+                        'Wedding album (physical)',
+                        'Second shooter for multiple angles'
+                    ],
+                    description: 'Comprehensive coverage for your most important day.'
+                }
+            },
+            videography: {
+                basic: {
+                    name: 'Basic Videography Package',
+                    price: 'Starting at $1,500',
+                    includes: [
+                        '4 hours of coverage',
+                        '1 videographer',
+                        '3-5 minute highlight reel',
+                        'Full ceremony recording',
+                        'Digital download of all footage',
+                        'Online video gallery'
+                    ],
+                    description: 'Essential video coverage for your special moments.'
+                },
+                standard: {
+                    name: 'Standard Videography Package',
+                    price: 'Starting at $2,500',
+                    includes: [
+                        '6-8 hours of coverage',
+                        '1-2 videographers',
+                        '5-7 minute cinematic highlight reel',
+                        'Full ceremony and reception recording',
+                        'Digital download of all footage',
+                        'Online video gallery',
+                        'Drone footage (if applicable)'
+                    ],
+                    description: 'Comprehensive video coverage with cinematic quality.'
+                },
+                premium: {
+                    name: 'Premium Videography Package',
+                    price: 'Starting at $4,000',
+                    includes: [
+                        'Full day coverage (up to 10 hours)',
+                        '2 videographers',
+                        '8-10 minute cinematic highlight reel',
+                        'Full ceremony and reception recording',
+                        'Same-day edit (sneak peek)',
+                        'Digital download of all footage',
+                        'Online video gallery',
+                        'Drone footage included',
+                        'Multiple camera angles',
+                        'Color grading and professional editing'
+                    ],
+                    description: 'The ultimate video experience with cinematic storytelling.'
+                }
+            },
+            dj: {
+                basic: {
+                    name: 'Basic DJ Package',
+                    price: 'Starting at $800',
+                    includes: [
+                        '4 hours of DJ service',
+                        'Professional sound system',
+                        'Wireless microphone for speeches',
+                        'Basic lighting setup',
+                        'Music library access',
+                        'Professional DJ/MC services'
+                    ],
+                    description: 'Perfect for smaller events and intimate gatherings.'
+                },
+                standard: {
+                    name: 'Standard DJ Package',
+                    price: 'Starting at $1,200',
+                    includes: [
+                        '5-6 hours of DJ service',
+                        'Professional sound system',
+                        'Wireless microphones (2)',
+                        'Enhanced lighting package',
+                        'Music library access',
+                        'Professional DJ/MC services',
+                        'Dance floor lighting effects',
+                        'Setup and breakdown included'
+                    ],
+                    description: 'Our most popular package for weddings and parties.'
+                },
+                premium: {
+                    name: 'Premium DJ Package',
+                    price: 'Starting at $1,800',
+                    includes: [
+                        'Full event coverage (up to 8 hours)',
+                        'Professional sound system with backup',
+                        'Wireless microphones (3)',
+                        'Premium lighting package with effects',
+                        'Music library access',
+                        'Professional DJ/MC services',
+                        'Dance floor lighting and effects',
+                        'Setup and breakdown included',
+                        'Photo booth integration (optional)',
+                        'Uplighting for venue',
+                        'Fog machine and special effects'
+                    ],
+                    description: 'The ultimate party experience with premium sound and lighting.'
+                }
+            },
+            combo: {
+                photography_videography: {
+                    name: 'Photo + Video Combo Package',
+                    price: 'Starting at $3,500',
+                    includes: [
+                        'Full photography coverage',
+                        'Full videography coverage',
+                        'Dual coverage discount',
+                        'Coordinated timeline',
+                        'All standard package features from both services'
+                    ],
+                    description: 'Save when you book both photography and videography together!'
+                },
+                all_inclusive: {
+                    name: 'All-Inclusive Wedding Package',
+                    price: 'Starting at $5,500',
+                    includes: [
+                        'Premium Photography Package',
+                        'Premium Videography Package',
+                        'Premium DJ Package',
+                        'Coordinated timeline and planning',
+                        'Dedicated event coordinator',
+                        'Maximum savings with bundle discount'
+                    ],
+                    description: 'Complete wedding coverage - photography, videography, and DJ all in one!'
+                }
+            }
+        };
+
         // Simple responses - can be replaced with API calls
         const chatbotResponses = [
-            { keywords: ['hello', 'hi', 'hey'], response: 'Hello! How can we help you today?' },
-            { keywords: ['service', 'services', 'what do you do'], response: 'We offer videography, photography, and DJ entertainment services for weddings, events, and special occasions.' },
-            { keywords: ['price', 'cost', 'how much', 'pricing'], response: 'Pricing varies depending on the service and event details. Please contact us at lee@externallyyoursproductions.com or 229-326-5408 for a customized quote.' },
+            { keywords: ['hello', 'hi', 'hey'], response: 'Hello! 👋 I\'m here to help you learn about our packages and services. What would you like to know?' },
+            { keywords: ['service', 'services', 'what do you do'], response: 'We offer videography, photography, and DJ entertainment services for weddings, events, and special occasions. Would you like to know about our packages?' },
+            { keywords: ['price', 'cost', 'how much', 'pricing'], response: 'Our packages start at different price points:\n📸 Photography: Starting at $1,200\n🎥 Videography: Starting at $1,500\n🎧 DJ Services: Starting at $800\n\nWould you like details on a specific package?' },
             { keywords: ['contact', 'email', 'phone', 'number'], response: 'You can reach us at:\n📧 Email: lee@externallyyoursproductions.com\n📞 Phone: 229-326-5408\n📍 Location: Tifton, Georgia 31794' },
-            { keywords: ['wedding', 'weddings'], response: 'We specialize in wedding photography, videography, and DJ services! We\'d love to help make your special day unforgettable. Contact us for more details.' },
+            { keywords: ['wedding', 'weddings'], response: 'We specialize in wedding photography, videography, and DJ services! We offer packages for every budget. Would you like to hear about our wedding packages?' },
             { keywords: ['book', 'booking', 'available', 'schedule'], response: 'Great! You can check our available dates on this page, or contact us directly to discuss scheduling your event.' },
             { keywords: ['portfolio', 'gallery', 'photos', 'videos'], response: 'Check out our portfolio section above to see samples of our work! You can also visit our Photography, Videography, and DJ Entertainment pages for more galleries.' },
         ];
 
         const defaultResponse = "Thank you for your message! For detailed inquiries, please contact us at lee@externallyyoursproductions.com or call 229-326-5408. We'll get back to you as soon as possible!";
 
+        function formatPackageInfo(pkg) {
+            let response = `📦 ${pkg.name}\n💰 ${pkg.price}\n\n${pkg.description}\n\n✨ Includes:\n`;
+            pkg.includes.forEach(item => {
+                response += `• ${item}\n`;
+            });
+            return response;
+        }
+
         function getChatbotResponse(message) {
             const lowerMessage = message.toLowerCase();
+            
+            // Check for package-specific queries
+            if (lowerMessage.includes('package') || lowerMessage.includes('packages') || lowerMessage.includes('pricing') || lowerMessage.includes('what\'s included')) {
+                // Photography packages
+                if (lowerMessage.includes('photo') || lowerMessage.includes('photography') || lowerMessage.includes('photographer')) {
+                    if (lowerMessage.includes('basic') || lowerMessage.includes('starter') || lowerMessage.includes('cheap') || lowerMessage.includes('budget')) {
+                        return formatPackageInfo(packages.photography.basic);
+                    } else if (lowerMessage.includes('premium') || lowerMessage.includes('deluxe') || lowerMessage.includes('top') || lowerMessage.includes('best')) {
+                        return formatPackageInfo(packages.photography.premium);
+                    } else if (lowerMessage.includes('standard') || lowerMessage.includes('popular') || lowerMessage.includes('recommended')) {
+                        return formatPackageInfo(packages.photography.standard);
+                    } else {
+                        return `📸 We offer three Photography packages:\n\n1️⃣ Basic - ${packages.photography.basic.price}\n2️⃣ Standard - ${packages.photography.standard.price}\n3️⃣ Premium - ${packages.photography.premium.price}\n\nWhich package would you like to learn more about?`;
+                    }
+                }
+                
+                // Videography packages
+                if (lowerMessage.includes('video') || lowerMessage.includes('videography') || lowerMessage.includes('videographer') || lowerMessage.includes('film')) {
+                    if (lowerMessage.includes('basic') || lowerMessage.includes('starter') || lowerMessage.includes('cheap') || lowerMessage.includes('budget')) {
+                        return formatPackageInfo(packages.videography.basic);
+                    } else if (lowerMessage.includes('premium') || lowerMessage.includes('deluxe') || lowerMessage.includes('top') || lowerMessage.includes('best')) {
+                        return formatPackageInfo(packages.videography.premium);
+                    } else if (lowerMessage.includes('standard') || lowerMessage.includes('popular') || lowerMessage.includes('recommended')) {
+                        return formatPackageInfo(packages.videography.standard);
+                    } else {
+                        return `🎥 We offer three Videography packages:\n\n1️⃣ Basic - ${packages.videography.basic.price}\n2️⃣ Standard - ${packages.videography.standard.price}\n3️⃣ Premium - ${packages.videography.premium.price}\n\nWhich package would you like to learn more about?`;
+                    }
+                }
+                
+                // DJ packages
+                if (lowerMessage.includes('dj') || lowerMessage.includes('disc jockey') || lowerMessage.includes('music') || lowerMessage.includes('entertainment')) {
+                    if (lowerMessage.includes('basic') || lowerMessage.includes('starter') || lowerMessage.includes('cheap') || lowerMessage.includes('budget')) {
+                        return formatPackageInfo(packages.dj.basic);
+                    } else if (lowerMessage.includes('premium') || lowerMessage.includes('deluxe') || lowerMessage.includes('top') || lowerMessage.includes('best')) {
+                        return formatPackageInfo(packages.dj.premium);
+                    } else if (lowerMessage.includes('standard') || lowerMessage.includes('popular') || lowerMessage.includes('recommended')) {
+                        return formatPackageInfo(packages.dj.standard);
+                    } else {
+                        return `🎧 We offer three DJ packages:\n\n1️⃣ Basic - ${packages.dj.basic.price}\n2️⃣ Standard - ${packages.dj.standard.price}\n3️⃣ Premium - ${packages.dj.premium.price}\n\nWhich package would you like to learn more about?`;
+                    }
+                }
+                
+                // Combo packages
+                if (lowerMessage.includes('combo') || lowerMessage.includes('bundle') || lowerMessage.includes('all') || lowerMessage.includes('everything') || lowerMessage.includes('both')) {
+                    if (lowerMessage.includes('photo') && lowerMessage.includes('video')) {
+                        return formatPackageInfo(packages.combo.photography_videography);
+                    } else if (lowerMessage.includes('all') || lowerMessage.includes('everything') || lowerMessage.includes('full')) {
+                        return formatPackageInfo(packages.combo.all_inclusive);
+                    } else {
+                        return `🎁 We offer combo packages:\n\n1️⃣ Photo + Video Combo - ${packages.combo.photography_videography.price}\n2️⃣ All-Inclusive Wedding Package - ${packages.combo.all_inclusive.price}\n\nWhich would you like to learn more about?`;
+                    }
+                }
+                
+                // General package inquiry
+                return `We offer packages for all our services:\n\n📸 Photography Packages: Basic, Standard, Premium\n🎥 Videography Packages: Basic, Standard, Premium\n🎧 DJ Packages: Basic, Standard, Premium\n🎁 Combo Packages: Photo+Video, All-Inclusive\n\nWhich service are you interested in?`;
+            }
+            
+            // Check other keyword responses
             for (const item of chatbotResponses) {
                 if (item.keywords.some(keyword => lowerMessage.includes(keyword))) {
                     return item.response;
                 }
             }
+            
             return defaultResponse;
         }
 
