@@ -760,7 +760,7 @@
                 const storedUsername = user.username || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '');
                 localStorage.setItem('dj_user', storedUsername);
                 console.log('Login successful! Redirecting to dashboard...');
-                window.location.href = 'dj-dashboard.html';
+                window.location.href = 'dj-dashboard.html?refresh=true';
             } else {
                 console.log('No matching user found in localStorage');
                 // Don't try API call - it doesn't exist and causes 404 errors

@@ -1916,6 +1916,28 @@
 
         // Initialize dashboard on load - optimized to parallelize API calls
         document.addEventListener('DOMContentLoaded', async function() {
+            // Check if this is a refresh after authentication
+            const urlParams = new URLSearchParams(window.location.search);
+            const shouldRefresh = urlParams.get('refresh') === 'true';
+            
+            // If this was a login redirect, clear caches and reload the page to ensure fresh data
+            if (shouldRefresh) {
+                // Clear all caches
+                bookingsCache = null;
+                bookingsCacheTime = null;
+                blockedDatesCache = null;
+                blockedDatesCacheTime = null;
+                djCache = null;
+                djCacheTime = null;
+                adminCache = null;
+                adminCacheTime = null;
+                
+                // Remove the refresh parameter and reload
+                window.history.replaceState({}, document.title, window.location.pathname);
+                window.location.reload();
+                return; // Exit early, page will reload
+            }
+            
             initializeAnalytics();
             
             // Load all data in parallel for faster initial load
