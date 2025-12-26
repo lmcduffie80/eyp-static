@@ -6,15 +6,25 @@
  */
 
 import crypto from 'crypto';
+import sql from './db/connection.js';
+import { setSecurityHeaders, setCORSHeaders } from './security-headers.js';
 
 // For Vercel, use environment variables
 // Set these in your Vercel project settings:
-// - SENDGRID_API_KEY
+// - SENDGRID_API_KEY (or GMAIL_USER and GMAIL_APP_PASSWORD)
 // - EMAIL_FROM
 // - BASE_URL
-// - DATABASE_URL (or use Vercel Postgres, MongoDB Atlas, etc.)
 
 export default async function handler(req, res) {
+    // Set security headers
+    setSecurityHeaders(res);
+    
+    // Set CORS headers with specific origins
+    setCORSHeaders(req, res);
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
     // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ 
@@ -39,11 +49,10 @@ export default async function handler(req, res) {
         const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
 
         // Check if user exists and store reset token
-        // Replace this with your actual database query
-        const userExists = await checkUserExists(email);
+        const user = await checkUserExists(email);
         
         // Always process (don't reveal if email exists for security)
-        if (userExists) {
+        if (user) {
             // Store reset token in database
             await storeResetToken(email, resetToken, resetTokenExpiry);
 
@@ -70,64 +79,81 @@ export default async function handler(req, res) {
 
 /**
  * Check if user exists in database
- * Replace with your actual database query
  */
 async function checkUserExists(email) {
-    // Example: Using Vercel Postgres
-    // const { sql } = await import('@vercel/postgres');
-    // const result = await sql`SELECT * FROM dj_users WHERE email = ${email}`;
-    // return result.rows.length > 0;
-
-    // Example: Using MongoDB Atlas
-    // const { MongoClient } = await import('mongodb');
-    // const client = new MongoClient(process.env.DATABASE_URL);
-    // await client.connect();
-    // const db = client.db();
-    // const user = await db.collection('dj_users').findOne({ email });
-    // await client.close();
-    // return !!user;
-
-    // For development: Check localStorage equivalent or return true
-    // In production, replace with actual database query
-    return true; // Placeholder
+    try {
+        // Check if user exists in users table (DJ users)
+        const result = await sql`
+            SELECT id, email, username, first_name, last_name 
+            FROM users 
+            WHERE email = ${email.toLowerCase().trim()} AND user_type = 'dj'
+        `;
+        return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (error) {
+        console.error('Error checking if user exists:', error);
+        return null;
+    }
 }
 
 /**
  * Store reset token in database
  */
 async function storeResetToken(email, token, expiry) {
-    // Example: Using Vercel Postgres
-    // const { sql } = await import('@vercel/postgres');
-    // await sql`
-    //     INSERT INTO password_resets (email, token, expires_at, created_at)
-    //     VALUES (${email}, ${token}, to_timestamp(${expiry/1000}), NOW())
-    //     ON CONFLICT (email) DO UPDATE 
-    //     SET token = ${token}, expires_at = to_timestamp(${expiry/1000}), created_at = NOW()
-    // `;
-
-    // Example: Using MongoDB Atlas
-    // const { MongoClient } = await import('mongodb');
-    // const client = new MongoClient(process.env.DATABASE_URL);
-    // await client.connect();
-    // const db = client.db();
-    // await db.collection('password_resets').updateOne(
-    //     { email },
-    //     { 
-    //         $set: { 
-    //             email,
-    //             token,
-    //             expiresAt: new Date(expiry),
-    //             createdAt: new Date(),
-    //             used: false
-    //         }
-    //     },
-    //     { upsert: true }
-    // );
-    // await client.close();
-
-    // For development: Store in database
-    // In production, replace with actual database storage
-    console.log(`Storing reset token for ${email}`);
+    try {
+        // Convert expiry timestamp to Date object
+        const expiryDate = new Date(expiry);
+        
+        // Try to insert, and if email already exists, update it
+        // First, try to delete any existing tokens for this email
+        await sql`DELETE FROM password_resets WHERE email = ${email.toLowerCase().trim()}`;
+        
+        // Insert new reset token
+        await sql`
+            INSERT INTO password_resets (email, token, expires_at, created_at, used)
+            VALUES (${email.toLowerCase().trim()}, ${token}, ${expiryDate}, NOW(), false)
+        `;
+        
+        console.log(`Reset token stored for ${email}`);
+    } catch (error) {
+        // If table doesn't exist, create it first (for development/testing)
+        if (error.message && error.message.includes('does not exist')) {
+            console.warn('password_resets table does not exist, attempting to create it...');
+            try {
+                // Create password_resets table if it doesn't exist
+                await sql`
+                    CREATE TABLE IF NOT EXISTS password_resets (
+                        id SERIAL PRIMARY KEY,
+                        email VARCHAR(255) NOT NULL,
+                        token VARCHAR(255) NOT NULL UNIQUE,
+                        expires_at TIMESTAMP NOT NULL,
+                        created_at TIMESTAMP DEFAULT NOW(),
+                        used BOOLEAN DEFAULT false
+                    )
+                `;
+                
+                // Create index on email for faster lookups
+                await sql`
+                    CREATE INDEX IF NOT EXISTS idx_password_resets_email ON password_resets(email)
+                `;
+                
+                // Now try inserting again
+                const expiryDate = new Date(expiry);
+                await sql`DELETE FROM password_resets WHERE email = ${email.toLowerCase().trim()}`;
+                await sql`
+                    INSERT INTO password_resets (email, token, expires_at, created_at, used)
+                    VALUES (${email.toLowerCase().trim()}, ${token}, ${expiryDate}, NOW(), false)
+                `;
+                
+                console.log(`Reset token stored for ${email} (table created)`);
+            } catch (createError) {
+                console.error('Error creating password_resets table:', createError);
+                throw createError;
+            }
+        } else {
+            console.error('Error storing reset token:', error);
+            throw error;
+        }
+    }
 }
 
 /**
