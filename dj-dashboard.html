@@ -2028,6 +2028,28 @@
             if (welcomeMsg) {
                 welcomeMsg.textContent = `Welcome back, ${finalDisplayName}!`;
             }
+            
+            // Update dropdown form fields with API data (if available)
+            if (currentDJ) {
+                const dropdownUsername = document.getElementById('dropdown-username');
+                const dropdownNameField = document.getElementById('dropdown-name');
+                const dropdownEmail = document.getElementById('dropdown-email');
+                const dropdownPhone = document.getElementById('dropdown-phone');
+                
+                if (dropdownUsername) dropdownUsername.value = currentDJ.username || '';
+                if (dropdownNameField) dropdownNameField.value = finalDisplayName;
+                if (dropdownEmail) dropdownEmail.value = currentDJ.email || '';
+                if (dropdownPhone) dropdownPhone.value = currentDJ.phone || '';
+                
+                // Update profile picture in dropdown if available
+                const profilePictureImg = document.getElementById('profile-picture-img');
+                const profilePictureInitials = document.getElementById('profile-picture-initials');
+                if (currentDJ.profilePicture && profilePictureImg && profilePictureInitials) {
+                    profilePictureImg.src = currentDJ.profilePicture;
+                    profilePictureImg.style.display = 'block';
+                    profilePictureInitials.style.display = 'none';
+                }
+            }
         }
         
         // Load user data (fallback to localStorage for backward compatibility)
@@ -2100,13 +2122,37 @@
         });
         
         // Toggle account settings in dropdown
-        function toggleAccountSettings() {
+        async function toggleAccountSettings() {
             const accountForm = document.getElementById('profile-account-form');
             accountForm.classList.toggle('show');
             
-            // Load account info when opening
+            // Load account info when opening - use API data if available
             if (accountForm.classList.contains('show')) {
-                loadAccountInfoToDropdown();
+                // Try to use fresh API data, fallback to localStorage
+                try {
+                    const currentUsername = localStorage.getItem('dj_user');
+                    if (currentUsername) {
+                        const djUsers = await apiGetUsers('dj');
+                        const currentDJ = djUsers.find(u => 
+                            u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                            (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                        );
+                        
+                        if (currentDJ) {
+                            const djFullName = currentDJ.firstName && currentDJ.lastName 
+                                ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                                : currentUsername;
+                            updateUserDisplayFromAPI(currentDJ, currentUsername, djFullName);
+                        } else {
+                            loadAccountInfoToDropdown();
+                        }
+                    } else {
+                        loadAccountInfoToDropdown();
+                    }
+                } catch (error) {
+                    console.error('Error loading account info:', error);
+                    loadAccountInfoToDropdown();
+                }
                 // Show Save and Cancel buttons when opening account settings
                 const formActions = document.querySelector('.profile-dropdown-form-actions');
                 if (formActions) {
