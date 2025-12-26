@@ -2325,15 +2325,40 @@
         }
         
         // Cancel account edit from dropdown
-        function cancelAccountFromDropdown() {
-            loadAccountInfoToDropdown();
+        async function cancelAccountFromDropdown() {
+            // Reload fresh data from API instead of using stale localStorage
+            try {
+                const currentUsername = localStorage.getItem('dj_user');
+                if (currentUsername) {
+                    const djUsers = await apiGetUsers('dj');
+                    const currentDJ = djUsers.find(u => 
+                        u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                        (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                    );
+                    
+                    const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                        ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                        : currentUsername;
+                    
+                    // Update dropdown with fresh API data
+                    updateUserDisplayFromAPI(currentDJ, currentUsername, djFullName);
+                } else {
+                    // Fallback to localStorage if no username found
+                    loadAccountInfoToDropdown();
+                }
+            } catch (error) {
+                console.error('Error loading account info:', error);
+                // Fallback to localStorage on error
+                loadAccountInfoToDropdown();
+            }
+            
             document.getElementById('dropdown-save-success').classList.remove('show');
             document.getElementById('profile-account-form').classList.remove('show');
         }
         
         
-        // Load user info on page load
-        loadDJUserInfo();
+        // User info is now loaded in initializeDashboard() via updateUserDisplayFromAPI()
+        // No need to call loadDJUserInfo() here as it would use stale localStorage data
 
         // Display blocked dates with pre-fetched data (optimized version)
         function displayBlockedDatesWithData(blockedDates, djFullName, currentUsername) {
