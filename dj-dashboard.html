@@ -160,6 +160,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
@@ -724,6 +728,12 @@
             align-items: center;
             flex: 1;
         }
+        
+        .blocked-date-reason {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
 
         .blocked-date-actions {
             display: flex;
@@ -1141,6 +1151,9 @@
             .dashboard-header {
                 flex-direction: row;
                 padding: 0.75rem;
+                position: sticky;
+                top: 0;
+                z-index: 50;
             }
 
             .dashboard-header h1 {
@@ -1150,6 +1163,52 @@
             #header-welcome,
             #header-user-name {
                 font-size: 1.1rem !important;
+            }
+            
+            /* Blocked dates - stack vertically on mobile for better readability */
+            .blocked-date-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .blocked-date-info {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+                gap: 0.75rem;
+            }
+            
+            .blocked-date-info-row {
+                display: flex;
+                flex-direction: row;
+                gap: 0.75rem;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            
+            .blocked-date-reason {
+                width: 100%;
+                font-size: 1rem;
+                line-height: 1.5;
+                color: var(--text-dark);
+                margin-top: 0.5rem;
+                padding: 0.75rem;
+                background: rgba(255, 255, 255, 0.5);
+                border-radius: 5px;
+                word-wrap: break-word;
+            }
+            
+            .blocked-date-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .blocked-date-actions .btn {
+                flex: 1;
+                min-width: 100px;
             }
 
             /* Stat Cards - Smaller on Mobile */
@@ -2458,9 +2517,11 @@
                     return `
                         <div class="blocked-date-item">
                             <div class="blocked-date-info">
-                                <span class="date-badge">${safeFormattedDate}</span>
-                                ${statusBadgeHtml}
-                                ${safeReason ? `<div style="color: var(--text-light); font-size: 0.9rem;">${safeReason}</div>` : ''}
+                                <div class="blocked-date-info-row">
+                                    <span class="date-badge">${safeFormattedDate}</span>
+                                    ${statusBadgeHtml}
+                                </div>
+                                ${safeReason ? `<div class="blocked-date-reason"><strong>Reason:</strong> ${safeReason}</div>` : ''}
                             </div>
                             ${actionsHtml}
                         </div>
