@@ -3895,42 +3895,23 @@
         }
 
         // Initialize - Load dashboard by default and initial data
+        // Check if this is a refresh after authentication (do this first, before any other code)
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldRefresh = urlParams.get('refresh') === 'true';
+        
+        if (shouldRefresh) {
+            // Clear all caches
+            bookingsCache = null;
+            bookingsCacheTime = null;
+            
+            // Redirect to clean URL (without refresh parameter) to reload page with fresh data
+            window.location.href = window.location.pathname;
+            return; // Exit early, page will reload
+        }
+        
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                // Check if this is a refresh after authentication
-                const urlParams = new URLSearchParams(window.location.search);
-                const shouldRefresh = urlParams.get('refresh') === 'true';
-                
-                // If this was a login redirect, clear caches and reload the page to ensure fresh data
-                if (shouldRefresh) {
-                    // Clear all caches
-                    bookingsCache = null;
-                    bookingsCacheTime = null;
-                    
-                    // Remove the refresh parameter and reload
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    window.location.reload();
-                    return; // Exit early, page will reload
-                }
-                
-                initializeDashboard();
-            });
+            document.addEventListener('DOMContentLoaded', () => initializeDashboard());
         } else {
-            // Check if this is a refresh after authentication (for immediate execution)
-            const urlParams = new URLSearchParams(window.location.search);
-            const shouldRefresh = urlParams.get('refresh') === 'true';
-            
-            if (shouldRefresh) {
-                // Clear all caches
-                bookingsCache = null;
-                bookingsCacheTime = null;
-                
-                // Remove the refresh parameter and reload
-                window.history.replaceState({}, document.title, window.location.pathname);
-                window.location.reload();
-                return; // Exit early, page will reload
-            }
-            
             initializeDashboard();
         }
 
