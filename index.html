@@ -1595,6 +1595,98 @@
 
         // Form submission (basic implementation - you'll need to connect to a backend)
 
+        // Chatbot functionality
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotWindow = document.getElementById('chatbotWindow');
+        const chatbotClose = document.getElementById('chatbotClose');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotSend = document.getElementById('chatbotSend');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+        const chatbotTyping = document.getElementById('chatbotTyping');
+
+        // Simple responses - can be replaced with API calls
+        const chatbotResponses = [
+            { keywords: ['hello', 'hi', 'hey'], response: 'Hello! How can we help you today?' },
+            { keywords: ['service', 'services', 'what do you do'], response: 'We offer videography, photography, and DJ entertainment services for weddings, events, and special occasions.' },
+            { keywords: ['price', 'cost', 'how much', 'pricing'], response: 'Pricing varies depending on the service and event details. Please contact us at lee@externallyyoursproductions.com or 229-326-5408 for a customized quote.' },
+            { keywords: ['contact', 'email', 'phone', 'number'], response: 'You can reach us at:\n📧 Email: lee@externallyyoursproductions.com\n📞 Phone: 229-326-5408\n📍 Location: Tifton, Georgia 31794' },
+            { keywords: ['wedding', 'weddings'], response: 'We specialize in wedding photography, videography, and DJ services! We\'d love to help make your special day unforgettable. Contact us for more details.' },
+            { keywords: ['book', 'booking', 'available', 'schedule'], response: 'Great! You can check our available dates on this page, or contact us directly to discuss scheduling your event.' },
+            { keywords: ['portfolio', 'gallery', 'photos', 'videos'], response: 'Check out our portfolio section above to see samples of our work! You can also visit our Photography, Videography, and DJ Entertainment pages for more galleries.' },
+        ];
+
+        const defaultResponse = "Thank you for your message! For detailed inquiries, please contact us at lee@externallyyoursproductions.com or call 229-326-5408. We'll get back to you as soon as possible!";
+
+        function getChatbotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            for (const item of chatbotResponses) {
+                if (item.keywords.some(keyword => lowerMessage.includes(keyword))) {
+                    return item.response;
+                }
+            }
+            return defaultResponse;
+        }
+
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${isUser ? 'user' : 'bot'}`;
+            messageDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            chatbotTyping.classList.add('show');
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            chatbotTyping.classList.remove('show');
+        }
+
+        function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            chatbotInput.value = '';
+            chatbotSend.disabled = true;
+
+            showTyping();
+
+            // Simulate bot thinking time
+            setTimeout(() => {
+                hideTyping();
+                const response = getChatbotResponse(message);
+                addMessage(response);
+                chatbotSend.disabled = false;
+                chatbotInput.focus();
+            }, 1000 + Math.random() * 1000);
+        }
+
+        if (chatbotToggle && chatbotWindow) {
+            chatbotToggle.addEventListener('click', () => {
+                chatbotWindow.classList.toggle('active');
+                chatbotToggle.classList.toggle('active');
+                if (chatbotWindow.classList.contains('active')) {
+                    chatbotInput.focus();
+                }
+            });
+
+            chatbotClose.addEventListener('click', () => {
+                chatbotWindow.classList.remove('active');
+                chatbotToggle.classList.remove('active');
+            });
+
+            chatbotSend.addEventListener('click', sendMessage);
+
+            chatbotInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
         // Navbar background on scroll
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('nav');
