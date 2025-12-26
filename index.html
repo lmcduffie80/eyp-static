@@ -81,6 +81,19 @@
         img {
             max-width: 100%;
             height: auto;
+            /* Improve image rendering performance */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            /* Prevent layout shift */
+            content-visibility: auto;
+        }
+        
+        /* Force hardware acceleration for image transforms */
+        .portfolio-item img,
+        .gallery-item img {
+            will-change: transform;
+            backface-visibility: hidden;
+            transform: translateZ(0);
         }
 
         .nav-links {
@@ -814,7 +827,7 @@
     <nav>
         <div class="container">
             <a href="index.html" class="logo">
-                <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC">
+                <img src="EYP Logo_New.png" alt="Externally Yours Productions, LLC" loading="eager" fetchpriority="high" decoding="async">
             </a>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
@@ -873,7 +886,7 @@
                     <!-- Random selection from Grace and Dillon Wedding -->
                     <a href="photography.html#grace-dillon-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                            <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Grace and Dillon Wedding</h3>
                             </div>
@@ -881,7 +894,7 @@
                     </a>
                     <a href="photography.html#grace-dillon-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                            <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Grace and Dillon Wedding</h3>
                             </div>
@@ -891,7 +904,7 @@
                     <!-- Random selection from Yazmine and Josh Wedding -->
                     <a href="photography.html#yazmine-josh-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
+                            <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Yazmine and Josh Wedding</h3>
                             </div>
@@ -899,7 +912,7 @@
                     </a>
                     <a href="photography.html#yazmine-josh-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async">
+                            <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Yazmine and Josh Wedding</h3>
                             </div>
@@ -909,7 +922,7 @@
                     <!-- Random selection from Prom 2025 -->
                     <a href="photography.html#prom-2025-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Prom 2025/7L8A9552.jpg" alt="Prom 2025" loading="lazy" decoding="async">
+                            <img src="Prom 2025/7L8A9552.jpg" alt="Prom 2025" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Prom 2025</h3>
                             </div>
@@ -917,7 +930,7 @@
                     </a>
                     <a href="photography.html#prom-2025-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Prom 2025/7L8A9613.jpg" alt="Prom 2025" loading="lazy" decoding="async">
+                            <img src="Prom 2025/7L8A9613.jpg" alt="Prom 2025" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Prom 2025</h3>
                             </div>
@@ -927,7 +940,7 @@
                     <!-- Random selection from Amy and Cody Hardy Wedding -->
                     <a href="photography.html#amy-cody-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Amy and Cody Hardy Wedding/E72A0917.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async">
+                            <img src="Amy and Cody Hardy Wedding/E72A0917.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Amy and Cody Hardy Wedding</h3>
                             </div>
@@ -935,7 +948,7 @@
                     </a>
                     <a href="photography.html#amy-cody-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Amy and Cody Hardy Wedding/E72A0956.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async">
+                            <img src="Amy and Cody Hardy Wedding/E72A0956.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Amy and Cody Hardy Wedding</h3>
                             </div>
@@ -943,7 +956,7 @@
                     </a>
                     <a href="photography.html#amy-cody-gallery" style="text-decoration: none; display: block;">
                         <div class="portfolio-item">
-                            <img src="Amy and Cody Hardy Wedding/E72A0984.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async">
+                            <img src="Amy and Cody Hardy Wedding/E72A0984.jpg" alt="Amy and Cody Hardy Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                             <div class="portfolio-overlay">
                                 <h3>Amy and Cody Hardy Wedding</h3>
                             </div>
@@ -1110,25 +1123,25 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Grace and Dillon Wedding</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
+                    <img src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="low">
                 </div>
             </div>
         </div>
