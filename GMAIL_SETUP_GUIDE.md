@@ -1,125 +1,181 @@
-# Gmail SMTP Setup Guide
+# Gmail Email Setup Guide for Password Reset
 
-This guide explains how to configure Gmail to send password reset emails for the DJ Portal.
+This guide walks you through setting up email functionality for the DJ password reset feature.
 
-## Important: Use App Passwords, Not Your Regular Gmail Password
+## Option 1: Gmail SMTP (Easiest - Recommended) ✅
 
-For security reasons, Gmail requires App Passwords for third-party applications. You cannot use your regular Gmail password.
+This is the simplest method and works with personal Gmail accounts.
 
-## Step 1: Enable 2-Step Verification
+### Steps:
 
-1. Go to your Google Account: https://myaccount.google.com
-2. Click on **Security** in the left sidebar
-3. Under "How you sign in to Google", find **2-Step Verification**
-4. Click on it and follow the prompts to enable 2-Step Verification
-   - You'll need to verify your phone number
-   - Google will send you a verification code
+1. **Enable 2-Factor Authentication on your Gmail account**
+   - Go to your Google Account settings: https://myaccount.google.com/
+   - Navigate to Security → 2-Step Verification
+   - Enable it if not already enabled
 
-## Step 2: Generate an App Password
+2. **Create an App Password**
+   - While still in Security settings, find "App passwords" (or go directly: https://myaccount.google.com/apppasswords)
+   - Select "Mail" as the app type
+   - Select "Other (Custom name)" as the device
+   - Enter a name like "EYP Password Reset"
+   - Click "Generate"
+   - **Copy the 16-character password** (you'll only see it once!)
 
-Once 2-Step Verification is enabled:
+3. **Set Environment Variables in Vercel**
+   - Go to your Vercel project dashboard
+   - Navigate to Settings → Environment Variables
+   - Add these variables:
+     ```
+     GMAIL_USER=your-email@gmail.com
+     GMAIL_APP_PASSWORD=your-16-character-app-password
+     EMAIL_FROM=your-email@gmail.com (or a friendly name like "EYP Portal <your-email@gmail.com>")
+     ```
 
-1. Go back to **Security** in your Google Account
-2. Under "How you sign in to Google", find **App passwords**
-   - If you don't see this option, make sure 2-Step Verification is enabled
-3. Click on **App passwords**
-4. Select **Mail** as the app
-5. Select **Other (Custom name)** as the device
-6. Enter a name like "DJ Portal Password Reset"
-7. Click **Generate**
-8. Google will show you a 16-character password (it looks like: `abcd efgh ijkl mnop`)
-9. **Copy this password immediately** - you won't be able to see it again!
+4. **Deploy/Redeploy**
+   - The code will automatically use Gmail SMTP when these variables are set
+   - No additional configuration needed!
 
-## Step 3: Set Environment Variables in Vercel
+---
 
-1. Go to your Vercel project dashboard
-2. Navigate to **Settings** > **Environment Variables**
-3. Add the following variables:
+## Option 2: Gmail API (More Complex)
 
-### Required Variables:
+This method uses the Gmail API directly. It's more powerful but requires more setup.
 
-```
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=abcdefghijklmnop
-```
+### Requirements:
+- Google Cloud Project (can use the same one as your Calendar API)
+- Service Account OR OAuth2 credentials
 
-**Note:** The app password is the 16-character password from Step 2 (remove spaces if there are any)
+### Steps for Service Account (Workspace Only):
 
-### Optional Variables:
+**If you have Google Workspace:**
 
-```
-EMAIL_FROM=your-email@gmail.com
-BASE_URL=https://yourdomain.com
-```
+1. **Go to Google Cloud Console**
+   - https://console.cloud.google.com/
+   - Select your existing project (or create a new one)
 
-If `EMAIL_FROM` is not set, it will use `GMAIL_USER` as the sender.
+2. **Enable Gmail API**
+   - Go to "APIs & Services" → "Library"
+   - Search for "Gmail API"
+   - Click "Enable"
 
-## Step 4: Update API Code (Already Done)
+3. **Create Service Account**
+   - Go to "APIs & Services" → "Credentials"
+   - Click "Create Credentials" → "Service Account"
+   - Give it a name (e.g., "gmail-sender")
+   - Click "Create and Continue"
+   - Skip role assignment (click "Continue")
+   - Click "Done"
 
-The API code has been updated to use Gmail SMTP automatically when `GMAIL_USER` and `GMAIL_APP_PASSWORD` are set.
+4. **Create and Download Key**
+   - Click on the service account you just created
+   - Go to "Keys" tab
+   - Click "Add Key" → "Create new key"
+   - Choose "JSON" format
+   - Download the JSON file
 
-## Step 5: Test the Setup
+5. **Enable Domain-Wide Delegation** (Required for sending emails)
+   - In the service account details, check "Enable Google Workspace Domain-wide Delegation"
+   - Note the service account email (e.g., `gmail-sender@your-project.iam.gserviceaccount.com`)
 
-1. Deploy your changes to Vercel
-2. Go to your site and click "Forgot Password?"
-3. Enter an email address
-4. Check your inbox (and spam folder) for the password reset email
+6. **Authorize in Google Workspace Admin**
+   - Go to Google Admin Console: https://admin.google.com/
+   - Navigate to Security → API Controls → Domain-wide Delegation
+   - Click "Add new"
+   - Enter the Client ID from your service account JSON file
+   - Enter this scope: `https://www.googleapis.com/auth/gmail.send`
+   - Click "Authorize"
+
+7. **Extract Credentials from JSON**
+   - Open the downloaded JSON file
+   - Find `client_email` and `private_key` values
+   - Copy them (the private_key is long and includes `\n` characters)
+
+8. **Set Environment Variables in Vercel**
+   ```
+   GOOGLE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
+   EMAIL_FROM=your-workspace-email@yourdomain.com
+   ```
+
+### Steps for OAuth2 (Personal Gmail):
+
+**If you only have a personal Gmail account (not Workspace):**
+
+1. **Go to Google Cloud Console**
+   - https://console.cloud.google.com/
+   - Select your project
+
+2. **Enable Gmail API**
+   - Go to "APIs & Services" → "Library"
+   - Search for "Gmail API"
+   - Click "Enable"
+
+3. **Configure OAuth Consent Screen**
+   - Go to "APIs & Services" → "OAuth consent screen"
+   - Choose "External" user type
+   - Fill in required information
+   - Add scope: `https://www.googleapis.com/auth/gmail.send`
+   - Add your email as a test user
+
+4. **Create OAuth2 Credentials**
+   - Go to "APIs & Services" → "Credentials"
+   - Click "Create Credentials" → "OAuth client ID"
+   - Choose "Web application"
+   - Add authorized redirect URI: `https://eyp-static.vercel.app/api/oauth/callback` (or your domain)
+   - Download the credentials JSON
+
+5. **Generate Refresh Token** (Requires one-time setup)
+   - You'll need to run a script once to generate a refresh token
+   - This is complex for serverless environments
+   - **Recommendation: Use Option 1 (SMTP) instead for personal Gmail**
+
+---
+
+## Testing
+
+After setting up either option:
+
+1. **Go to your deployed site**: https://eyp-static.vercel.app/dj-request-reset.html
+2. **Enter a DJ email address** from your database
+3. **Click "Send Reset Link"**
+4. **Check the email inbox** (and spam folder)
+5. **Check Vercel logs** for any errors: Vercel Dashboard → Your Project → Logs
+
+---
 
 ## Troubleshooting
 
-### "Invalid login" error
+### "No email service configured"
+- Make sure environment variables are set in Vercel
+- Redeploy after adding environment variables
 
-- Make sure you're using an **App Password**, not your regular Gmail password
-- Verify that 2-Step Verification is enabled
-- Check that the App Password was copied correctly (no extra spaces)
+### Emails not received
+- Check spam folder
+- Verify email address exists in your users table
+- Check Vercel function logs for errors
 
-### Emails going to spam
+### Gmail API Authentication Errors
+- Verify service account credentials are correct
+- Check that domain-wide delegation is enabled (Workspace only)
+- Ensure Gmail API is enabled in Google Cloud Console
 
-- Gmail emails from personal accounts sometimes go to spam
-- Consider setting up a "Send as" alias or using a custom domain
-- For production use, consider using SendGrid or AWS SES instead
+### For Gmail SMTP (Option 1):
+- Make sure 2FA is enabled
+- Verify app password is correct (16 characters, no spaces)
+- Try generating a new app password
 
-### "Less secure app access" message
+---
 
-- Google no longer supports "less secure app access"
-- You **must** use App Passwords with 2-Step Verification enabled
-- This is the only secure way to use Gmail SMTP
+## Recommendation
 
-## Gmail Sending Limits
+**For most users, Option 1 (Gmail SMTP) is the best choice** because:
+- ✅ Works with personal Gmail accounts
+- ✅ Simple setup (just need app password)
+- ✅ No Google Cloud Console complexity
+- ✅ Works immediately after setup
+- ✅ Secure (uses app-specific password)
 
-- **Daily sending limit:** 500 emails per day for regular Gmail accounts
-- **Rate limit:** 100 emails per day when sending to external recipients (non-Gmail addresses)
-- For higher volumes, consider using SendGrid or AWS SES
-
-## Alternative: Use SendGrid or AWS SES
-
-For production use, especially if you need to send many emails, consider:
-- **SendGrid**: Free tier allows 100 emails/day
-- **AWS SES**: Very affordable, pay per email
-- **Google Workspace**: If you have a business Gmail account, limits are higher
-
-## Security Best Practices
-
-1. ✅ Never commit App Passwords to Git
-2. ✅ Always use environment variables
-3. ✅ Rotate App Passwords periodically
-4. ✅ Use different App Passwords for different applications
-5. ✅ Monitor your email sending activity
-
-## Quick Reference
-
-**Environment Variables Needed:**
-```
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-character-app-password
-EMAIL_FROM=your-email@gmail.com (optional)
-BASE_URL=https://yourdomain.com (optional)
-```
-
-**Where to get App Password:**
-1. Google Account → Security → 2-Step Verification → App passwords
-2. Generate password for "Mail" → "Other (Custom name)"
-3. Copy the 16-character password
-
-That's it! Your Gmail account is now configured to send password reset emails.
-
+**Use Option 2 (Gmail API) if:**
+- You have Google Workspace
+- You need advanced Gmail features
+- You want API-level control
