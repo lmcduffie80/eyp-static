@@ -4308,6 +4308,204 @@
 
             document.getElementById('master-calendar-container').innerHTML = calendarHTML;
         }
+        
+        // Select date from calendar to block (admin function)
+        async function selectAdminCalendarDate(dateStr) {
+            // Check if date is already blocked - if so, show option to unblock
+            const allBlockedDates = await getAllBlockedDates();
+            const existingBlockedDate = allBlockedDates.find(bd => {
+                let bdDate = bd.date;
+                if (bdDate && typeof bdDate === 'string' && bdDate.includes('T')) {
+                    bdDate = bdDate.split('T')[0];
+                }
+                return bdDate === dateStr && (bd.status || 'approved') === 'approved';
+            });
+            
+            if (existingBlockedDate) {
+                // Date is already blocked - show option to unblock or edit
+                if (confirm(`This date is already blocked for ${escapeHtml(existingBlockedDate.djUser || 'Unknown DJ')}.\n\nWould you like to remove this blocked date?`)) {
+                    try {
+                        await apiDeleteBlockedDate(existingBlockedDate.id);
+                        clearBlockedDatesCache();
+                        showToast('Blocked date removed successfully', 'success');
+                        await generateMasterCalendar();
+                        await updateDashboardStats();
+                    } catch (error) {
+                        console.error('Error removing blocked date:', error);
+                        showToast('Error removing blocked date. Please try again.', 'error');
+                    }
+                }
+                return;
+            }
+            
+            // Check if date is in the past
+            const dateParts = dateStr.split('-');
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1;
+            const day = parseInt(dateParts[2], 10);
+            const selectedDate = new Date(year, month, day);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                showToast('Cannot block dates in the past.', 'error');
+                return;
+            }
+            
+            // Show modal to block date
+            openAdminBlockDateModal(dateStr);
+        }
+        
+        // Open admin block date modal
+        async function openAdminBlockDateModal(dateStr) {
+            // Format date for display
+            const formattedDate = formatDateMMDDYYYYGlobal(dateStr);
+            
+            // Get all DJs for dropdown
+            const djs = await getAllDJs();
+            const djOptions = djs.map(dj => {
+                const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                const escapedDJ = escapeHtml(djDisplayName).replace(/"/g, "&quot;");
+                return `<option value="${escapedDJ}">${escapedDJ}</option>`;
+            }).join('');
+            
+            const modal = document.getElementById('admin-block-date-modal');
+            const content = document.getElementById('admin-block-date-content');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.5rem;">
+                        Block this date for a DJ?
+                    </div>
+                    <div style="font-weight: 600; color: var(--primary-color); font-size: 1.2rem; margin-bottom: 1rem;">
+                        ${escapeHtml(formattedDate)}
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="admin-block-dj-select" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">DJ:</label>
+                        <select id="admin-block-dj-select" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;">
+                            <option value="">Select a DJ...</option>
+                            ${djOptions}
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="admin-block-reason" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">Reason (optional):</label>
+                        <textarea id="admin-block-reason" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Enter reason for blocking this date"></textarea>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeAdminBlockDateModal()" style="padding: 0.75rem 1.5rem; background: var(--text-light); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Cancel</button>
+                    <button onclick="confirmAdminBlockDate('${escapeHtml(dateStr)}')" style="padding: 0.75rem 1.5rem; background: var(--success-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Block Date</button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+            // Focus on DJ select
+            setTimeout(() => {
+                const djSelect = document.getElementById('admin-block-dj-select');
+                if (djSelect) djSelect.focus();
+            }, 100);
+        }
+        
+        // Close admin block date modal
+        function closeAdminBlockDateModal() {
+            const modal = document.getElementById('admin-block-date-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Confirm and block the date (admin function)
+        async function confirmAdminBlockDate(dateStr) {
+            const djSelect = document.getElementById('admin-block-dj-select');
+            const reasonTextarea = document.getElementById('admin-block-reason');
+            
+            const djUser = djSelect ? djSelect.value.trim() : '';
+            const reason = reasonTextarea ? reasonTextarea.value.trim() : '';
+            
+            if (!djUser) {
+                showToast('Please select a DJ.', 'error');
+                return;
+            }
+            
+            // Sanitize reason
+            const sanitizedReason = reason ? reason.replace(/[<>]/g, '') : null;
+            
+            try {
+                // Get admin user name
+                const adminUser = localStorage.getItem('admin_user') || 'Admin';
+                
+                // Create blocked date via API (status will be 'approved' automatically for admin-created blocks)
+                await apiCreateBlockedDate({
+                    djUser: djUser,
+                    date: dateStr,
+                    reason: sanitizedReason || null,
+                    blockedBy: adminUser,
+                    status: 'approved' // Admin-created blocks are automatically approved
+                });
+                
+                // Close modal first
+                closeAdminBlockDateModal();
+                
+                // Clear cache and refresh
+                clearBlockedDatesCache();
+                showToast('Date blocked successfully', 'success');
+                await generateMasterCalendar();
+                await updateDashboardStats();
+            } catch (error) {
+                console.error('Error blocking date:', error);
+                let errorMessage = error.message || 'Unknown error';
+                showToast(`Failed to block date: ${errorMessage}. Please try again.`, 'error');
+            }
+        }
+        
+        // Global date formatting helper function (for use outside filterAllBookings)
+        function formatDateMMDDYYYYGlobal(dateStr) {
+            if (!dateStr) return '';
+            
+            let date;
+            if (dateStr instanceof Date) {
+                date = dateStr;
+            } else if (typeof dateStr === 'string') {
+                // Handle YYYY-MM-DD format - parse as local date to avoid timezone issues
+                if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = dateStr.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                    const day = parseInt(parts[2], 10);
+                    date = new Date(year, month, day); // Creates local date (no timezone shift)
+                } else if (dateStr.includes('T')) {
+                    // Handle ISO format - extract date part and parse as local
+                    const datePart = dateStr.split('T')[0];
+                    const parts = datePart.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    date = new Date(year, month, day); // Creates local date
+                } else {
+                    // Try to parse as-is (fallback)
+                    date = new Date(dateStr);
+                }
+            } else {
+                date = new Date(dateStr);
+            }
+            
+            if (isNaN(date.getTime())) return dateStr;
+            
+            // Format as MM-DD-YYYY
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${month}-${day}-${year}`;
+        }
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const adminBlockModal = document.getElementById('admin-block-date-modal');
+            if (adminBlockModal && event.target === adminBlockModal) {
+                closeAdminBlockDateModal();
+            }
+        });
 
         // Show toast notification
         function showToast(message, type) {
