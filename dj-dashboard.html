@@ -3766,7 +3766,7 @@
         }
 
         // Section navigation function
-        function showSection(sectionName) {
+        function showSection(sectionName, skipDataLoad = false) {
             // Hide all sections
             const sections = ['dashboard', 'projects', 'reviews'];
             sections.forEach(sec => {
@@ -3800,23 +3800,25 @@
                 closeSidebar();
             }
 
-            // Load section-specific content
-            if (sectionName === 'dashboard') {
-                // Use async versions that fetch data if needed
-                updateDashboardStats();
-                generateCalendar();
-                displayBlockedDates(); // Display blocked dates list with edit/delete functionality
-            } else if (sectionName === 'projects') {
-                // Check if a filter was passed (from URL or function parameter)
-                const urlParams = new URLSearchParams(window.location.search);
-                const filter = urlParams.get('filter') || null;
-                if (typeof loadBookings === 'function') loadBookings(filter);
-            } else if (sectionName === 'reviews') {
-                // Sync website testimonials before loading reviews
-                if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
-                    syncWebsiteTestimonialsToDJReviews();
+            // Load section-specific content (skip if data is already loaded)
+            if (!skipDataLoad) {
+                if (sectionName === 'dashboard') {
+                    // Use async versions that fetch data if needed
+                    updateDashboardStats();
+                    generateCalendar();
+                    displayBlockedDates(); // Display blocked dates list with edit/delete functionality
+                } else if (sectionName === 'projects') {
+                    // Check if a filter was passed (from URL or function parameter)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const filter = urlParams.get('filter') || null;
+                    if (typeof loadBookings === 'function') loadBookings(filter);
+                } else if (sectionName === 'reviews') {
+                    // Sync website testimonials before loading reviews
+                    if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
+                        syncWebsiteTestimonialsToDJReviews();
+                    }
+                    if (typeof loadReviews === 'function') loadReviews();
                 }
-                if (typeof loadReviews === 'function') loadReviews();
             }
         }
 
@@ -3979,7 +3981,8 @@
         }
 
         async function initializeDashboard() {
-            showSection('dashboard');
+            // Show dashboard section without triggering data load (we'll load it ourselves)
+            showSection('dashboard', true);
             
             // Show loading indicator
             const loadingIndicator = document.getElementById('loading-indicator');
