@@ -10,6 +10,8 @@ The website fetches events from your Google Calendar and marks Saturdays as "blo
 
 ### 1. Create Google Calendar API Key
 
+**Option A: Using API Key (Simpler, works for public calendars)**
+
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
 3. Enable the **Google Calendar API**:
@@ -28,6 +30,19 @@ The website fetches events from your Google Calendar and marks Saturdays as "blo
    - Choose "Google Calendar API"
    - Save
 
+**Option B: Using OAuth 2.0 (For private calendars)**
+
+If you need to access a private calendar, you'll need to use OAuth 2.0 instead:
+
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "OAuth client ID"
+3. Configure the OAuth consent screen if prompted
+4. Choose "Web application" as the application type
+5. Your OAuth client ID will look like: `983004197714-ts6vs0t8ed43m6vmmeruehmg93258g8g.apps.googleusercontent.com`
+6. Copy the Client ID (you'll also need the Client Secret)
+
+**Note:** The current implementation uses API keys. For OAuth support, additional authentication flow code would be needed.
+
 ### 2. Get Your Calendar ID
 
 You can use one of these formats:
@@ -41,6 +56,14 @@ You can use one of these formats:
 3. Select "Settings and sharing"
 4. Scroll down to "Integrate calendar"
 5. Copy the "Calendar ID" (usually looks like an email address)
+
+**For Public Calendars:**
+- Make sure "Make available to public" is enabled in Calendar Settings > "Access permissions"
+- Or share the calendar via "Share with specific people" and set access level
+
+**For Private Calendars:**
+- You'll need to use OAuth 2.0 authentication instead of API key
+- Or make the calendar publicly readable (see above)
 
 ### 3. Configure Vercel Environment Variables
 
