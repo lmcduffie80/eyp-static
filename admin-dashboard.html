@@ -4086,8 +4086,24 @@
             }
         }
 
+        // Calendar navigation state
+        let calendarMonth = new Date().getMonth();
+        let calendarYear = new Date().getFullYear();
+        
         // Generate master calendar
-        async function generateMasterCalendar() {
+        async function generateMasterCalendar(monthOffset = 0) {
+            // Update calendar month/year based on offset
+            if (monthOffset !== 0) {
+                const newDate = new Date(calendarYear, calendarMonth + monthOffset, 1);
+                calendarMonth = newDate.getMonth();
+                calendarYear = newDate.getFullYear();
+            } else {
+                // Reset to current month if no offset
+                const today = new Date();
+                calendarMonth = today.getMonth();
+                calendarYear = today.getFullYear();
+            }
+            
             const allBlockedDates = await getAllBlockedDates();
             // Filter to only show approved blocked dates in calendar
             const approvedBlockedDates = allBlockedDates.filter(bd => (bd.status || 'approved') === 'approved');
@@ -4212,9 +4228,9 @@
                 calendarHTML += `<div style="text-align: center; font-weight: bold; padding: 0.5rem; background: var(--bg-light);">${day}</div>`;
             });
 
-            // Get first day of month
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            // Get first day of month (using calendarMonth and calendarYear)
+            const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+            const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
 
             // Previous month days
             for (let i = firstDay - 1; i >= 0; i--) {
@@ -4223,8 +4239,8 @@
 
             // Current month days
             for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dateObj = new Date(currentYear, currentMonth, day);
+                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateObj = new Date(calendarYear, calendarMonth, day);
                 dateObj.setHours(0, 0, 0, 0);
                 
                 let style = 'padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 5px; text-align: center;';
