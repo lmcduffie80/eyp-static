@@ -2335,28 +2335,11 @@
         // Load user info on page load
         loadDJUserInfo();
 
-        // Display blocked dates
-        async function displayBlockedDates() {
+        // Display blocked dates with pre-fetched data (optimized version)
+        function displayBlockedDatesWithData(blockedDates, djFullName, currentUsername) {
             const container = document.getElementById('blocked-dates-container');
             
             try {
-                const currentUsername = localStorage.getItem('dj_user');
-                // Get current DJ user info to match by full name
-                const djUsers = await apiGetUsers('dj');
-                const currentDJ = djUsers.find(u => 
-                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
-                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
-                );
-                
-                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
-                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
-                    : currentUsername;
-                
-                // Fetch all blocked dates and filter by DJ name
-                const allBlockedDates = await apiGetBlockedDates();
-                const blockedDates = allBlockedDates.filter(bd => 
-                    bd.djUser === djFullName || bd.djUser === currentUsername
-                );
 
                 if (blockedDates.length === 0) {
                     container.innerHTML = '<div class="empty-state"><p>No dates blocked</p></div>';
@@ -2416,6 +2399,30 @@
                 console.error('Error displaying blocked dates:', error);
                 container.innerHTML = '<div class="empty-state"><p>Error loading blocked dates</p></div>';
             }
+        }
+        
+        // Original displayBlockedDates function (for backward compatibility)
+        async function displayBlockedDates() {
+            const currentUsername = localStorage.getItem('dj_user');
+            const [djUsers, allBlockedDates] = await Promise.all([
+                apiGetUsers('dj').catch(() => []),
+                apiGetBlockedDates().catch(() => [])
+            ]);
+            
+            const currentDJ = djUsers.find(u => 
+                u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+            );
+            
+            const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                : currentUsername;
+            
+            const blockedDates = allBlockedDates.filter(bd => 
+                bd.djUser === djFullName || bd.djUser === currentUsername
+            );
+            
+            return displayBlockedDatesWithData(blockedDates, djFullName, currentUsername);
         }
 
         // Open edit blocked date modal
@@ -2736,8 +2743,8 @@
         let currentCalendarDate = new Date();
         currentCalendarDate.setDate(1); // Start at first day of month
 
-        // Generate single calendar widget
-        async function generateCalendar() {
+        // Generate single calendar widget with pre-fetched data (optimized version)
+        function generateCalendarWithData(djUsers, djBookings, djBlockedDates) {
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
             
@@ -2749,46 +2756,22 @@
                 headerElement.textContent = `${monthNames[month]} ${year}`;
             }
             
-            // Get blocked dates - fetch all and filter by current DJ's name
-            const currentUsername = localStorage.getItem('dj_user');
-            let blockedDates = [];
-            try {
-                // Get current DJ user info to match by full name
-                const djUsers = await apiGetUsers('dj');
-                const currentDJ = djUsers.find(u => 
-                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
-                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
-                );
-                
-                const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
-                    ? `${currentDJ.firstName} ${currentDJ.lastName}` 
-                    : currentUsername;
-                
-                // Fetch all blocked dates and filter by DJ name and approved status
-                const allBlockedDates = await apiGetBlockedDates();
-                const djBlockedDates = allBlockedDates.filter(bd => 
-                    (bd.djUser === djFullName || bd.djUser === currentUsername) &&
-                    (bd.status === 'approved' || !bd.status) // Include approved or legacy (no status)
-                );
-                
-                // Normalize dates to YYYY-MM-DD format for comparison
-                blockedDates = djBlockedDates.map(bd => {
-                    let dateStr = bd.date;
-                    if (dateStr && typeof dateStr === 'string') {
-                        // If it's an ISO string, extract just the date part
-                        if (dateStr.includes('T')) {
-                            return dateStr.split('T')[0];
-                        }
-                    }
-                    return dateStr;
-                }).filter(d => d);
-            } catch (error) {
-                console.error('Error fetching blocked dates:', error);
-                blockedDates = [];
-            }
+            // Filter blocked dates by approved status only
+            const approvedBlockedDates = djBlockedDates.filter(bd => 
+                (bd.status === 'approved' || !bd.status) // Include approved or legacy (no status)
+            );
             
-            // Get bookings for current DJ
-            const djBookings = await getAllBookingsForDJ();
+            // Normalize dates to YYYY-MM-DD format for comparison
+            const blockedDates = approvedBlockedDates.map(bd => {
+                let dateStr = bd.date;
+                if (dateStr && typeof dateStr === 'string') {
+                    // If it's an ISO string, extract just the date part
+                    if (dateStr.includes('T')) {
+                        return dateStr.split('T')[0];
+                    }
+                }
+                return dateStr;
+            }).filter(d => d);
             
             // Helper function to normalize date to YYYY-MM-DD format
             function normalizeDateForCalendar(dateValue) {
@@ -3156,7 +3139,12 @@
             }
         }
 
-        // Load bookings
+        // Load bookings with pre-fetched data (optimized version)
+        function loadBookingsWithData(bookings, filter = null) {
+            displayBookings(bookings, filter || 'all');
+        }
+        
+        // Load bookings (original function for backward compatibility)
         async function loadBookings(filter = null) {
             const bookings = await getAllBookingsForDJ();
             
@@ -3766,6 +3754,7 @@
 
             // Load section-specific content
             if (sectionName === 'dashboard') {
+                // Use async versions that fetch data if needed
                 updateDashboardStats();
                 generateCalendar();
                 displayBlockedDates(); // Display blocked dates list with edit/delete functionality
@@ -3802,9 +3791,8 @@
             }, 100);
         }
 
-        // Update dashboard statistics
-        async function updateDashboardStats() {
-            const bookings = await getAllBookingsForDJ();
+        // Update dashboard statistics with pre-fetched data (optimized version)
+        function updateDashboardStatsWithData(bookings) {
             const currentUsername = localStorage.getItem('dj_user');
             
             // Get DJ user info to check for firstName/lastName
@@ -3951,6 +3939,12 @@
                 nextBookingElement.style.fontSize = '1rem';
             }
         }
+        
+        // Original updateDashboardStats function (for backward compatibility)
+        async function updateDashboardStats() {
+            const bookings = await getAllBookingsForDJ();
+            return updateDashboardStatsWithData(bookings);
+        }
 
         // Initialize - Load dashboard by default and initial data
         // (Refresh check already happened above in SECURITY MEASURES section)
@@ -3976,10 +3970,10 @@
                     return;
                 }
                 
-                // Fetch data in parallel for faster loading
-                const [djUsers, bookings, blockedDates] = await Promise.all([
+                // Fetch ALL data in parallel (users, all bookings, all blocked dates)
+                const [djUsers, allBookings, allBlockedDates] = await Promise.all([
                     apiGetUsers('dj').catch(() => []),
-                    getAllBookingsForDJ().catch(() => []),
+                    apiGetBookings().catch(() => []), // Get all bookings, filter later
                     apiGetBlockedDates().catch(() => [])
                 ]);
                 
@@ -3993,20 +3987,56 @@
                     ? `${currentDJ.firstName} ${currentDJ.lastName}` 
                     : currentUsername;
                 
-                // Update user display in header and dropdown with API data (immediate, non-blocking)
-                updateUserDisplayFromAPI(currentDJ, currentUsername, djFullName);
+                // Filter bookings for current DJ (client-side, fast)
+                const possibleNames = [];
+                if (currentDJ && currentDJ.firstName && currentDJ.lastName) {
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+                }
+                if (currentDJ && currentDJ.username) {
+                    possibleNames.push(currentDJ.username);
+                }
+                possibleNames.push(currentUsername);
+                
+                const djBookings = allBookings.filter(b => {
+                    if (!b.djUser) return false;
+                    return possibleNames.some(name => 
+                        b.djUser.toLowerCase().trim() === name.toLowerCase().trim()
+                    );
+                }).map(b => ({
+                    id: b.id,
+                    djUser: b.djUser,
+                    clientName: b.clientName,
+                    eventType: b.eventType,
+                    date: b.date,
+                    time: b.time,
+                    location: b.location,
+                    contactEmail: b.contactEmail,
+                    contactPhone: b.contactPhone,
+                    notes: b.notes,
+                    totalRevenue: b.totalRevenue,
+                    ccPayment: b.ccPayment,
+                    payout: b.payout
+                }));
+                
+                // Update cache
+                bookingsCache = djBookings;
+                bookingsCacheTime = Date.now();
                 
                 // Filter blocked dates for current DJ
-                const djBlockedDates = blockedDates.filter(bd => 
+                const djBlockedDates = allBlockedDates.filter(bd => 
                     bd.djUser === djFullName || bd.djUser === currentUsername
                 );
                 
-                // Update UI with pre-fetched data using requestAnimationFrame for non-blocking updates
-                requestAnimationFrame(async () => {
-                    await updateDashboardStats();
-                    if (typeof generateCalendar === 'function') generateCalendar();
-                    if (typeof displayBlockedDates === 'function') displayBlockedDates();
-                    if (typeof loadBookings === 'function') loadBookings();
+                // Update user display in header and dropdown with API data (immediate, non-blocking)
+                updateUserDisplayFromAPI(currentDJ, currentUsername, djFullName);
+                
+                // Update UI with pre-fetched data (no additional API calls)
+                requestAnimationFrame(() => {
+                    // Use pre-fetched data - no API calls in these functions
+                    updateDashboardStatsWithData(djBookings);
+                    generateCalendarWithData(djUsers, djBookings, djBlockedDates);
+                    displayBlockedDatesWithData(djBlockedDates, djFullName, currentUsername);
+                    loadBookingsWithData(djBookings);
                     
                     // Sync website testimonials to DJ reviews on page load (these don't need API calls)
                     if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
