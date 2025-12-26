@@ -1784,9 +1784,6 @@
         }
         
         // Helper: Get all bookings for current DJ
-        let bookingsCache = null;
-        let bookingsCacheTime = null;
-        
         async function getAllBookingsForDJ() {
             const currentUsername = localStorage.getItem('dj_user');
             if (!currentUsername) return [];
@@ -3885,6 +3882,10 @@
                 nextBookingElement.style.fontSize = '1rem';
             }
         }
+
+        // Declare cache variables first (before they're used in refresh check)
+        let bookingsCache = null;
+        let bookingsCacheTime = null;
 
         // Initialize - Load dashboard by default and initial data
         // Check if this is a refresh after authentication (do this first, before any other code)
