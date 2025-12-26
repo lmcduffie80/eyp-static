@@ -1914,6 +1914,16 @@
             }
         }
 
+        // Declare cache variables first (before they're used in refresh check)
+        let bookingsCache = null;
+        let bookingsCacheTime = null;
+        let blockedDatesCache = null;
+        let blockedDatesCacheTime = null;
+        let djCache = null;
+        let djCacheTime = null;
+        let adminCache = null;
+        let adminCacheTime = null;
+
         // Check if this is a refresh after authentication (do this first, before any other code)
         const urlParams = new URLSearchParams(window.location.search);
         const shouldRefresh = urlParams.get('refresh') === 'true';
@@ -1954,8 +1964,6 @@
         }
 
         // Get all DJ data
-        let djCache = null;
-        let djCacheTime = null;
         
         async function getAllDJs() {
             // Use cache if available and recent
@@ -1978,8 +1986,6 @@
         }
 
         // Get all admin users
-        let adminCache = null;
-        let adminCacheTime = null;
         
         async function getAllAdmins() {
             // Use cache if available and recent
@@ -2418,8 +2424,6 @@
         }
 
         // Get all bookings
-        let bookingsCache = null;
-        let bookingsCacheTime = null;
         
         async function getAllBookings() {
             // Use cache if available and recent
@@ -2517,8 +2521,6 @@
         }
 
         // Get all blocked dates
-        let blockedDatesCache = null;
-        let blockedDatesCacheTime = null;
         
         // Function to clear blocked dates cache (call after create/delete/approve/reject)
         function clearBlockedDatesCache() {
