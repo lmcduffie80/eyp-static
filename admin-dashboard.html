@@ -4425,14 +4425,6 @@
             }, 100);
         }
         
-        // Close admin block date modal
-        function closeAdminBlockDateModal() {
-            const modal = document.getElementById('admin-block-date-modal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-        
         // Confirm and block the date (admin function)
         async function confirmAdminBlockDate(dateStr) {
             const djSelect = document.getElementById('admin-block-dj-select');

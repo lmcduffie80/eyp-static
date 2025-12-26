@@ -24,23 +24,76 @@ export default async function handler(req, res) {
 
     try {
         if (req.method === 'PUT') {
-            // Update blocked date status (approve/reject)
-            const { status } = req.body;
-
-            if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
+            // Update blocked date - can update status, djUser, reason, or date
+            const { status, djUser, reason, date } = req.body;
+            
+            // Build dynamic update query based on provided fields
+            const updates = [];
+            const values = [];
+            let paramIndex = 1;
+            
+            if (status !== undefined) {
+                if (!['pending', 'approved', 'rejected'].includes(status)) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'Valid status is required: pending, approved, or rejected'
+                    });
+                }
+                updates.push(`status = $${paramIndex}`);
+                values.push(status);
+                paramIndex++;
+            }
+            
+            if (djUser !== undefined) {
+                updates.push(`dj_user = $${paramIndex}`);
+                values.push(djUser);
+                paramIndex++;
+            }
+            
+            if (reason !== undefined) {
+                updates.push(`reason = $${paramIndex}`);
+                values.push(reason);
+                paramIndex++;
+            }
+            
+            if (date !== undefined) {
+                updates.push(`date = $${paramIndex}`);
+                values.push(date);
+                paramIndex++;
+            }
+            
+            if (updates.length === 0) {
                 return res.status(400).json({
                     success: false,
-                    error: 'Valid status is required: pending, approved, or rejected'
+                    error: 'At least one field must be provided for update (status, djUser, reason, or date)'
                 });
             }
-
-            // Try to update with status and updated_at columns, fall back gracefully if columns don't exist
+            
+            // Build SET clause parts dynamically
+            const setParts = [];
+            if (status !== undefined) {
+                setParts.push(sql`status = ${status}`);
+            }
+            if (djUser !== undefined) {
+                setParts.push(sql`dj_user = ${djUser}`);
+            }
+            if (reason !== undefined) {
+                setParts.push(sql`reason = ${reason}`);
+            }
+            if (date !== undefined) {
+                setParts.push(sql`date = ${date}`);
+            }
+            
+            // Try to update with updated_at column, fall back gracefully if column doesn't exist
             let result;
             try {
-                // First try with both status and updated_at
+                // Build query with updated_at
+                if (setParts.length > 0) {
+                    setParts.push(sql`updated_at = CURRENT_TIMESTAMP`);
+                }
                 result = await sql`
                     UPDATE blocked_dates 
-                    SET status = ${status}, updated_at = CURRENT_TIMESTAMP
+                    SET ${sql.join(setParts, sql`, `)}
                     WHERE id = ${id}
                     RETURNING *
                 `;
@@ -48,29 +101,26 @@ export default async function handler(req, res) {
                 // If updated_at column doesn't exist, try without it
                 if (updateError.message && updateError.message.includes('updated_at')) {
                     try {
+                        // Remove updated_at from setParts and try again
+                        const setPartsWithoutUpdatedAt = setParts.filter(part => 
+                            !part.strings || !part.strings.some(s => s.includes('updated_at'))
+                        );
+                        // Rebuild setParts without updated_at
+                        const newSetParts = [];
+                        if (status !== undefined) newSetParts.push(sql`status = ${status}`);
+                        if (djUser !== undefined) newSetParts.push(sql`dj_user = ${djUser}`);
+                        if (reason !== undefined) newSetParts.push(sql`reason = ${reason}`);
+                        if (date !== undefined) newSetParts.push(sql`date = ${date}`);
+                        
                         result = await sql`
                             UPDATE blocked_dates 
-                            SET status = ${status}
+                            SET ${sql.join(newSetParts, sql`, `)}
                             WHERE id = ${id}
                             RETURNING *
                         `;
-                    } catch (statusError) {
-                        // If status column doesn't exist either, return error
-                        if (statusError.message && statusError.message.includes('status')) {
-                            return res.status(500).json({
-                                success: false,
-                                error: 'Database schema error: status column is missing. The database needs to be migrated.'
-                            });
-                        } else {
-                            throw statusError;
-                        }
+                    } catch (error) {
+                        throw error;
                     }
-                } else if (updateError.message && updateError.message.includes('status')) {
-                    // If status column doesn't exist, return error
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Database schema error: status column is missing. The database needs to be migrated.'
-                    });
                 } else {
                     throw updateError; // Re-throw other errors
                 }
