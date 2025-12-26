@@ -3529,25 +3529,7 @@
                     const locationIndex = findColumnIndex(headers, ['location', 'location for venue', 'venue location']);
                     const paymentIndex = findColumnIndex(headers, ['payment', 'total revenue', 'totalrevenue', 'revenue']);
                     const ccPaymentIndex = findColumnIndex(headers, ['cc payment', 'cc payment 6%', 'cc payment 6']);
-                    const payoutIndex = findColumnIndex(headers, ['dj payout', 'payout', 'djpayout']); 
-                        dateIndex,
-                        djNameIndex, 
-                        projectNameIndex, 
-                        locationIndex, 
-                        paymentIndex,
-                        ccPaymentIndex,
-                        payoutIndex,
-                        'All headers': headerValues,
-                        'headers found': {
-                            date: dateIndex !== -1 ? headerValues[dateIndex] : 'NOT FOUND',
-                            djName: djNameIndex !== -1 ? headerValues[djNameIndex] : 'NOT FOUND',
-                            projectName: projectNameIndex !== -1 ? headerValues[projectNameIndex] : 'NOT FOUND',
-                            location: locationIndex !== -1 ? headerValues[locationIndex] : 'NOT FOUND',
-                            payment: paymentIndex !== -1 ? headerValues[paymentIndex] : 'NOT FOUND',
-                            ccPayment: ccPaymentIndex !== -1 ? headerValues[ccPaymentIndex] : 'NOT FOUND',
-                            payout: payoutIndex !== -1 ? headerValues[payoutIndex] : 'NOT FOUND'
-                        }
-                    });
+                    const payoutIndex = findColumnIndex(headers, ['dj payout', 'payout', 'djpayout']);
                     
                     if (dateIndex === -1 || djNameIndex === -1 || projectNameIndex === -1 || locationIndex === -1) {
                         const missing = [];
