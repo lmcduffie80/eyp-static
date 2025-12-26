@@ -4359,8 +4359,14 @@
         
         // Open admin block date modal
         async function openAdminBlockDateModal(dateStr) {
-            // Format date for display
-            const formattedDate = formatDateMMDDYYYYGlobal(dateStr);
+            // Format date for display - use the global helper
+            let formattedDate = dateStr;
+            if (dateStr && typeof dateStr === 'string') {
+                const dateParts = dateStr.split('-');
+                if (dateParts.length === 3) {
+                    formattedDate = `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+                }
+            }
             
             // Get all DJs for dropdown
             const djs = await getAllDJs();
