@@ -1914,46 +1914,44 @@
             }
         }
 
-        // Initialize dashboard on load - optimized to parallelize API calls
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Check if this is a refresh after authentication
-            const urlParams = new URLSearchParams(window.location.search);
-            const shouldRefresh = urlParams.get('refresh') === 'true';
+        // Check if this is a refresh after authentication (do this first, before any other code)
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldRefresh = urlParams.get('refresh') === 'true';
+        
+        if (shouldRefresh) {
+            // Clear all caches
+            bookingsCache = null;
+            bookingsCacheTime = null;
+            blockedDatesCache = null;
+            blockedDatesCacheTime = null;
+            djCache = null;
+            djCacheTime = null;
+            adminCache = null;
+            adminCacheTime = null;
             
-            // If this was a login redirect, clear caches and reload the page to ensure fresh data
-            if (shouldRefresh) {
-                // Clear all caches
-                bookingsCache = null;
-                bookingsCacheTime = null;
-                blockedDatesCache = null;
-                blockedDatesCacheTime = null;
-                djCache = null;
-                djCacheTime = null;
-                adminCache = null;
-                adminCacheTime = null;
+            // Redirect to clean URL (without refresh parameter) to reload page with fresh data
+            window.location.href = window.location.pathname;
+            // Exit early - code below will not execute
+        } else {
+            // Initialize dashboard on load - optimized to parallelize API calls
+            document.addEventListener('DOMContentLoaded', async function() {
+                initializeAnalytics();
                 
-                // Remove the refresh parameter and reload
-                window.history.replaceState({}, document.title, window.location.pathname);
-                window.location.reload();
-                return; // Exit early, page will reload
-            }
-            
-            initializeAnalytics();
-            
-            // Load all data in parallel for faster initial load
-            const [bookings, blockedDates, djs, admins] = await Promise.all([
-                getAllBookings(),
-                getAllBlockedDates(),
-                getAllDJs(),
-                getAllAdmins()
-            ]);
-            
-            // Update dashboard stats with already-fetched data
-            await updateDashboardStatsWithData(bookings, blockedDates);
-            
-            // Load DJs display with already-fetched data
-            await loadAllDJsWithData(djs, bookings, blockedDates);
-        });
+                // Load all data in parallel for faster initial load
+                const [bookings, blockedDates, djs, admins] = await Promise.all([
+                    getAllBookings(),
+                    getAllBlockedDates(),
+                    getAllDJs(),
+                    getAllAdmins()
+                ]);
+                
+                // Update dashboard stats with already-fetched data
+                await updateDashboardStatsWithData(bookings, blockedDates);
+                
+                // Load DJs display with already-fetched data
+                await loadAllDJsWithData(djs, bookings, blockedDates);
+            });
+        }
 
         // Get all DJ data
         let djCache = null;
