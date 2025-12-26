@@ -1954,11 +1954,38 @@
         }
         
 
-        // Load user data
+        // Update user display in header and dropdown using API data
+        function updateUserDisplayFromAPI(currentDJ, currentUsername, displayName) {
+            // Use provided displayName or fall back to currentUsername
+            const finalDisplayName = displayName || currentUsername || 'DJ User';
+            
+            // Update header welcome message and name
+            const headerWelcome = document.getElementById('header-welcome');
+            const headerUserName = document.getElementById('header-user-name');
+            if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
+            if (headerUserName) headerUserName.textContent = finalDisplayName;
+            
+            // Update dropdown menu name
+            const dropdownName = document.getElementById('dropdown-name');
+            if (dropdownName) dropdownName.textContent = finalDisplayName;
+            
+            // Update profile icon with initials
+            if (typeof updateProfileIcon === 'function') {
+                updateProfileIcon(finalDisplayName);
+            }
+            
+            // Update calendar welcome message
+            const welcomeMsg = document.getElementById('dj-welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.textContent = `Welcome back, ${finalDisplayName}!`;
+            }
+        }
+        
+        // Load user data (fallback to localStorage for backward compatibility)
         function loadDJUserInfo() {
             const currentUsername = localStorage.getItem('dj_user') || 'DJ User';
             
-            // Try to get full user info from localStorage
+            // Try to get full user info from localStorage (fallback)
             const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
             const currentDJ = allDJs.find(dj => dj.username === currentUsername);
             
@@ -1967,44 +1994,9 @@
             if (currentDJ) {
                 // Display full name or username
                 displayName = currentDJ.fullName || currentDJ.name || currentDJ.username;
-                
-                // Update header welcome message and name
-                const headerWelcome = document.getElementById('header-welcome');
-                const headerUserName = document.getElementById('header-user-name');
-                if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
-                if (headerUserName) headerUserName.textContent = displayName;
-                
-                // Update dropdown menu
-                document.getElementById('dropdown-name').textContent = displayName;
-                
-                // Update profile icon with initials
-                updateProfileIcon(displayName);
-                
-                // Update calendar welcome message
-                const welcomeMsg = document.getElementById('dj-welcome-message');
-                if (welcomeMsg) {
-                    welcomeMsg.textContent = `Welcome back, ${displayName}!`;
-                }
-            } else {
-                // Update header with username
-                const headerWelcome = document.getElementById('header-welcome');
-                const headerUserName = document.getElementById('header-user-name');
-                if (headerWelcome) headerWelcome.textContent = 'Welcome, ';
-                if (headerUserName) headerUserName.textContent = currentUsername;
-                
-                // Update dropdown menu
-                document.getElementById('dropdown-name').textContent = currentUsername;
-                
-                // Update profile icon with initials
-                updateProfileIcon(currentUsername);
-                
-                // Update calendar welcome message
-                const welcomeMsg = document.getElementById('dj-welcome-message');
-                if (welcomeMsg) {
-                    welcomeMsg.textContent = `Welcome back, ${currentUsername}!`;
-                }
             }
             
+            updateUserDisplayFromAPI(currentDJ, currentUsername, displayName);
         }
         
         // Update profile icon with user initials
@@ -3943,7 +3935,7 @@
                 : currentUsername;
             
             // Update user display in header and dropdown with API data
-            updateUserDisplay(djUsers, currentDJ, currentUsername, djFullName);
+            updateUserDisplayFromAPI(currentDJ, currentUsername, djFullName);
             
             // Filter blocked dates for current DJ
             const djBlockedDates = blockedDates.filter(bd => 
