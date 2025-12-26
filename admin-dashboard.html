@@ -1348,6 +1348,14 @@
             await apiRequest(`/api/blocked-dates/${id}`, { method: 'DELETE' });
         }
         
+        async function apiUpdateBlockedDate(id, blockedDate) {
+            const result = await apiRequest(`/api/blocked-dates/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(blockedDate)
+            });
+            return result.data;
+        }
+        
         // Security: Escape HTML to prevent XSS attacks
         function escapeHtml(text) {
             if (text === null || text === undefined) return '';
@@ -4177,16 +4185,22 @@
                             const escapedDjName = escapeHtml(djName);
                             const escapedReason = escapeHtml(reason);
                             const escapedDate = escapeHtml(formatDateForDisplay(bd.date));
+                            const escapedDateStr = escapeHtml(bd.date);
+                            const escapedId = bd.id;
                             return `
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-left: 4px solid var(--warning-color); border-radius: 4px;">
-                                    <div>
+                                    <div style="flex: 1;">
                                         <div style="font-weight: 600; color: var(--primary-color);">${escapedDate}</div>
                                         <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
                                             <strong>DJ:</strong> ${escapedDjName}
                                         </div>
                                         ${reason ? `<div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;"><strong>Reason:</strong> ${escapedReason}</div>` : ''}
                                     </div>
-                                    <div style="font-size: 1.5rem;">🚫</div>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <button onclick="editBlockedDate(${escapedId}, '${escapedDateStr}', '${escapedDjName.replace(/'/g, "\\'")}', '${escapedReason.replace(/'/g, "\\'").replace(/\n/g, ' ')}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: bold;">Edit</button>
+                                        <button onclick="deleteBlockedDate(${escapedId}, '${escapedDate}', '${escapedDjName.replace(/'/g, "\\'")}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: bold;">Delete</button>
+                                        <div style="font-size: 1.5rem; margin-left: 0.5rem;">🚫</div>
+                                    </div>
                                 </div>
                             `;
                         }).join('')}
@@ -4503,6 +4517,129 @@
             return `${month}-${day}-${year}`;
         }
         
+        // Edit blocked date
+        async function editBlockedDate(id, dateStr, currentDJ, currentReason) {
+            // Format date for display
+            const formattedDate = formatDateMMDDYYYYGlobal(dateStr);
+            
+            // Get all DJs for dropdown
+            const djs = await getAllDJs();
+            const djOptions = djs.map(dj => {
+                const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
+                const escapedDJ = escapeHtml(djDisplayName).replace(/"/g, "&quot;");
+                const selected = djDisplayName === currentDJ ? 'selected' : '';
+                return `<option value="${escapedDJ}" ${selected}>${escapedDJ}</option>`;
+            }).join('');
+            
+            // Add "Admin" option
+            const adminSelected = currentDJ === 'Admin' ? 'selected' : '';
+            const adminOption = `<option value="Admin" ${adminSelected}>Admin</option>`;
+            
+            const modal = document.getElementById('admin-block-date-modal');
+            const content = document.getElementById('admin-block-date-content');
+            const modalTitle = document.getElementById('admin-block-date-modal-title');
+            
+            modalTitle.textContent = 'Edit Blocked Date';
+            
+            // Escape current reason for use in textarea
+            const escapedCurrentReason = escapeHtml(currentReason || '');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.5rem;">
+                        Edit blocked date details
+                    </div>
+                    <div style="font-weight: 600; color: var(--primary-color); font-size: 1.2rem; margin-bottom: 1rem;">
+                        ${escapeHtml(formattedDate)}
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="admin-edit-dj-select" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">DJ:</label>
+                        <select id="admin-edit-dj-select" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;">
+                            <option value="">Select a DJ...</option>
+                            ${adminOption}
+                            ${djOptions}
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="admin-edit-reason" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">Reason (optional):</label>
+                        <textarea id="admin-edit-reason" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Enter reason for blocking this date">${escapedCurrentReason}</textarea>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeAdminBlockDateModal()" style="padding: 0.75rem 1.5rem; background: var(--text-light); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Cancel</button>
+                    <button onclick="confirmEditBlockedDate(${id}, '${escapeHtml(dateStr)}')" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Save Changes</button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+            // Focus on DJ select
+            setTimeout(() => {
+                const djSelect = document.getElementById('admin-edit-dj-select');
+                if (djSelect) djSelect.focus();
+            }, 100);
+        }
+        
+        // Confirm and save edited blocked date
+        async function confirmEditBlockedDate(id, dateStr) {
+            const djSelect = document.getElementById('admin-edit-dj-select');
+            const reasonTextarea = document.getElementById('admin-edit-reason');
+            
+            const djUser = djSelect ? djSelect.value.trim() : '';
+            const reason = reasonTextarea ? reasonTextarea.value.trim() : '';
+            
+            if (!djUser) {
+                showToast('Please select a DJ.', 'error');
+                return;
+            }
+            
+            // Sanitize reason
+            const sanitizedReason = reason ? reason.replace(/[<>]/g, '') : null;
+            
+            try {
+                // Get admin user name
+                const adminUser = localStorage.getItem('admin_user') || 'Admin';
+                
+                // Update blocked date via API
+                await apiUpdateBlockedDate(id, {
+                    djUser: djUser,
+                    date: dateStr,
+                    reason: sanitizedReason || null,
+                    blockedBy: adminUser
+                });
+                
+                // Close modal first
+                closeAdminBlockDateModal();
+                
+                // Clear cache and refresh
+                clearBlockedDatesCache();
+                showToast('Blocked date updated successfully', 'success');
+                await generateMasterCalendar();
+                await updateDashboardStats();
+            } catch (error) {
+                console.error('Error updating blocked date:', error);
+                let errorMessage = error.message || 'Unknown error';
+                showToast(`Failed to update blocked date: ${errorMessage}. Please try again.`, 'error');
+            }
+        }
+        
+        // Delete blocked date
+        async function deleteBlockedDate(id, formattedDate, djName) {
+            if (!confirm(`Are you sure you want to delete the blocked date for ${escapeHtml(djName)} on ${escapeHtml(formattedDate)}?`)) {
+                return;
+            }
+            
+            try {
+                await apiDeleteBlockedDate(id);
+                clearBlockedDatesCache();
+                showToast('Blocked date deleted successfully', 'success');
+                await generateMasterCalendar();
+                await updateDashboardStats();
+            } catch (error) {
+                console.error('Error deleting blocked date:', error);
+                showToast('Error deleting blocked date. Please try again.', 'error');
+            }
+        }
+        
         // Close modal when clicking outside
         document.addEventListener('click', function(event) {
             const adminBlockModal = document.getElementById('admin-block-date-modal');
@@ -4510,6 +4647,18 @@
                 closeAdminBlockDateModal();
             }
         });
+        
+        // Reset modal title when closing (for next use)
+        function closeAdminBlockDateModal() {
+            const modal = document.getElementById('admin-block-date-modal');
+            const modalTitle = document.getElementById('admin-block-date-modal-title');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            if (modalTitle) {
+                modalTitle.textContent = 'Block Date';
+            }
+        }
 
         // Show toast notification
         function showToast(message, type) {
