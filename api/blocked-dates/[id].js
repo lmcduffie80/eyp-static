@@ -69,55 +69,57 @@ export default async function handler(req, res) {
                 });
             }
             
-            // Build SET clause parts dynamically
-            const setParts = [];
+            // Build SET clause dynamically - construct query string parts
+            const setClauses = [];
+            const setValues = [];
+            let valueIndex = 1;
+            
             if (status !== undefined) {
-                setParts.push(sql`status = ${status}`);
+                setClauses.push(`status = $${valueIndex}`);
+                setValues.push(status);
+                valueIndex++;
             }
             if (djUser !== undefined) {
-                setParts.push(sql`dj_user = ${djUser}`);
+                setClauses.push(`dj_user = $${valueIndex}`);
+                setValues.push(djUser);
+                valueIndex++;
             }
             if (reason !== undefined) {
-                setParts.push(sql`reason = ${reason}`);
+                setClauses.push(`reason = $${valueIndex}`);
+                setValues.push(reason);
+                valueIndex++;
             }
             if (date !== undefined) {
-                setParts.push(sql`date = ${date}`);
+                setClauses.push(`date = $${valueIndex}`);
+                setValues.push(date);
+                valueIndex++;
             }
             
             // Try to update with updated_at column, fall back gracefully if column doesn't exist
             let result;
             try {
                 // Build query with updated_at
-                if (setParts.length > 0) {
-                    setParts.push(sql`updated_at = CURRENT_TIMESTAMP`);
-                }
-                result = await sql`
+                const queryWithUpdatedAt = `
                     UPDATE blocked_dates 
-                    SET ${sql.join(setParts, sql`, `)}
-                    WHERE id = ${id}
+                    SET ${setClauses.join(', ')}, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $${valueIndex}
                     RETURNING *
                 `;
+                setValues.push(id);
+                result = await sql.unsafe(queryWithUpdatedAt, setValues);
             } catch (updateError) {
                 // If updated_at column doesn't exist, try without it
                 if (updateError.message && updateError.message.includes('updated_at')) {
                     try {
-                        // Remove updated_at from setParts and try again
-                        const setPartsWithoutUpdatedAt = setParts.filter(part => 
-                            !part.strings || !part.strings.some(s => s.includes('updated_at'))
-                        );
-                        // Rebuild setParts without updated_at
-                        const newSetParts = [];
-                        if (status !== undefined) newSetParts.push(sql`status = ${status}`);
-                        if (djUser !== undefined) newSetParts.push(sql`dj_user = ${djUser}`);
-                        if (reason !== undefined) newSetParts.push(sql`reason = ${reason}`);
-                        if (date !== undefined) newSetParts.push(sql`date = ${date}`);
-                        
-                        result = await sql`
+                        const queryWithoutUpdatedAt = `
                             UPDATE blocked_dates 
-                            SET ${sql.join(newSetParts, sql`, `)}
-                            WHERE id = ${id}
+                            SET ${setClauses.join(', ')}
+                            WHERE id = $${valueIndex}
                             RETURNING *
                         `;
+                        const valuesWithoutUpdatedAt = setValues.slice(0, -1); // Remove id, add it back
+                        valuesWithoutUpdatedAt.push(id);
+                        result = await sql.unsafe(queryWithoutUpdatedAt, valuesWithoutUpdatedAt);
                     } catch (error) {
                         throw error;
                     }
