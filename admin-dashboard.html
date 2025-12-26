@@ -4068,6 +4068,45 @@
             }
         }
         
+        // Run blocked dates migration
+        async function runBlockedDatesMigration() {
+            const statusEl = document.getElementById('migration-status');
+            if (!statusEl) return;
+            
+            statusEl.textContent = 'Running migration...';
+            statusEl.style.color = '#666';
+            
+            try {
+                const response = await fetch('/api/db/migrate-blocked-dates-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    statusEl.textContent = '✓ ' + result.message;
+                    statusEl.style.color = '#28a745';
+                    showToast(result.message, 'success');
+                    
+                    // Reload pending blocked dates and calendar to reflect changes
+                    await loadPendingBlockedDates();
+                    await generateMasterCalendar();
+                } else {
+                    statusEl.textContent = '✗ Error: ' + (result.error || 'Migration failed');
+                    statusEl.style.color = '#dc3545';
+                    showToast('Migration failed: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Migration error:', error);
+                statusEl.textContent = '✗ Error: ' + error.message;
+                statusEl.style.color = '#dc3545';
+                showToast('Migration error: ' + error.message, 'error');
+            }
+        }
+        
         // Reject blocked date
         async function rejectBlockedDate(id) {
             if (!confirm('Are you sure you want to reject this blocked date request?')) {
