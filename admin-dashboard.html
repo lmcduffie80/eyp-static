@@ -4084,7 +4084,20 @@
                     }
                 });
                 
-                const result = await response.json();
+                // Check if response is OK
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errorText.substring(0, 100)}`);
+                }
+                
+                // Try to parse JSON
+                let result;
+                try {
+                    result = await response.json();
+                } catch (jsonError) {
+                    const text = await response.text();
+                    throw new Error(`Invalid JSON response: ${text.substring(0, 100)}`);
+                }
                 
                 if (result.success) {
                     statusEl.textContent = '✓ ' + result.message;
@@ -4101,9 +4114,10 @@
                 }
             } catch (error) {
                 console.error('Migration error:', error);
-                statusEl.textContent = '✗ Error: ' + error.message;
+                const errorMsg = error.message || 'Unknown error occurred';
+                statusEl.textContent = '✗ Error: ' + errorMsg;
                 statusEl.style.color = '#dc3545';
-                showToast('Migration error: ' + error.message, 'error');
+                showToast('Migration error: ' + errorMsg, 'error');
             }
         }
         
