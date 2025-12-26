@@ -1549,6 +1549,24 @@
         // SECURITY MEASURES
         // ========================================
         
+        // Declare cache variables first (before they're used in refresh check)
+        let bookingsCache = null;
+        let bookingsCacheTime = null;
+        
+        // Check if this is a refresh after authentication (do this FIRST, before authentication check)
+        const urlParamsRefresh = new URLSearchParams(window.location.search);
+        const shouldRefresh = urlParamsRefresh.get('refresh') === 'true';
+        
+        if (shouldRefresh) {
+            // Clear all caches
+            bookingsCache = null;
+            bookingsCacheTime = null;
+            
+            // Redirect to clean URL (without refresh parameter) to reload page with fresh data
+            window.location.href = window.location.pathname;
+            // Exit early - code below will not execute
+        }
+        
         // Session timeout configuration (30 minutes of inactivity)
         const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
         const SESSION_WARNING_TIME = 5 * 60 * 1000; // Show warning 5 minutes before timeout
@@ -1698,11 +1716,8 @@
         }
 
         // Enhanced authentication check with token validation
-        // Only check authentication if not in refresh mode (refresh check happens later)
-        const urlParamsCheck = new URLSearchParams(window.location.search);
-        const isRefreshMode = urlParamsCheck.get('refresh') === 'true';
-        
-        if (!isRefreshMode && !validateToken()) {
+        // (Refresh check already happened above, so we can safely validate now)
+        if (!validateToken()) {
             window.location.href = 'dj-login.html';
             throw new Error('Authentication failed');
         }
@@ -3897,25 +3912,8 @@
             }
         }
 
-        // Declare cache variables first (before they're used in refresh check)
-        let bookingsCache = null;
-        let bookingsCacheTime = null;
-
         // Initialize - Load dashboard by default and initial data
-        // Check if this is a refresh after authentication (do this first, before any other code)
-        const urlParams = new URLSearchParams(window.location.search);
-        const shouldRefresh = urlParams.get('refresh') === 'true';
-        
-        if (shouldRefresh) {
-            // Clear all caches
-            bookingsCache = null;
-            bookingsCacheTime = null;
-            
-            // Redirect to clean URL (without refresh parameter) to reload page with fresh data
-            window.location.href = window.location.pathname;
-            return; // Exit early, page will reload
-        }
-        
+        // (Refresh check already happened above in SECURITY MEASURES section)
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => initializeDashboard());
         } else {
