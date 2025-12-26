@@ -3918,11 +3918,6 @@
         async function initializeDashboard() {
             showSection('dashboard');
             
-            // Load user info first to populate header and dropdown
-            if (typeof loadDJUserInfo === 'function') {
-                loadDJUserInfo();
-            }
-            
             // Optimize: Load all required data in parallel first
             const currentUsername = localStorage.getItem('dj_user');
             if (!currentUsername) {
@@ -3946,6 +3941,9 @@
             const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
                 ? `${currentDJ.firstName} ${currentDJ.lastName}` 
                 : currentUsername;
+            
+            // Update user display in header and dropdown with API data
+            updateUserDisplay(djUsers, currentDJ, currentUsername, djFullName);
             
             // Filter blocked dates for current DJ
             const djBlockedDates = blockedDates.filter(bd => 
