@@ -1698,7 +1698,11 @@
         }
 
         // Enhanced authentication check with token validation
-        if (!validateToken()) {
+        // Only check authentication if not in refresh mode (refresh check happens later)
+        const urlParamsCheck = new URLSearchParams(window.location.search);
+        const isRefreshMode = urlParamsCheck.get('refresh') === 'true';
+        
+        if (!isRefreshMode && !validateToken()) {
             window.location.href = 'dj-login.html';
             throw new Error('Authentication failed');
         }
