@@ -1415,7 +1415,6 @@
                     // Clear cache to force refresh
                     bookingsCache = null;
                     bookingsCacheTime = null;
-                    console.log(`Synced ${updatedCount} booking(s) with DJ user names`);
                 }
             } catch (error) {
                 console.error('Error syncing bookings with DJ users:', error);
@@ -3525,7 +3524,6 @@
                     } else if (lines[0].includes(';') && !lines[0].includes(',')) {
                         csvSeparator = ';';
                     }
-                    // Removed debug console.log for better performance
                     
                     // Find column indices (flexible matching) - be more specific to avoid wrong matches
                     const dateIndex = findColumnIndex(headers, ['data', 'date', 'date of project']);
@@ -3534,9 +3532,7 @@
                     const locationIndex = findColumnIndex(headers, ['location', 'location for venue', 'venue location']);
                     const paymentIndex = findColumnIndex(headers, ['payment', 'total revenue', 'totalrevenue', 'revenue']);
                     const ccPaymentIndex = findColumnIndex(headers, ['cc payment', 'cc payment 6%', 'cc payment 6']);
-                    const payoutIndex = findColumnIndex(headers, ['dj payout', 'payout', 'djpayout']);
-                    
-                    console.log('Column indices:', { 
+                    const payoutIndex = findColumnIndex(headers, ['dj payout', 'payout', 'djpayout']); 
                         dateIndex,
                         djNameIndex, 
                         projectNameIndex, 
