@@ -34,12 +34,26 @@ export default async function handler(req, res) {
                 });
             }
 
-            const result = await sql`
-                UPDATE blocked_dates 
-                SET status = ${status}, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ${id}
-                RETURNING *
-            `;
+            // Try to update with status column, fall back if column doesn't exist
+            let result;
+            try {
+                result = await sql`
+                    UPDATE blocked_dates 
+                    SET status = ${status}, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            } catch (updateError) {
+                // If status column doesn't exist, return error suggesting migration
+                if (updateError.message && updateError.message.includes('status')) {
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Status column does not exist. Please run database migration to add status column.'
+                    });
+                } else {
+                    throw updateError;
+                }
+            }
 
             if (result.rows.length === 0) {
                 return res.status(404).json({ success: false, error: 'Blocked date not found' });
@@ -54,7 +68,7 @@ export default async function handler(req, res) {
                     date: blockedDate.date,
                     reason: blockedDate.reason,
                     blockedBy: blockedDate.blocked_by,
-                    status: blockedDate.status,
+                    status: blockedDate.status || 'approved',
                     createdAt: blockedDate.created_at,
                     updatedAt: blockedDate.updated_at
                 }

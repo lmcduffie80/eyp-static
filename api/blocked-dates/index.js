@@ -21,9 +21,11 @@ export default async function handler(req, res) {
             // Get all blocked dates
             const { dj_user } = req.query; // Optional filter by DJ
             
-            let query = sql`SELECT * FROM blocked_dates ORDER BY date ASC`;
+            let query;
             if (dj_user) {
                 query = sql`SELECT * FROM blocked_dates WHERE dj_user = ${dj_user} ORDER BY date ASC`;
+            } else {
+                query = sql`SELECT * FROM blocked_dates ORDER BY date ASC`;
             }
             
             const result = await query;
@@ -58,12 +60,27 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Check if date is already blocked for this DJ (only check approved or pending)
-            const existing = await sql`
-                SELECT id FROM blocked_dates 
-                WHERE dj_user = ${djUser} AND date = ${date} 
-                AND (status = 'approved' OR status = 'pending' OR status IS NULL)
-            `;
+            // Check if date is already blocked for this DJ
+            // Try to check with status column first, fall back to simple check if column doesn't exist
+            let existing;
+            try {
+                existing = await sql`
+                    SELECT id FROM blocked_dates 
+                    WHERE dj_user = ${djUser} AND date = ${date} 
+                    AND (status = 'approved' OR status = 'pending' OR status IS NULL)
+                `;
+            } catch (statusError) {
+                // If status column doesn't exist, do simple check
+                if (statusError.message && statusError.message.includes('status')) {
+                    existing = await sql`
+                        SELECT id FROM blocked_dates 
+                        WHERE dj_user = ${djUser} AND date = ${date}
+                    `;
+                } else {
+                    throw statusError;
+                }
+            }
+            
             if (existing.rows.length > 0) {
                 return res.status(409).json({
                     success: false,
@@ -72,11 +89,26 @@ export default async function handler(req, res) {
             }
 
             // New blocked dates default to 'pending' status (requires admin approval)
-            const result = await sql`
-                INSERT INTO blocked_dates (dj_user, date, reason, blocked_by, status)
-                VALUES (${djUser}, ${date}, ${reason || null}, ${blockedBy || djUser}, 'pending')
-                RETURNING *
-            `;
+            // Try to insert with status first, fall back to without status if column doesn't exist
+            let result;
+            try {
+                result = await sql`
+                    INSERT INTO blocked_dates (dj_user, date, reason, blocked_by, status)
+                    VALUES (${djUser}, ${date}, ${reason || null}, ${blockedBy || djUser}, 'pending')
+                    RETURNING *
+                `;
+            } catch (insertError) {
+                // If status column doesn't exist, insert without it
+                if (insertError.message && insertError.message.includes('status')) {
+                    result = await sql`
+                        INSERT INTO blocked_dates (dj_user, date, reason, blocked_by)
+                        VALUES (${djUser}, ${date}, ${reason || null}, ${blockedBy || djUser})
+                        RETURNING *
+                    `;
+                } else {
+                    throw insertError;
+                }
+            }
 
             const blockedDate = result.rows[0];
             return res.status(201).json({
