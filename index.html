@@ -1377,6 +1377,159 @@
 
         // Extract testimonials when page loads
         document.addEventListener('DOMContentLoaded', extractTestimonialsFromPage);
+
+        // Available Dates Calendar
+        let calendarMonth = new Date().getMonth();
+        let calendarYear = new Date().getFullYear();
+        let blockedDates = new Set();
+        let bookingDates = new Set();
+
+        // Fetch blocked dates and bookings from API
+        async function loadAvailableDates() {
+            try {
+                // Fetch both blocked dates and bookings in parallel
+                const [blockedDatesResponse, bookingsResponse] = await Promise.all([
+                    fetch('/api/blocked-dates'),
+                    fetch('/api/bookings')
+                ]);
+
+                const blockedDatesResult = await blockedDatesResponse.json();
+                const bookingsResult = await bookingsResponse.json();
+
+                // Get approved blocked dates
+                if (blockedDatesResult.success && blockedDatesResult.data) {
+                    blockedDatesResult.data.forEach(bd => {
+                        if ((bd.status || 'approved') === 'approved' && bd.date) {
+                            // Normalize date to YYYY-MM-DD
+                            let dateStr = bd.date;
+                            if (dateStr.includes('T')) {
+                                dateStr = dateStr.split('T')[0];
+                            }
+                            blockedDates.add(dateStr);
+                        }
+                    });
+                }
+
+                // Get booking dates
+                if (bookingsResult.success && bookingsResult.data) {
+                    bookingsResult.data.forEach(booking => {
+                        if (booking.date) {
+                            // Normalize date to YYYY-MM-DD
+                            let dateStr = booking.date;
+                            if (dateStr.includes('T')) {
+                                dateStr = dateStr.split('T')[0];
+                            }
+                            bookingDates.add(dateStr);
+                        }
+                    });
+                }
+
+                // Generate calendar with loaded data
+                generateDatesCalendar();
+            } catch (error) {
+                console.error('Error loading available dates:', error);
+                document.getElementById('dates-calendar-container').innerHTML = 
+                    '<p style="text-align: center; color: var(--text-light); padding: 2rem;">Unable to load available dates at this time.</p>';
+            }
+        }
+
+        function generateDatesCalendar(monthOffset = 0) {
+            if (monthOffset !== 0) {
+                const newDate = new Date(calendarYear, calendarMonth + monthOffset, 1);
+                calendarMonth = newDate.getMonth();
+                calendarYear = newDate.getFullYear();
+            } else {
+                const today = new Date();
+                calendarMonth = today.getMonth();
+                calendarYear = today.getFullYear();
+            }
+
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let html = `
+                <div class="calendar-nav">
+                    <button onclick="generateDatesCalendar(-1)">← Previous</button>
+                    <h3>${monthNames[calendarMonth]} ${calendarYear}</h3>
+                    <button onclick="generateDatesCalendar(1)">Next →</button>
+                </div>
+                <div class="calendar-today-btn">
+                    <button onclick="generateDatesCalendar(0)">Today</button>
+                </div>
+                <div class="calendar-grid">
+            `;
+
+            // Day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                html += `<div class="calendar-day-header">${day}</div>`;
+            });
+
+            // Get first day of month
+            const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+            const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+            // Previous month days (faded)
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="calendar-day other-month"></div>`;
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateObj = new Date(calendarYear, calendarMonth, day);
+                dateObj.setHours(0, 0, 0, 0);
+                
+                let dayClass = 'calendar-day';
+                const isToday = dateObj.getTime() === today.getTime();
+                const isBlocked = blockedDates.has(dateStr);
+                const hasBooking = bookingDates.has(dateStr);
+                const isUnavailable = isBlocked || hasBooking;
+
+                if (isToday) {
+                    dayClass += ' today';
+                } else if (isUnavailable) {
+                    dayClass += ' blocked';
+                } else {
+                    dayClass += ' available';
+                }
+
+                html += `<div class="${dayClass}">${day}</div>`;
+            }
+
+            // Next month days (faded)
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = 42 - totalCells; // 6 rows * 7 days
+            for (let i = 0; i < remainingCells; i++) {
+                html += `<div class="calendar-day other-month"></div>`;
+            }
+
+            html += `
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <div class="legend-color available"></div>
+                        <span>Available</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color blocked"></div>
+                        <span>Unavailable (Booked/Blocked)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color today"></div>
+                        <span>Today</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('dates-calendar-container').innerHTML = html;
+        }
+
+        // Load available dates when page loads
+        document.addEventListener('DOMContentLoaded', loadAvailableDates);
     </script>
     <!-- Cookie Consent -->
     <script src="cookie-consent.js" defer></script>
