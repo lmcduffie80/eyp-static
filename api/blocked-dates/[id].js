@@ -113,19 +113,68 @@ export default async function handler(req, res) {
                         RETURNING *
                     `;
                 } else {
-                    // For other combinations, handle them explicitly or use a fallback
-                    // For now, let's handle the most common edit case: djUser + reason
-                    // If other fields are needed, we can add them
-                    result = await sql`
-                        UPDATE blocked_dates 
-                        SET ${status !== undefined ? sql`status = ${status},` : sql``}
-                            ${djUser !== undefined ? sql`dj_user = ${djUser},` : sql``}
-                            ${reason !== undefined ? sql`reason = ${reason},` : sql``}
-                            ${date !== undefined ? sql`date = ${date},` : sql``}
-                            updated_at = CURRENT_TIMESTAMP
-                        WHERE id = ${id}
-                        RETURNING *
-                    `;
+                    // For other combinations, handle common ones explicitly
+                    // Add more combinations as needed
+                    if (status !== undefined && djUser !== undefined && reason !== undefined && date !== undefined) {
+                        // All fields
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET status = ${status}, dj_user = ${djUser}, reason = ${reason}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else if (status !== undefined && djUser !== undefined && date !== undefined) {
+                        // status, djUser, date
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET status = ${status}, dj_user = ${djUser}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else if (status !== undefined && reason !== undefined && date !== undefined) {
+                        // status, reason, date
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET status = ${status}, reason = ${reason}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else if (djUser !== undefined && reason !== undefined && date !== undefined) {
+                        // djUser, reason, date
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET dj_user = ${djUser}, reason = ${reason}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else if (djUser !== undefined && date !== undefined) {
+                        // djUser, date
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET dj_user = ${djUser}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else if (reason !== undefined && date !== undefined) {
+                        // reason, date
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET reason = ${reason}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else if (status !== undefined && date !== undefined) {
+                        // status, date
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET status = ${status}, date = ${date}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } else {
+                        // Fallback: if we get here, something unexpected happened
+                        throw new Error('Unsupported field combination for update');
+                    }
                 }
             } catch (updateError) {
                 // If updated_at column doesn't exist, try without it
@@ -189,9 +238,59 @@ export default async function handler(req, res) {
                                 RETURNING *
                             `;
                         } else {
-                            // Fallback: try without updated_at using conditional sql fragments
-                            // Note: This syntax may not work perfectly, so we handle common cases above
-                            throw new Error('Complex update not supported without updated_at column');
+                            // Handle additional combinations without updated_at
+                            if (status !== undefined && djUser !== undefined && reason !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET status = ${status}, dj_user = ${djUser}, reason = ${reason}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else if (status !== undefined && djUser !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET status = ${status}, dj_user = ${djUser}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else if (status !== undefined && reason !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET status = ${status}, reason = ${reason}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else if (djUser !== undefined && reason !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET dj_user = ${djUser}, reason = ${reason}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else if (djUser !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET dj_user = ${djUser}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else if (reason !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET reason = ${reason}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else if (status !== undefined && date !== undefined) {
+                                result = await sql`
+                                    UPDATE blocked_dates 
+                                    SET status = ${status}, date = ${date}
+                                    WHERE id = ${id}
+                                    RETURNING *
+                                `;
+                            } else {
+                                throw new Error('Unsupported field combination for update');
+                            }
                         }
                     } catch (error) {
                         throw error;
