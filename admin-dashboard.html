@@ -4213,13 +4213,27 @@
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const currentMonth = today.getMonth();
-            const currentYear = today.getFullYear();
 
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"];
 
-            let calendarHTML = `<h3 style="margin-bottom: 1rem;">${monthNames[currentMonth]} ${currentYear}</h3>`;
+            // Calendar navigation buttons
+            let calendarHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <button onclick="generateMasterCalendar(-1)" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        ← Previous
+                    </button>
+                    <h3 style="margin: 0; font-size: 1.5rem; color: var(--primary-color);">${monthNames[calendarMonth]} ${calendarYear}</h3>
+                    <button onclick="generateMasterCalendar(1)" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        Next →
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <button onclick="generateMasterCalendar(0)" style="padding: 0.5rem 1rem; background: var(--text-light); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+                        Today
+                    </button>
+                </div>
+            `;
             calendarHTML += '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; font-size: 0.85rem;">';
             
             // Day headers
