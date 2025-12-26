@@ -1,7 +1,9 @@
 // API endpoint to fetch Google Calendar events
 // This endpoint fetches events from Google Calendar and returns dates that should be blocked
+// Also includes blocked dates from the database
 
 import { setSecurityHeaders, setCORSHeaders } from './security-headers.js';
+import sql from './db/connection.js';
 
 export default async function handler(req, res) {
     // Set security headers
@@ -87,6 +89,38 @@ export default async function handler(req, res) {
                     }
                 }
             });
+        }
+
+        // Also fetch blocked dates from database (approved blocked dates)
+        try {
+            const blockedDatesResult = await sql`
+                SELECT date FROM blocked_dates 
+                WHERE status = 'approved' OR status IS NULL
+            `;
+            
+            blockedDatesResult.rows.forEach(row => {
+                if (row.date) {
+                    // Format date to YYYY-MM-DD
+                    let dateStr = row.date;
+                    if (dateStr instanceof Date) {
+                        const year = dateStr.getFullYear();
+                        const month = String(dateStr.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateStr.getDate()).padStart(2, '0');
+                        dateStr = `${year}-${month}-${day}`;
+                    } else if (typeof dateStr === 'string' && dateStr.includes('T')) {
+                        dateStr = dateStr.split('T')[0];
+                    }
+                    
+                    // Check if it's a Saturday
+                    const dateObj = new Date(dateStr + 'T00:00:00');
+                    if (dateObj.getDay() === 6) {
+                        blockedDates.add(dateStr);
+                    }
+                }
+            });
+        } catch (dbError) {
+            console.error('Error fetching blocked dates from database:', dbError);
+            // Continue without database blocked dates if there's an error
         }
 
         // Convert Set to sorted array
