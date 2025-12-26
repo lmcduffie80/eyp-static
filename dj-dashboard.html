@@ -3792,32 +3792,8 @@
         }
 
         // Update dashboard statistics with pre-fetched data (optimized version)
-        function updateDashboardStatsWithData(bookings) {
-            const currentUsername = localStorage.getItem('dj_user');
-            
-            // Get DJ user info to check for firstName/lastName
-            const allDJs = JSON.parse(localStorage.getItem('dj_users') || '[]');
-            const currentDJ = allDJs.find(dj => dj.username === currentUsername);
-            
-            // Build possible matching names (case-insensitive matching)
-            const possibleNames = [currentUsername];
-            if (currentDJ) {
-                if (currentDJ.firstName && currentDJ.lastName) {
-                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
-                }
-                if (currentDJ.username && currentDJ.username !== currentUsername) {
-                    possibleNames.push(currentDJ.username);
-                }
-            }
-            
-            // Filter bookings for current DJ (case-insensitive match)
-            const djBookings = bookings.filter(b => {
-                if (!b.djUser) return false;
-                const bookingDJ = b.djUser.trim();
-                return possibleNames.some(name => 
-                    name.toLowerCase().trim() === bookingDJ.toLowerCase()
-                );
-            });
+        function updateDashboardStatsWithData(djBookings) {
+            // Bookings are already filtered for current DJ, no need to filter again
             
             // Calculate total bookings (only upcoming/future bookings)
             const todayForStats = new Date();
