@@ -34,9 +34,10 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Try to update with status column, fall back if column doesn't exist
+            // Try to update with status and updated_at columns, fall back gracefully if columns don't exist
             let result;
             try {
+                // First try with both status and updated_at
                 result = await sql`
                     UPDATE blocked_dates 
                     SET status = ${status}, updated_at = CURRENT_TIMESTAMP
@@ -44,14 +45,34 @@ export default async function handler(req, res) {
                     RETURNING *
                 `;
             } catch (updateError) {
-                // If status column doesn't exist, return error suggesting migration
-                if (updateError.message && updateError.message.includes('status')) {
+                // If updated_at column doesn't exist, try without it
+                if (updateError.message && updateError.message.includes('updated_at')) {
+                    try {
+                        result = await sql`
+                            UPDATE blocked_dates 
+                            SET status = ${status}
+                            WHERE id = ${id}
+                            RETURNING *
+                        `;
+                    } catch (statusError) {
+                        // If status column doesn't exist either, return error
+                        if (statusError.message && statusError.message.includes('status')) {
+                            return res.status(500).json({
+                                success: false,
+                                error: 'Database schema error: status column is missing. The database needs to be migrated.'
+                            });
+                        } else {
+                            throw statusError;
+                        }
+                    }
+                } else if (updateError.message && updateError.message.includes('status')) {
+                    // If status column doesn't exist, return error
                     return res.status(500).json({
                         success: false,
-                        error: 'Status column does not exist. Please run database migration to add status column.'
+                        error: 'Database schema error: status column is missing. The database needs to be migrated.'
                     });
                 } else {
-                    throw updateError;
+                    throw updateError; // Re-throw other errors
                 }
             }
 
