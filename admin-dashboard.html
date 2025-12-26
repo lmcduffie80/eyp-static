@@ -3485,26 +3485,23 @@
                         headerValues = parseCSVLine(lines[0]);
                         headers = headerValues.map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
                     } catch (e) {
-                        console.warn('CSV parsing failed, trying simple split:', e);
+                        // Fallback to simple split
                     }
                     
                     // Method 2: If that fails or returns empty, try simple comma split
                     if (headers.length === 0 || headers.every(h => !h)) {
-                        console.log('Trying simple comma split for headers');
                         headerValues = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
                         headers = headerValues.map(h => h.toLowerCase());
                     }
                     
                     // Method 3: Try tab-separated (TSV)
                     if (headers.length === 0 || headers.every(h => !h)) {
-                        console.log('Trying tab-separated for headers');
                         headerValues = lines[0].split('\t').map(h => h.trim().replace(/^["']|["']$/g, ''));
                         headers = headerValues.map(h => h.toLowerCase());
                     }
                     
                     // Method 4: Try semicolon-separated (common in European Excel exports)
                     if (headers.length === 0 || headers.every(h => !h)) {
-                        console.log('Trying semicolon-separated for headers');
                         headerValues = lines[0].split(';').map(h => h.trim().replace(/^["']|["']$/g, ''));
                         headers = headerValues.map(h => h.toLowerCase());
                     }
@@ -3767,7 +3764,6 @@
                             try {
                                 await apiDeleteBooking(booking.id);
                             } catch (error) {
-                                console.warn('Error deleting booking during CSV import:', error);
                                 // Continue with other bookings even if one fails
                             }
                         }
