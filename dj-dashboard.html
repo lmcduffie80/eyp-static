@@ -2879,6 +2879,54 @@
             }
         }
 
+        // Generate calendar (original function that fetches data)
+        async function generateCalendar() {
+            const currentUsername = localStorage.getItem('dj_user');
+            if (!currentUsername) return;
+            
+            // Fetch all required data
+            const [djUsers, allBookings, allBlockedDates] = await Promise.all([
+                apiGetUsers('dj').catch(() => []),
+                apiGetBookings().catch(() => []),
+                apiGetBlockedDates().catch(() => [])
+            ]);
+            
+            // Find current DJ user info
+            const currentDJ = djUsers.find(u => 
+                u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+            );
+            
+            const djFullName = currentDJ && currentDJ.firstName && currentDJ.lastName 
+                ? `${currentDJ.firstName} ${currentDJ.lastName}` 
+                : currentUsername;
+            
+            // Filter bookings for current DJ
+            const possibleNames = [];
+            if (currentDJ && currentDJ.firstName && currentDJ.lastName) {
+                possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+            }
+            if (currentDJ && currentDJ.username) {
+                possibleNames.push(currentDJ.username);
+            }
+            possibleNames.push(currentUsername);
+            
+            const djBookings = allBookings.filter(b => {
+                if (!b.djUser) return false;
+                return possibleNames.some(name => 
+                    b.djUser.toLowerCase().trim() === name.toLowerCase().trim()
+                );
+            });
+            
+            // Filter blocked dates for current DJ
+            const djBlockedDates = allBlockedDates.filter(bd => 
+                bd.djUser === djFullName || bd.djUser === currentUsername
+            );
+            
+            // Generate calendar with fetched data
+            generateCalendarWithData(djUsers, djBookings, djBlockedDates);
+        }
+
         // Navigate calendar months
         async function previousMonth() {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
