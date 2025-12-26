@@ -2,8 +2,19 @@
 // Run this once to add the status field to existing databases
 
 import sql from '../connection.js';
+import { setSecurityHeaders, setCORSHeaders } from '../security-headers.js';
 
 export default async function handler(req, res) {
+    // Set security headers
+    setSecurityHeaders(res);
+    
+    // Set CORS headers
+    setCORSHeaders(req, res);
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
