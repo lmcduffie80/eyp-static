@@ -4370,6 +4370,9 @@
                 return `<option value="${escapedDJ}">${escapedDJ}</option>`;
             }).join('');
             
+            // Add "Admin" option at the beginning
+            const adminOption = '<option value="Admin">Admin</option>';
+            
             const modal = document.getElementById('admin-block-date-modal');
             const content = document.getElementById('admin-block-date-content');
             
@@ -4385,6 +4388,7 @@
                         <label for="admin-block-dj-select" style="display: block; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 500;">DJ:</label>
                         <select id="admin-block-dj-select" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;">
                             <option value="">Select a DJ...</option>
+                            ${adminOption}
                             ${djOptions}
                         </select>
                     </div>
