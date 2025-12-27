@@ -1631,23 +1631,9 @@
         // SECURITY MEASURES
         // ========================================
         
-        // Declare cache variables first (before they're used in refresh check)
+        // Declare cache variables first
         let bookingsCache = null;
         let bookingsCacheTime = null;
-        
-        // Check if this is a refresh after authentication (do this FIRST, before authentication check)
-        const urlParamsRefresh = new URLSearchParams(window.location.search);
-        const shouldRefresh = urlParamsRefresh.get('refresh') === 'true';
-        
-        if (shouldRefresh) {
-            // Clear all caches
-            bookingsCache = null;
-            bookingsCacheTime = null;
-            
-            // Redirect to clean URL (without refresh parameter) to reload page with fresh data
-            window.location.href = window.location.pathname;
-            // Exit early - code below will not execute
-        }
         
         // Session timeout configuration (30 minutes of inactivity)
         const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -1812,6 +1798,7 @@
         
         // Request deduplication - prevents multiple identical requests
         const inFlightRequests = new Map();
+        const API_TIMEOUT = 8000; // 8 second timeout for API calls
         
         async function apiRequest(endpoint, options = {}) {
             // Create a unique key for this request
@@ -1822,16 +1809,29 @@
                 return inFlightRequests.get(requestKey);
             }
             
-            // Create new request promise
+            // Get auth token for requests
+            const token = localStorage.getItem('dj_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            // Create new request promise with timeout
             const requestPromise = (async () => {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+                
                 try {
                     const response = await fetch(`${API_BASE}${endpoint}`, {
                         ...options,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...options.headers
-                        }
+                        headers: headers,
+                        signal: controller.signal
                     });
+                    
+                    clearTimeout(timeoutId);
                     
                     if (!response.ok) {
                         const error = await response.json().catch(() => ({ error: response.statusText }));
@@ -1840,6 +1840,11 @@
                     
                     return await response.json();
                 } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        console.error('API request timeout:', endpoint);
+                        throw new Error('Request timed out. Please try again.');
+                    }
                     console.error('API request failed:', endpoint, error);
                     throw error;
                 } finally {
@@ -2066,6 +2071,14 @@
         function updateUserDisplayFromAPI(currentDJ, currentUsername, displayName) {
             // Use provided displayName or fall back to currentUsername
             const finalDisplayName = displayName || currentUsername || 'DJ User';
+            
+            // Wait for DOM to be ready if needed
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    updateUserDisplayFromAPI(currentDJ, currentUsername, displayName);
+                });
+                return;
+            }
             
             // Update header welcome message and name
             const headerWelcome = document.getElementById('header-welcome');
@@ -4105,11 +4118,23 @@
         }
 
         // Initialize - Load dashboard by default and initial data
-        // (Refresh check already happened above in SECURITY MEASURES section)
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => initializeDashboard());
-        } else {
+        // Ensure DOM is fully ready before initializing
+        function startInitialization() {
+            // Double-check DOM readiness
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startInitialization);
+                return;
+            }
+            
+            // Initialize immediately if DOM is ready
             initializeDashboard();
+        }
+        
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startInitialization);
+        } else {
+            startInitialization();
         }
 
         async function initializeDashboard() {
@@ -4126,15 +4151,34 @@
                 if (!currentUsername) {
                     console.error('No DJ user found');
                     if (loadingIndicator) loadingIndicator.style.display = 'none';
+                    secureLogout('Please log in again.');
                     return;
                 }
                 
                 // Fetch ALL data in parallel (users, all bookings, all blocked dates)
-                const [djUsers, allBookings, allBlockedDates] = await Promise.all([
-                    apiGetUsers('dj').catch(() => []),
-                    apiGetBookings().catch(() => []), // Get all bookings, filter later
-                    apiGetBlockedDates().catch(() => [])
-                ]);
+                // Better error handling - don't silently fail with empty arrays
+                let djUsers = [];
+                let allBookings = [];
+                let allBlockedDates = [];
+                
+                try {
+                    [djUsers, allBookings, allBlockedDates] = await Promise.all([
+                        apiGetUsers('dj'),
+                        apiGetBookings(),
+                        apiGetBlockedDates()
+                    ]);
+                } catch (error) {
+                    console.error('Error fetching dashboard data:', error);
+                    // Show error to user
+                    if (loadingIndicator) {
+                        loadingIndicator.innerHTML = `
+                            <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem;">Error loading dashboard</div>
+                            <div style="color: var(--text-light); margin-bottom: 1rem;">${error.message || 'Please try refreshing the page.'}</div>
+                            <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Retry</button>
+                        `;
+                    }
+                    return;
+                }
                 
                 // Find current DJ user info
                 const currentDJ = djUsers.find(u => 
@@ -4186,18 +4230,19 @@
                     bd.djUser === djFullName || bd.djUser === currentUsername
                 );
                 
-                // Update user display in header and dropdown with API data (immediate, non-blocking)
+                // Update user display FIRST (immediate, synchronous)
                 updateUserDisplayFromAPI(currentDJ, currentUsername, djFullName);
                 
-                // Update UI with pre-fetched data (no additional API calls)
-                requestAnimationFrame(() => {
-                    // Use pre-fetched data - no API calls in these functions
-                    updateDashboardStatsWithData(djBookings);
-                    generateCalendarWithData(djUsers, djBookings, djBlockedDates);
-                    displayBlockedDatesWithData(djBlockedDates, djFullName, currentUsername);
-                    loadBookingsWithData(djBookings);
-                    
-                    // Sync website testimonials to DJ reviews on page load (these don't need API calls)
+                // Update UI with pre-fetched data immediately (no requestAnimationFrame delay)
+                // Use pre-fetched data - no API calls in these functions
+                updateDashboardStatsWithData(djBookings);
+                generateCalendarWithData(djUsers, djBookings, djBlockedDates);
+                displayBlockedDatesWithData(djBlockedDates, djFullName, currentUsername);
+                loadBookingsWithData(djBookings);
+                
+                // Sync website testimonials to DJ reviews on page load (these don't need API calls)
+                // Run these asynchronously after main UI is updated
+                setTimeout(() => {
                     if (typeof syncWebsiteTestimonialsToDJReviews === 'function') {
                         syncWebsiteTestimonialsToDJReviews();
                     }
@@ -4208,13 +4253,19 @@
                     addStephenReviewIfNeeded();
                     
                     if (typeof loadReviews === 'function') loadReviews();
-                    
-                    // Hide loading indicator
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                });
+                }, 100);
+                
+                // Hide loading indicator
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
             } catch (error) {
                 console.error('Error initializing dashboard:', error);
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                if (loadingIndicator) {
+                    loadingIndicator.innerHTML = `
+                        <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem;">Error loading dashboard</div>
+                        <div style="color: var(--text-light); margin-bottom: 1rem;">${error.message || 'An unexpected error occurred.'}</div>
+                        <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Retry</button>
+                    `;
+                }
             }
         }
 
