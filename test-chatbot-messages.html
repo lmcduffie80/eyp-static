@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chatbot Messages API</title>
+</head>
+<body>
+    <h1>Chatbot Messages API Test</h1>
+    <button onclick="testCreateMessage()">Test Create Message</button>
+    <button onclick="testGetMessages()">Test Get Messages</button>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap;"></div>
+
+    <script>
+        async function testCreateMessage() {
+            const results = document.getElementById('results');
+            results.textContent = 'Creating test message...\n';
+            
+            try {
+                const response = await fetch('/api/chatbot-messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        conversationId: 'new',
+                        message: 'Test message from admin dashboard - ' + new Date().toISOString(),
+                        senderName: 'Test User',
+                        senderEmail: 'test@example.com',
+                        senderPhone: '555-1234'
+                    })
+                });
+
+                const data = await response.json();
+                results.textContent = 'Create Response:\n' + JSON.stringify(data, null, 2);
+                console.log('Create response:', data);
+            } catch (error) {
+                results.textContent = 'Error: ' + error.message + '\n' + error.stack;
+                console.error('Error:', error);
+            }
+        }
+
+        async function testGetMessages() {
+            const results = document.getElementById('results');
+            results.textContent = 'Fetching messages...\n';
+            
+            try {
+                const response = await fetch('/api/chatbot-messages');
+                const data = await response.json();
+                results.textContent = 'Get Response:\n' + JSON.stringify(data, null, 2) + '\n\nMessages count: ' + (data.data ? data.data.length : 0);
+                console.log('Get response:', data);
+            } catch (error) {
+                results.textContent = 'Error: ' + error.message + '\n' + error.stack;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
+
