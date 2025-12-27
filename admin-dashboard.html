@@ -4802,7 +4802,7 @@
                 return new Date(b.latestMessage.createdAt) - new Date(a.latestMessage.createdAt);
             });
             
-            container.innerHTML = sortedConversations.map(conv => {
+                container.innerHTML = sortedConversations.map(conv => {
                 const escapedConvId = escapeHtml(conv.conversationId);
                 const escapedSenderName = escapeHtml(conv.senderName || 'Anonymous');
                 const escapedMessage = escapeHtml(conv.latestMessage.message);

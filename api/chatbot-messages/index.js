@@ -26,31 +26,18 @@ export default async function handler(req, res) {
                 // Get messages for a specific conversation
                 query = sql`SELECT * FROM chatbot_messages WHERE conversation_id = ${conversation_id} ORDER BY created_at ASC`;
             } else {
-                // Get all conversations (latest message from each conversation)
-                // Use a subquery to get the latest message ID for each conversation, then join
+                // Get all conversations - get all messages and group by conversation_id in application logic
+                // This is simpler and more reliable than complex SQL joins
                 if (status) {
                     query = sql`
-                        SELECT m.* FROM chatbot_messages m
-                        INNER JOIN (
-                            SELECT conversation_id, MAX(created_at) as max_created_at
-                            FROM chatbot_messages
-                            WHERE status = ${status}
-                            GROUP BY conversation_id
-                        ) latest ON m.conversation_id = latest.conversation_id 
-                            AND m.created_at = latest.max_created_at
-                        WHERE m.status = ${status}
-                        ORDER BY m.created_at DESC
+                        SELECT * FROM chatbot_messages 
+                        WHERE status = ${status}
+                        ORDER BY created_at DESC
                     `;
                 } else {
                     query = sql`
-                        SELECT m.* FROM chatbot_messages m
-                        INNER JOIN (
-                            SELECT conversation_id, MAX(created_at) as max_created_at
-                            FROM chatbot_messages
-                            GROUP BY conversation_id
-                        ) latest ON m.conversation_id = latest.conversation_id 
-                            AND m.created_at = latest.max_created_at
-                        ORDER BY m.created_at DESC
+                        SELECT * FROM chatbot_messages 
+                        ORDER BY created_at DESC
                     `;
                 }
             }
@@ -84,16 +71,16 @@ export default async function handler(req, res) {
             } = req.body;
 
             // Validation
-            if (!message || !conversationId) {
+            if (!message) {
                 return res.status(400).json({
                     success: false,
-                    error: 'Missing required fields: conversationId, message'
+                    error: 'Missing required field: message'
                 });
             }
 
             // Create or get conversation ID
             let finalConversationId = conversationId;
-            if (!finalConversationId || finalConversationId === 'new') {
+            if (!finalConversationId || finalConversationId === 'new' || finalConversationId === '') {
                 finalConversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             }
 
