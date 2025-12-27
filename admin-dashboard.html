@@ -1357,25 +1357,20 @@
         
         // Chatbot Messages API
         async function apiGetMessages(conversationId = null, status = null) {
-            try {
-                let url = '/api/chatbot-messages';
-                const params = new URLSearchParams();
-                if (conversationId) params.append('conversation_id', conversationId);
-                if (status && status !== 'null' && status !== '') params.append('status', status);
-                if (params.toString()) url += '?' + params.toString();
-                console.log('Fetching messages from:', url, { conversationId, status });
-                const result = await apiRequest(url);
-                console.log('Messages API response:', result);
-                if (!result.success) {
-                    console.error('API returned error:', result.error);
-                    return [];
-                }
-                return result.data || [];
-            } catch (error) {
-                console.error('Error fetching messages:', error);
-                // Return empty array instead of throwing to prevent UI breakage
-                return [];
+            let url = '/api/chatbot-messages';
+            const params = new URLSearchParams();
+            if (conversationId) params.append('conversation_id', conversationId);
+            if (status && status !== 'null' && status !== '') params.append('status', status);
+            if (params.toString()) url += '?' + params.toString();
+            console.log('Fetching messages from:', url, { conversationId, status });
+            const result = await apiRequest(url);
+            console.log('Messages API response:', result);
+            if (!result.success) {
+                console.error('API returned error:', result.error);
+                // Throw error with message so it can be displayed to user
+                throw new Error(result.error || 'Failed to fetch messages');
             }
+            return result.data || [];
         }
         
         async function apiCreateMessage(messageData) {
@@ -4851,7 +4846,13 @@
                 }).join('');
             } catch (error) {
                 console.error('Error loading messages:', error);
-                container.innerHTML = '<div class="empty-state"><p style="color: var(--error-color);">Error loading messages. Please check the browser console for details.</p></div>';
+                let errorMessage = 'Error loading messages. ';
+                if (error.message) {
+                    errorMessage += error.message;
+                } else {
+                    errorMessage += 'Please check the browser console for details.';
+                }
+                container.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">${errorMessage}</p><p style="color: var(--text-light); font-size: 0.9rem; margin-top: 0.5rem;">If this is the first time using this feature, make sure the chatbot_messages table exists in your database.</p></div>`;
             }
         }
         

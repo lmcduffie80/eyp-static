@@ -22,46 +22,58 @@ export default async function handler(req, res) {
             const { conversation_id, status } = req.query;
             
             let query;
-            if (conversation_id) {
-                // Get messages for a specific conversation
-                query = sql`SELECT * FROM chatbot_messages WHERE conversation_id = ${conversation_id} ORDER BY created_at ASC`;
-            } else {
-                // Get all conversations - get all messages and group by conversation_id in application logic
-                // This is simpler and more reliable than complex SQL joins
-                if (status) {
-                    query = sql`
-                        SELECT * FROM chatbot_messages 
-                        WHERE status = ${status}
-                        ORDER BY created_at DESC
-                    `;
+            try {
+                if (conversation_id) {
+                    // Get messages for a specific conversation
+                    query = sql`SELECT * FROM chatbot_messages WHERE conversation_id = ${conversation_id} ORDER BY created_at ASC`;
                 } else {
-                    query = sql`
-                        SELECT * FROM chatbot_messages 
-                        ORDER BY created_at DESC
-                    `;
+                    // Get all conversations - get all messages and group by conversation_id in application logic
+                    // This is simpler and more reliable than complex SQL joins
+                    if (status) {
+                        query = sql`
+                            SELECT * FROM chatbot_messages 
+                            WHERE status = ${status}
+                            ORDER BY created_at DESC
+                        `;
+                    } else {
+                        query = sql`
+                            SELECT * FROM chatbot_messages 
+                            ORDER BY created_at DESC
+                        `;
+                    }
                 }
+                
+                const result = await query;
+                console.log(`Found ${result.rows.length} messages`);
+                
+                const mappedData = result.rows.map(row => ({
+                    id: row.id,
+                    conversationId: row.conversation_id,
+                    senderName: row.sender_name,
+                    senderEmail: row.sender_email,
+                    senderPhone: row.sender_phone,
+                    message: row.message,
+                    isAdminReply: row.is_admin_reply,
+                    status: row.status,
+                    createdAt: row.created_at,
+                    updatedAt: row.updated_at
+                }));
+                
+                return res.status(200).json({
+                    success: true,
+                    data: mappedData
+                });
+            } catch (dbError) {
+                // Check if it's a "table doesn't exist" error
+                if (dbError.message && (dbError.message.includes('does not exist') || dbError.message.includes('relation') || dbError.message.includes('chatbot_messages'))) {
+                    console.error('Database table chatbot_messages does not exist. Please run the migration script.');
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Database table chatbot_messages does not exist. Please run the migration script from api/db/migrate-chatbot-messages.sql'
+                    });
+                }
+                throw dbError; // Re-throw if it's a different error
             }
-            
-            const result = await query;
-            console.log(`Found ${result.rows.length} messages`);
-            
-            const mappedData = result.rows.map(row => ({
-                id: row.id,
-                conversationId: row.conversation_id,
-                senderName: row.sender_name,
-                senderEmail: row.sender_email,
-                senderPhone: row.sender_phone,
-                message: row.message,
-                isAdminReply: row.is_admin_reply,
-                status: row.status,
-                createdAt: row.created_at,
-                updatedAt: row.updated_at
-            }));
-            
-            return res.status(200).json({
-                success: true,
-                data: mappedData
-            });
 
         } else if (req.method === 'POST') {
             // Create new message from chatbot
