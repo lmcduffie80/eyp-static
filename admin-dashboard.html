@@ -4763,72 +4763,81 @@
         // Messages Functions
         async function loadMessages() {
             const statusFilter = document.getElementById('message-filter-status')?.value || '';
-            const messages = await apiGetMessages(null, statusFilter || null);
             const container = document.getElementById('messages-container');
             
             if (!container) return;
             
-            if (messages.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No messages found</p></div>';
-                return;
-            }
-            
-            // Group messages by conversation_id to show conversations
-            const conversations = {};
-            messages.forEach(msg => {
-                if (!conversations[msg.conversationId]) {
-                    conversations[msg.conversationId] = {
-                        conversationId: msg.conversationId,
-                        latestMessage: msg,
-                        senderName: msg.senderName,
-                        senderEmail: msg.senderEmail,
-                        senderPhone: msg.senderPhone,
-                        status: msg.status,
-                        createdAt: msg.createdAt
-                    };
-                } else {
-                    // Update if this message is newer
-                    const msgDate = new Date(msg.createdAt);
-                    const latestDate = new Date(conversations[msg.conversationId].latestMessage.createdAt);
-                    if (msgDate > latestDate) {
-                        conversations[msg.conversationId].latestMessage = msg;
-                        conversations[msg.conversationId].status = msg.status;
-                    }
-                }
-            });
-            
-            // Sort conversations by latest message date (newest first)
-            const sortedConversations = Object.values(conversations).sort((a, b) => {
-                return new Date(b.latestMessage.createdAt) - new Date(a.latestMessage.createdAt);
-            });
-            
-                container.innerHTML = sortedConversations.map(conv => {
-                const escapedConvId = escapeHtml(conv.conversationId);
-                const escapedSenderName = escapeHtml(conv.senderName || 'Anonymous');
-                const escapedMessage = escapeHtml(conv.latestMessage.message);
-                const escapedEmail = escapeHtml(conv.senderEmail || 'No email');
-                const escapedPhone = escapeHtml(conv.senderPhone || 'No phone');
-                const createdAt = new Date(conv.createdAt);
-                const formattedDate = createdAt.toLocaleDateString() + ' ' + createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                const statusBadge = getStatusBadge(conv.status);
+            try {
+                // Show loading state
+                container.innerHTML = '<div class="empty-state"><p>Loading messages...</p></div>';
                 
-                return `
-                    <div class="dj-card" style="cursor: pointer;" onclick="openConversation('${escapedConvId}')">
-                        <div class="dj-card-header">
-                            <div class="dj-name">${escapedSenderName}</div>
-                            ${statusBadge}
-                        </div>
-                        <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
-                            <div style="margin-bottom: 0.5rem; font-weight: 500; color: var(--primary-color);">
-                                ${escapedMessage.length > 100 ? escapedMessage.substring(0, 100) + '...' : escapedMessage}
+                const messages = await apiGetMessages(null, statusFilter || null);
+                
+                if (!messages || messages.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No messages found</p></div>';
+                    return;
+                }
+                
+                // Group messages by conversation_id to show conversations
+                const conversations = {};
+                messages.forEach(msg => {
+                    if (!conversations[msg.conversationId]) {
+                        conversations[msg.conversationId] = {
+                            conversationId: msg.conversationId,
+                            latestMessage: msg,
+                            senderName: msg.senderName,
+                            senderEmail: msg.senderEmail,
+                            senderPhone: msg.senderPhone,
+                            status: msg.status,
+                            createdAt: msg.createdAt
+                        };
+                    } else {
+                        // Update if this message is newer
+                        const msgDate = new Date(msg.createdAt);
+                        const latestDate = new Date(conversations[msg.conversationId].latestMessage.createdAt);
+                        if (msgDate > latestDate) {
+                            conversations[msg.conversationId].latestMessage = msg;
+                            conversations[msg.conversationId].status = msg.status;
+                        }
+                    }
+                });
+                
+                // Sort conversations by latest message date (newest first)
+                const sortedConversations = Object.values(conversations).sort((a, b) => {
+                    return new Date(b.latestMessage.createdAt) - new Date(a.latestMessage.createdAt);
+                });
+                
+                container.innerHTML = sortedConversations.map(conv => {
+                    const escapedConvId = escapeHtml(conv.conversationId);
+                    const escapedSenderName = escapeHtml(conv.senderName || 'Anonymous');
+                    const escapedMessage = escapeHtml(conv.latestMessage.message);
+                    const escapedEmail = escapeHtml(conv.senderEmail || 'No email');
+                    const escapedPhone = escapeHtml(conv.senderPhone || 'No phone');
+                    const createdAt = new Date(conv.createdAt);
+                    const formattedDate = createdAt.toLocaleDateString() + ' ' + createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const statusBadge = getStatusBadge(conv.status);
+                    
+                    return `
+                        <div class="dj-card" style="cursor: pointer;" onclick="openConversation('${escapedConvId}')">
+                            <div class="dj-card-header">
+                                <div class="dj-name">${escapedSenderName}</div>
+                                ${statusBadge}
                             </div>
-                            <div>📧 ${escapedEmail}</div>
-                            <div>📞 ${escapedPhone}</div>
-                            <div>🕒 ${formattedDate}</div>
+                            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
+                                <div style="margin-bottom: 0.5rem; font-weight: 500; color: var(--primary-color);">
+                                    ${escapedMessage.length > 100 ? escapedMessage.substring(0, 100) + '...' : escapedMessage}
+                                </div>
+                                <div>📧 ${escapedEmail}</div>
+                                <div>📞 ${escapedPhone}</div>
+                                <div>🕒 ${formattedDate}</div>
+                            </div>
                         </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                container.innerHTML = '<div class="empty-state"><p style="color: var(--error-color);">Error loading messages. Please check the browser console for details.</p></div>';
+            }
         }
         
         function getStatusBadge(status) {
