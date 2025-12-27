@@ -72,6 +72,20 @@ CREATE TABLE IF NOT EXISTS analytics_visits (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Chatbot messages table
+CREATE TABLE IF NOT EXISTS chatbot_messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id VARCHAR(255) NOT NULL,
+    sender_name VARCHAR(255),
+    sender_email VARCHAR(255),
+    sender_phone VARCHAR(50),
+    message TEXT NOT NULL,
+    is_admin_reply BOOLEAN DEFAULT false,
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'read', 'replied', 'archived'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_bookings_dj_user ON bookings(dj_user);
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date);
@@ -80,4 +94,8 @@ CREATE INDEX IF NOT EXISTS idx_blocked_dates_dj_user ON blocked_dates(dj_user);
 CREATE INDEX IF NOT EXISTS idx_blocked_dates_date ON blocked_dates(date);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_chatbot_messages_conversation_id ON chatbot_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_chatbot_messages_status ON chatbot_messages(status);
+CREATE INDEX IF NOT EXISTS idx_chatbot_messages_created_at ON chatbot_messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_chatbot_messages_is_admin_reply ON chatbot_messages(is_admin_reply);
 
