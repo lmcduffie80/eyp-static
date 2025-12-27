@@ -1357,13 +1357,25 @@
         
         // Chatbot Messages API
         async function apiGetMessages(conversationId = null, status = null) {
-            let url = '/api/chatbot-messages';
-            const params = new URLSearchParams();
-            if (conversationId) params.append('conversation_id', conversationId);
-            if (status) params.append('status', status);
-            if (params.toString()) url += '?' + params.toString();
-            const result = await apiRequest(url);
-            return result.data || [];
+            try {
+                let url = '/api/chatbot-messages';
+                const params = new URLSearchParams();
+                if (conversationId) params.append('conversation_id', conversationId);
+                if (status && status !== 'null' && status !== '') params.append('status', status);
+                if (params.toString()) url += '?' + params.toString();
+                console.log('Fetching messages from:', url, { conversationId, status });
+                const result = await apiRequest(url);
+                console.log('Messages API response:', result);
+                if (!result.success) {
+                    console.error('API returned error:', result.error);
+                    return [];
+                }
+                return result.data || [];
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+                // Return empty array instead of throwing to prevent UI breakage
+                return [];
+            }
         }
         
         async function apiCreateMessage(messageData) {
@@ -4771,10 +4783,13 @@
                 // Show loading state
                 container.innerHTML = '<div class="empty-state"><p>Loading messages...</p></div>';
                 
-                const messages = await apiGetMessages(null, statusFilter || null);
+                console.log('Loading messages with filter:', statusFilter || 'none');
+                const filterValue = statusFilter && statusFilter !== '' ? statusFilter : null;
+                const messages = await apiGetMessages(null, filterValue);
+                console.log('Received messages count:', messages ? messages.length : 0, messages);
                 
                 if (!messages || messages.length === 0) {
-                    container.innerHTML = '<div class="empty-state"><p>No messages found</p></div>';
+                    container.innerHTML = '<div class="empty-state"><p>No messages found. Try sending a message through the chatbot on the website first.</p></div>';
                     return;
                 }
                 

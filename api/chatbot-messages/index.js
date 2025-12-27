@@ -43,21 +43,24 @@ export default async function handler(req, res) {
             }
             
             const result = await query;
+            console.log(`Found ${result.rows.length} messages`);
+            
+            const mappedData = result.rows.map(row => ({
+                id: row.id,
+                conversationId: row.conversation_id,
+                senderName: row.sender_name,
+                senderEmail: row.sender_email,
+                senderPhone: row.sender_phone,
+                message: row.message,
+                isAdminReply: row.is_admin_reply,
+                status: row.status,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            }));
             
             return res.status(200).json({
                 success: true,
-                data: result.rows.map(row => ({
-                    id: row.id,
-                    conversationId: row.conversation_id,
-                    senderName: row.sender_name,
-                    senderEmail: row.sender_email,
-                    senderPhone: row.sender_phone,
-                    message: row.message,
-                    isAdminReply: row.is_admin_reply,
-                    status: row.status,
-                    createdAt: row.created_at,
-                    updatedAt: row.updated_at
-                }))
+                data: mappedData
             });
 
         } else if (req.method === 'POST') {
