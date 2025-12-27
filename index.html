@@ -2754,53 +2754,121 @@
         let calendarYear = new Date().getFullYear();
         let blockedDates = new Set();
         let bookingDates = new Set();
+        let datesCache = null;
+        let datesCacheTime = null;
+        const DATES_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+        const API_TIMEOUT = 8000; // 8 second timeout
+
+        // Fetch with timeout
+        async function fetchWithTimeout(url, timeout = API_TIMEOUT) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            try {
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out');
+                }
+                throw error;
+            }
+        }
 
         // Fetch blocked dates and bookings from API
         async function loadAvailableDates() {
+            const container = document.getElementById('dates-calendar-container');
+            
+            // Show calendar immediately (without availability data)
+            generateDatesCalendar();
+            
+            // Check cache first
+            const now = Date.now();
+            if (datesCache && datesCacheTime && (now - datesCacheTime) < DATES_CACHE_DURATION) {
+                blockedDates = datesCache.blockedDates;
+                bookingDates = datesCache.bookingDates;
+                generateDatesCalendar(); // Re-render with cached data
+                return;
+            }
+            
             try {
-                // Fetch both blocked dates and bookings in parallel
+                // Fetch both blocked dates and bookings in parallel with timeout
                 const [blockedDatesResponse, bookingsResponse] = await Promise.all([
-                    fetch('/api/blocked-dates'),
-                    fetch('/api/bookings')
+                    fetchWithTimeout('/api/blocked-dates').catch(err => {
+                        console.warn('Failed to load blocked dates:', err);
+                        return null;
+                    }),
+                    fetchWithTimeout('/api/bookings').catch(err => {
+                        console.warn('Failed to load bookings:', err);
+                        return null;
+                    })
                 ]);
 
-                const blockedDatesResult = await blockedDatesResponse.json();
-                const bookingsResult = await bookingsResponse.json();
+                const blockedDatesSet = new Set();
+                const bookingsSet = new Set();
 
                 // Get approved blocked dates
-                if (blockedDatesResult.success && blockedDatesResult.data) {
-                    blockedDatesResult.data.forEach(bd => {
-                        if ((bd.status || 'approved') === 'approved' && bd.date) {
-                            // Normalize date to YYYY-MM-DD
-                            let dateStr = bd.date;
-                            if (dateStr.includes('T')) {
-                                dateStr = dateStr.split('T')[0];
-                            }
-                            blockedDates.add(dateStr);
+                if (blockedDatesResponse && blockedDatesResponse.ok) {
+                    try {
+                        const blockedDatesResult = await blockedDatesResponse.json();
+                        if (blockedDatesResult.success && blockedDatesResult.data) {
+                            blockedDatesResult.data.forEach(bd => {
+                                if ((bd.status || 'approved') === 'approved' && bd.date) {
+                                    // Normalize date to YYYY-MM-DD
+                                    let dateStr = bd.date;
+                                    if (dateStr.includes('T')) {
+                                        dateStr = dateStr.split('T')[0];
+                                    }
+                                    blockedDatesSet.add(dateStr);
+                                }
+                            });
                         }
-                    });
+                    } catch (err) {
+                        console.warn('Error parsing blocked dates:', err);
+                    }
                 }
 
                 // Get booking dates
-                if (bookingsResult.success && bookingsResult.data) {
-                    bookingsResult.data.forEach(booking => {
-                        if (booking.date) {
-                            // Normalize date to YYYY-MM-DD
-                            let dateStr = booking.date;
-                            if (dateStr.includes('T')) {
-                                dateStr = dateStr.split('T')[0];
-                            }
-                            bookingDates.add(dateStr);
+                if (bookingsResponse && bookingsResponse.ok) {
+                    try {
+                        const bookingsResult = await bookingsResponse.json();
+                        if (bookingsResult.success && bookingsResult.data) {
+                            bookingsResult.data.forEach(booking => {
+                                if (booking.date) {
+                                    // Normalize date to YYYY-MM-DD
+                                    let dateStr = booking.date;
+                                    if (dateStr.includes('T')) {
+                                        dateStr = dateStr.split('T')[0];
+                                    }
+                                    bookingsSet.add(dateStr);
+                                }
+                            });
                         }
-                    });
+                    } catch (err) {
+                        console.warn('Error parsing bookings:', err);
+                    }
                 }
 
-                // Generate calendar with loaded data
+                // Update global sets and cache
+                blockedDates = blockedDatesSet;
+                bookingDates = bookingsSet;
+                datesCache = { blockedDates: blockedDatesSet, bookingDates: bookingsSet };
+                datesCacheTime = now;
+
+                // Regenerate calendar with loaded data
                 generateDatesCalendar();
             } catch (error) {
                 console.error('Error loading available dates:', error);
-                document.getElementById('dates-calendar-container').innerHTML = 
-                    '<p style="text-align: center; color: var(--text-light); padding: 2rem;">Unable to load available dates at this time.</p>';
+                // Calendar already rendered, just show a subtle warning if needed
+                if (container) {
+                    const existingCalendar = container.querySelector('.calendar-grid');
+                    if (!existingCalendar) {
+                        container.innerHTML = 
+                            '<p style="text-align: center; color: var(--text-light); padding: 2rem;">Unable to load availability data. Calendar is showing, but dates may not reflect current availability.</p>';
+                    }
+                }
             }
         }
 
