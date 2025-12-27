@@ -470,6 +470,16 @@
             object-fit: cover;
             transition: transform 0.3s ease;
         }
+        
+        /* Gallery items should not load until modal is visible */
+        .gallery-modal:not(.active) .gallery-item img[data-src] {
+            opacity: 0;
+        }
+        
+        .gallery-modal.active .gallery-item img {
+            opacity: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
 
         .gallery-item:hover img {
             transform: scale(1.05);
@@ -769,7 +779,7 @@
                     <p>Our photography services include wedding photography, event photography, portrait sessions, product photography, and commercial shoots. We work closely with our clients to understand their vision and deliver images that exceed expectations.</p>
                     <p>With attention to detail and a passion for storytelling through imagery, we ensure that every photo tells a story and preserves your memories for a lifetime.</p>
                 </div>
-                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Photography services" class="about-image">
+                <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Photography services" class="about-image" loading="lazy" decoding="async" fetchpriority="auto">
             </div>
         </div>
     </section>
@@ -910,37 +920,37 @@
             <h2 class="section-title">Our Photography Work</h2>
             <div class="portfolio-grid">
                 <div class="portfolio-item" onclick="openGallery('grace-dillon-gallery')">
-                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
+                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async" fetchpriority="auto">
                     <div class="portfolio-overlay">
                         <h3>Grace and Dillon Wedding</h3>
                     </div>
                 </div>
                 <div class="portfolio-item" onclick="openGallery('yazmine-josh-gallery')">
-                    <img src="Yazmine and Josh Wedding/IMG_3957.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_3957.jpg" loading="lazy" decoding="async" fetchpriority="auto">
                     <div class="portfolio-overlay">
                         <h3>Yazmine and Josh Wedding</h3>
                     </div>
                 </div>
                 <div class="portfolio-item" onclick="openGallery('prom-2025-gallery')">
-                    <img src="Prom 2025/7L8A9549.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9549.jpg" loading="lazy" decoding="async" fetchpriority="auto">
                     <div class="portfolio-overlay">
                         <h3>Prom 2025</h3>
                     </div>
                 </div>
                 <div class="portfolio-item" onclick="openGallery('amy-cody-gallery')">
-                    <img src="Amy and Cody Hardy Wedding/E72A0908.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0908.jpg" loading="lazy" decoding="async" fetchpriority="auto">
                     <div class="portfolio-overlay">
                         <h3>Amy and Cody Hardy Wedding</h3>
                     </div>
                 </div>
                 <div class="portfolio-item" onclick="openGallery('melissa-jeremy-gallery')">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0570.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0570.jpg" loading="lazy" decoding="async" fetchpriority="auto">
                     <div class="portfolio-overlay">
                         <h3 style="text-align: center;">Melissa and Jeremy Engagement Session</h3>
                     </div>
                 </div>
                 <div class="portfolio-item" onclick="openGallery('photography-work-gallery')">
-                    <img src="PhotographyWork/7L8A0690.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A0690.jpg" loading="lazy" decoding="async" fetchpriority="auto">
                     <div class="portfolio-overlay">
                         <h3>Photography Work</h3>
                     </div>
@@ -981,25 +991,25 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Grace and Dillon Wedding</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/7L8A5365.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/7L8A5634.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/7L8A5712.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/IMG_2274.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/IMG_2400.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/IMG_2497 (1).jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding">
+                    <img data-src="Grace and Dillon Wedding/IMG_2543.jpg" alt="Grace and Dillon Wedding" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>
@@ -1012,28 +1022,28 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Yazmine and Josh Wedding</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_3957.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_3957.jpg" loading="lazy" decoding="async">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4058.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4058.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4085.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4085.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4116.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4116.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4133.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4133.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4205.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4205.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4324.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4324.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Yazmine and Josh Wedding/IMG_4385.jpg" alt="Yazmine and Josh Wedding">
+                    <img data-src="Yazmine and Josh Wedding/IMG_4385.jpg" loading="lazy" decoding="async" alt="Yazmine and Josh Wedding">
                 </div>
             </div>
         </div>
@@ -1046,31 +1056,31 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Prom 2025</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9549.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9549.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9551.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9551.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9552.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9552.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9553.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9553.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9562.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9562.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9598.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9598.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9613.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9613.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9649.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9649.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
                 <div class="gallery-item">
-                    <img src="Prom 2025/7L8A9661.jpg" alt="Prom 2025">
+                    <img data-src="Prom 2025/7L8A9661.jpg" loading="lazy" decoding="async" alt="Prom 2025">
                 </div>
             </div>
         </div>
@@ -1083,52 +1093,52 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Amy and Cody Hardy Wedding</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0908.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0908.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0914.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0914.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0917.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0917.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0919.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0919.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0931.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0931.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0956.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0956.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0963.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0963.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0970.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0970.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0975.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0975.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0983.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0983.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A0984.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A0984.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A1000.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A1000.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A1008.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A1008.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A1102.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A1102.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A1126.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A1126.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
                 <div class="gallery-item">
-                    <img src="Amy and Cody Hardy Wedding/E72A1180.jpg" alt="Amy and Cody Hardy Wedding">
+                    <img data-src="Amy and Cody Hardy Wedding/E72A1180.jpg" loading="lazy" decoding="async" alt="Amy and Cody Hardy Wedding">
                 </div>
             </div>
         </div>
@@ -1141,43 +1151,43 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Melissa and Jeremy Engagement Session</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0570.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0570.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0593.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0593.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0595.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0595.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0635.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0635.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0659.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0659.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0700.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0700.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0772.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0772.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0776.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0776.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0781.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0781.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0815.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0815.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/7L8A0861.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/7L8A0861.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/IMG_4618.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/IMG_4618.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
                 <div class="gallery-item">
-                    <img src="Melissa and Jeremy Engagement Session/IMG_4635.jpg" alt="Melissa and Jeremy Engagement Session">
+                    <img data-src="Melissa and Jeremy Engagement Session/IMG_4635.jpg" loading="lazy" decoding="async" alt="Melissa and Jeremy Engagement Session">
                 </div>
             </div>
         </div>
@@ -1190,82 +1200,82 @@
             <h2 style="color: white; text-align: center; margin-top: 20px;">Photography Work</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A0690.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A0690.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A0744.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A0744.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A0759.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A0759.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A0812.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A0812.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A4546.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A4546.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A4662.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A4662.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A4726.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A4726.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A4891.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A4891.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A5016.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A5016.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A5072.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A5072.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A5365.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A5365.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/7L8A5393.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/7L8A5393.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/E72A0908.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/E72A0908.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/E72A0909.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/E72A0909.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/E72A0960.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/E72A0960.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/E72A0970.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/E72A0970.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/E72A0985.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/E72A0985.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/E72A1141.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/E72A1141.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_3991.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_3991.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_3998.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_3998.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_4005.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_4005.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_4043.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_4043.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_4110.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_4110.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_4114.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_4114.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_4116.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_4116.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
                 <div class="gallery-item">
-                    <img src="PhotographyWork/IMG_4675.jpg" alt="Photography Work">
+                    <img data-src="PhotographyWork/IMG_4675.jpg" loading="lazy" decoding="async" alt="Photography Work">
                 </div>
             </div>
         </div>
@@ -1360,6 +1370,17 @@
             if (modal) {
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                
+                // Load images when gallery is opened (lazy load for gallery modals)
+                const galleryImages = modal.querySelectorAll('.gallery-item img[data-src]');
+                galleryImages.forEach(img => {
+                    if (img.dataset.src && !img.src) {
+                        img.src = img.dataset.src;
+                        img.loading = 'lazy';
+                        img.decoding = 'async';
+                        img.removeAttribute('data-src');
+                    }
+                });
             }
         }
 
