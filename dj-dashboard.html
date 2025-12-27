@@ -1798,7 +1798,7 @@
         
         // Request deduplication - prevents multiple identical requests
         const inFlightRequests = new Map();
-        const API_TIMEOUT = 8000; // 8 second timeout for API calls
+        const API_TIMEOUT = 15000; // 15 second timeout for API calls (increased to handle slow database queries)
         
         async function apiRequest(endpoint, options = {}) {
             // Create a unique key for this request
@@ -4162,18 +4162,45 @@
                 let allBlockedDates = [];
                 
                 try {
-                    [djUsers, allBookings, allBlockedDates] = await Promise.all([
-                        apiGetUsers('dj'),
-                        apiGetBookings(),
-                        apiGetBlockedDates()
-                    ]);
+                    // Fetch data in parallel with individual error handling
+                    const fetchPromises = [
+                        apiGetUsers('dj').catch(err => {
+                            console.error('Error fetching DJ users:', err);
+                            return [];
+                        }),
+                        apiGetBookings().catch(err => {
+                            console.error('Error fetching bookings:', err);
+                            return [];
+                        }),
+                        apiGetBlockedDates().catch(err => {
+                            console.error('Error fetching blocked dates:', err);
+                            return [];
+                        })
+                    ];
+                    
+                    [djUsers, allBookings, allBlockedDates] = await Promise.all(fetchPromises);
                 } catch (error) {
                     console.error('Error fetching dashboard data:', error);
-                    // Show error to user
+                    // Show error to user with more specific information
+                    const errorMessage = error.message || 'Unknown error occurred';
+                    let userFriendlyMessage = errorMessage;
+                    
+                    // Provide user-friendly messages for common errors
+                    if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+                        userFriendlyMessage = 'Request timed out. The server may be slow or unavailable. Please try again.';
+                    } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                        userFriendlyMessage = 'Network error. Please check your internet connection and try again.';
+                    } else if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
+                        userFriendlyMessage = 'Your session has expired. Please log in again.';
+                        setTimeout(() => {
+                            secureLogout('Your session has expired. Please log in again.');
+                        }, 2000);
+                    }
+                    
                     if (loadingIndicator) {
                         loadingIndicator.innerHTML = `
                             <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem;">Error loading dashboard</div>
-                            <div style="color: var(--text-light); margin-bottom: 1rem;">${error.message || 'Please try refreshing the page.'}</div>
+                            <div style="color: var(--text-light); margin-bottom: 1rem;">${escapeHtml(userFriendlyMessage)}</div>
                             <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Retry</button>
                         `;
                     }
@@ -4259,10 +4286,25 @@
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
             } catch (error) {
                 console.error('Error initializing dashboard:', error);
+                const errorMessage = error.message || 'An unexpected error occurred.';
+                let userFriendlyMessage = errorMessage;
+                
+                // Provide user-friendly messages for common errors
+                if (error.isTimeout || errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+                    userFriendlyMessage = 'Request timed out. The server may be slow or unavailable. Please try again.';
+                } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                    userFriendlyMessage = 'Network error. Please check your internet connection and try again.';
+                } else if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
+                    userFriendlyMessage = 'Your session has expired. Please log in again.';
+                    setTimeout(() => {
+                        secureLogout('Your session has expired. Please log in again.');
+                    }, 2000);
+                }
+                
                 if (loadingIndicator) {
                     loadingIndicator.innerHTML = `
                         <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem;">Error loading dashboard</div>
-                        <div style="color: var(--text-light); margin-bottom: 1rem;">${error.message || 'An unexpected error occurred.'}</div>
+                        <div style="color: var(--text-light); margin-bottom: 1rem;">${escapeHtml(userFriendlyMessage)}</div>
                         <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Retry</button>
                     `;
                 }
