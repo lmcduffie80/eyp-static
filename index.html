@@ -2546,6 +2546,47 @@
             chatbotTyping.classList.remove('show');
         }
 
+        // Get or create conversation ID
+        function getConversationId() {
+            let conversationId = sessionStorage.getItem('chatbot_conversation_id');
+            if (!conversationId) {
+                conversationId = 'new';
+                sessionStorage.setItem('chatbot_conversation_id', conversationId);
+            }
+            return conversationId;
+        }
+
+        // Save message to API (fire and forget - don't block user experience)
+        async function saveMessageToAPI(message) {
+            try {
+                const conversationId = getConversationId();
+                const response = await fetch('/api/chatbot-messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        conversationId: conversationId,
+                        message: message,
+                        senderName: null, // User can provide this later if needed
+                        senderEmail: null,
+                        senderPhone: null
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update conversation ID if it was a new conversation
+                    if (data.data && data.data.conversationId && conversationId === 'new') {
+                        sessionStorage.setItem('chatbot_conversation_id', data.data.conversationId);
+                    }
+                }
+            } catch (error) {
+                // Silently fail - don't interrupt user experience
+                console.error('Error saving message to API:', error);
+            }
+        }
+
         async function sendMessage() {
             const message = chatbotInput.value.trim();
             if (!message) return;
@@ -2553,6 +2594,9 @@
             addMessage(message, true);
             chatbotInput.value = '';
             chatbotSend.disabled = true;
+
+            // Save user message to API (async, non-blocking)
+            saveMessageToAPI(message);
 
             showTyping();
 
