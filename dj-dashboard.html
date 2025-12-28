@@ -3593,7 +3593,7 @@
             if (!currentUsername) return [];
             
             try {
-                // Get all approved reviews from API
+                // Get ALL approved reviews from API (don't filter by dj_username in the API call)
                 const allReviews = await apiGetReviews(null, 'approved');
                 
                 // Get DJ user info to match by firstName/lastName or username
@@ -3608,11 +3608,12 @@
                     return [];
                 }
                 
-                // Create possible names to match (full name, username, first name only)
+                // Create possible names to match (full name, username, first name, last name)
                 const possibleNames = [];
                 if (currentDJ.firstName && currentDJ.lastName) {
-                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
-                    possibleNames.push(currentDJ.firstName); // Also match by first name only
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`); // Full name
+                    possibleNames.push(currentDJ.firstName); // First name only
+                    possibleNames.push(currentDJ.lastName); // Last name only
                 }
                 if (currentDJ.username) {
                     possibleNames.push(currentDJ.username);
@@ -3622,13 +3623,31 @@
                     possibleNames.push(currentUsername);
                 }
                 
-                // Filter reviews for this DJ - match by djUsername field
+                // Filter reviews for this DJ - match by djUsername field OR if name is mentioned in comment
                 const djReviews = allReviews.filter(review => {
-                    if (!review.djUsername) return false;
-                    const reviewDjName = review.djUsername.trim();
-                    return possibleNames.some(name => 
-                        reviewDjName.toLowerCase() === name.toLowerCase()
-                    );
+                    // First check: Match by djUsername field (exact match)
+                    if (review.djUsername) {
+                        const reviewDjName = review.djUsername.trim().toLowerCase();
+                        const matchesByUsername = possibleNames.some(name => 
+                            reviewDjName === name.toLowerCase()
+                        );
+                        if (matchesByUsername) return true;
+                    }
+                    
+                    // Second check: Match if any of the DJ's names appear in the comment text
+                    if (review.comment) {
+                        const commentText = review.comment.toLowerCase();
+                        const matchesInComment = possibleNames.some(name => {
+                            const nameLower = name.toLowerCase();
+                            // Use word boundaries to avoid partial matches (e.g., "Will" shouldn't match "William")
+                            // But allow for flexible matching (with or without word boundaries)
+                            const namePattern = new RegExp(`\\b${nameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                            return namePattern.test(commentText);
+                        });
+                        if (matchesInComment) return true;
+                    }
+                    
+                    return false;
                 });
                 
                 return djReviews;
