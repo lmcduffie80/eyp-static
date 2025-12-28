@@ -4297,22 +4297,12 @@
 
         // Initialize - Load dashboard by default and initial data
         // Ensure DOM is fully ready before initializing
-        function startInitialization() {
-            // Double-check DOM readiness
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', startInitialization);
-                return;
-            }
-            
-            // Initialize immediately if DOM is ready
-            initializeDashboard();
-        }
-        
-        // Start initialization
+        // Start initialization - check if DOM is ready, otherwise wait for DOMContentLoaded
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', startInitialization);
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
         } else {
-            startInitialization();
+            // DOM is already ready, initialize immediately
+            initializeDashboard();
         }
 
         async function initializeDashboard() {

@@ -2011,6 +2011,37 @@
         let adminCache = null;
         let adminCacheTime = null;
 
+        // Initialize dashboard on load - optimized to parallelize API calls
+        async function initializeDashboard() {
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) loadingIndicator.style.display = 'block';
+            
+            try {
+                initializeAnalytics();
+                
+                // Load all data in parallel for faster initial load
+                const [bookings, blockedDates, djs, admins] = await Promise.all([
+                    getAllBookings(),
+                    getAllBlockedDates(),
+                    getAllDJs(),
+                    getAllAdmins()
+                ]);
+                
+                // Update dashboard stats with already-fetched data (execute immediately, no delay)
+                await updateDashboardStatsWithData(bookings, blockedDates);
+                
+                // Load DJs display with already-fetched data
+                await loadAllDJsWithData(djs, bookings, blockedDates);
+                
+                // Hide loading indicator
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+            }
+        }
+        
         // Check if this is a refresh after authentication (do this first, before any other code)
         const urlParams = new URLSearchParams(window.location.search);
         const shouldRefresh = urlParams.get('refresh') === 'true';
@@ -2030,38 +2061,13 @@
             window.location.href = window.location.pathname;
             // Exit early - code below will not execute
         } else {
-            // Initialize dashboard on load - optimized to parallelize API calls
-            document.addEventListener('DOMContentLoaded', async function() {
-                // Show loading indicator
-                const loadingIndicator = document.getElementById('loading-indicator');
-                if (loadingIndicator) loadingIndicator.style.display = 'block';
-                
-                try {
-                    initializeAnalytics();
-                    
-                    // Load all data in parallel for faster initial load
-                    const [bookings, blockedDates, djs, admins] = await Promise.all([
-                        getAllBookings(),
-                        getAllBlockedDates(),
-                        getAllDJs(),
-                        getAllAdmins()
-                    ]);
-                    
-                    // Update dashboard stats with already-fetched data (use requestAnimationFrame for non-blocking)
-                    requestAnimationFrame(async () => {
-                        await updateDashboardStatsWithData(bookings, blockedDates);
-                        
-                        // Load DJs display with already-fetched data
-                        await loadAllDJsWithData(djs, bookings, blockedDates);
-                        
-                        // Hide loading indicator
-                        if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    });
-                } catch (error) {
-                    console.error('Error loading dashboard:', error);
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                }
-            });
+            // Initialize immediately if DOM is ready, otherwise wait for DOMContentLoaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeDashboard);
+            } else {
+                // DOM is already ready, initialize immediately
+                initializeDashboard();
+            }
         }
 
         // Helper function to determine if a user type has firstName and lastName
