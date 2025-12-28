@@ -2782,20 +2782,16 @@
                     nameVariations.add(`${dj.lastName} ${dj.firstName}`.toLowerCase()); // Reverse order
                 }
                 
-                // Match bookings to this DJ - case-insensitive matching with multiple variations
+                // Match bookings to this DJ - case-insensitive exact matching only (no partial matching to avoid false matches)
                 const djBookings = bookings.filter(b => {
                     const bookingDJ = (b.djUser || '').trim();
                     if (!bookingDJ) return false; // Don't include bookings without a DJ assigned
                     
                     const bookingDJLower = bookingDJ.toLowerCase();
                     
-                    // Check if booking DJ matches any of our name variations
+                    // Check if booking DJ exactly matches any of our name variations (exact match only)
                     for (const variation of nameVariations) {
                         if (bookingDJLower === variation) {
-                            return true;
-                        }
-                        // Also try partial matching (e.g., "Gavin" in "Gavin McDuffie" or vice versa)
-                        if (variation && bookingDJLower.includes(variation) || variation.includes(bookingDJLower)) {
                             return true;
                         }
                     }
