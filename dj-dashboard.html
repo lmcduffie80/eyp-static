@@ -1886,8 +1886,12 @@
         }
         
         // Reviews API
-        async function apiGetReviews(djUsername = null) {
-            const url = djUsername ? `/api/reviews?dj_username=${encodeURIComponent(djUsername)}` : '/api/reviews';
+        async function apiGetReviews(djUsername = null, status = null) {
+            let url = '/api/reviews';
+            const params = new URLSearchParams();
+            if (djUsername) params.append('dj_username', djUsername);
+            if (status) params.append('status', status);
+            if (params.toString()) url += '?' + params.toString();
             const result = await apiRequest(url);
             return result.data || [];
         }
@@ -3583,34 +3587,78 @@
             }
         }
 
-        // Load reviews for current DJ
-        function loadReviews() {
+        // Helper: Get all reviews for current DJ from API
+        async function getAllReviewsForDJ() {
             const currentUsername = localStorage.getItem('dj_user');
-            const allReviews = JSON.parse(localStorage.getItem('dj_reviews') || '[]');
+            if (!currentUsername) return [];
             
-            // Filter reviews by DJ username (exact match)
-            let djReviews = allReviews.filter(review => review.djUsername === currentUsername);
-            
-            // Also include reviews where the comment mentions the DJ's first name
-            // This is a fallback for reviews that may not have been properly synced
-            if (currentUsername) {
-                const djUsers = JSON.parse(localStorage.getItem('dj_users') || '[]');
-                const currentDJ = djUsers.find(dj => dj.username === currentUsername);
-                if (currentDJ && currentDJ.firstName) {
-                    const firstNamePattern = new RegExp(`\\b${currentDJ.firstName}\\b`, 'i');
-                    const additionalReviews = allReviews.filter(review => {
-                        // Don't include reviews already matched by username
-                        if (review.djUsername === currentUsername) return false;
-                        // Check if comment mentions the DJ's first name
-                        const commentText = (review.comment || '').toLowerCase();
-                        return firstNamePattern.test(commentText);
-                    });
-                    djReviews = [...djReviews, ...additionalReviews];
+            try {
+                // Get all approved reviews from API
+                const allReviews = await apiGetReviews(null, 'approved');
+                
+                // Get DJ user info to match by firstName/lastName or username
+                const djUsers = await apiGetUsers('dj');
+                const currentDJ = djUsers.find(u => 
+                    u.username?.toLowerCase() === currentUsername.toLowerCase() ||
+                    (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase() === currentUsername.toLowerCase())
+                );
+                
+                if (!currentDJ) {
+                    console.warn('Current DJ user not found in database');
+                    return [];
                 }
+                
+                // Create possible names to match (full name, username, first name only)
+                const possibleNames = [];
+                if (currentDJ.firstName && currentDJ.lastName) {
+                    possibleNames.push(`${currentDJ.firstName} ${currentDJ.lastName}`);
+                    possibleNames.push(currentDJ.firstName); // Also match by first name only
+                }
+                if (currentDJ.username) {
+                    possibleNames.push(currentDJ.username);
+                }
+                // Also include currentUsername as fallback
+                if (currentUsername && !possibleNames.includes(currentUsername)) {
+                    possibleNames.push(currentUsername);
+                }
+                
+                // Filter reviews for this DJ - match by djUsername field
+                const djReviews = allReviews.filter(review => {
+                    if (!review.djUsername) return false;
+                    const reviewDjName = review.djUsername.trim();
+                    return possibleNames.some(name => 
+                        reviewDjName.toLowerCase() === name.toLowerCase()
+                    );
+                });
+                
+                return djReviews;
+            } catch (error) {
+                console.error('Error fetching reviews:', error);
+                // Return empty array on error (don't fallback to localStorage)
+                return [];
             }
-            
-            displayReviews(djReviews);
-            updateReviewStats(djReviews);
+        }
+
+        // Load reviews for current DJ
+        async function loadReviews() {
+            try {
+                const djReviews = await getAllReviewsForDJ();
+                displayReviews(djReviews);
+                updateReviewStats(djReviews);
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                // Show empty state on error
+                const container = document.getElementById('reviews-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="no-reviews">
+                            <div class="no-reviews-icon">⭐</div>
+                            <p>No reviews yet. Your customer reviews will appear here.</p>
+                        </div>
+                    `;
+                }
+                updateReviewStats([]);
+            }
         }
         
         // Display reviews
@@ -3627,41 +3675,71 @@
                 return;
             }
             
-            // Sort reviews by date (newest first) - parse as local dates
+            // Sort reviews by date (newest first) - use createdAt if available, otherwise eventDate
             reviews.sort((a, b) => {
                 const parseLocalDate = (dateValue) => {
                     if (!dateValue) return new Date(0);
-                    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        const parts = dateValue.split('-');
-                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    if (typeof dateValue === 'string') {
+                        if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            const parts = dateValue.split('-');
+                            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                        }
+                        if (dateValue.includes('T')) {
+                            // ISO date string - extract date part
+                            const datePart = dateValue.split('T')[0];
+                            const parts = datePart.split('-');
+                            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                        }
                     }
                     return new Date(dateValue);
                 };
-                return parseLocalDate(b.date) - parseLocalDate(a.date);
+                // Use createdAt for sorting (newest first), fallback to eventDate
+                const dateA = parseLocalDate(a.createdAt || a.eventDate);
+                const dateB = parseLocalDate(b.createdAt || b.eventDate);
+                return dateB.getTime() - dateA.getTime();
             });
             
             container.innerHTML = reviews.map(review => {
-                // Parse date string to avoid timezone issues
+                // Parse date for display - prefer eventDate, fallback to createdAt
                 let reviewDate;
-                if (typeof review.date === 'string' && review.date.includes('-')) {
-                    const dateParts = review.date.split('-');
-                    const year = parseInt(dateParts[0], 10);
-                    const month = parseInt(dateParts[1], 10) - 1;
-                    const day = parseInt(dateParts[2], 10);
-                    reviewDate = new Date(year, month, day);
+                const dateToUse = review.eventDate || review.createdAt;
+                if (dateToUse) {
+                    if (typeof dateToUse === 'string') {
+                        if (dateToUse.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            const dateParts = dateToUse.split('-');
+                            const year = parseInt(dateParts[0], 10);
+                            const month = parseInt(dateParts[1], 10) - 1;
+                            const day = parseInt(dateParts[2], 10);
+                            reviewDate = new Date(year, month, day);
+                        } else if (dateToUse.includes('T')) {
+                            const datePart = dateToUse.split('T')[0];
+                            const dateParts = datePart.split('-');
+                            const year = parseInt(dateParts[0], 10);
+                            const month = parseInt(dateParts[1], 10) - 1;
+                            const day = parseInt(dateParts[2], 10);
+                            reviewDate = new Date(year, month, day);
+                        } else {
+                            reviewDate = new Date(dateToUse);
+                        }
+                    } else {
+                        reviewDate = new Date(dateToUse);
+                    }
                 } else {
-                    reviewDate = new Date(review.date);
+                    reviewDate = new Date();
                 }
                 const formattedDate = formatDateMMDDYYYY(reviewDate);
                 
-                // Generate star rating display
-                const fullStars = '★'.repeat(Math.floor(review.rating));
-                const emptyStars = '☆'.repeat(5 - Math.floor(review.rating));
-                const stars = fullStars + emptyStars;
+                // Generate star rating display (only show if rating exists)
+                let stars = '';
+                if (review.rating) {
+                    const fullStars = '★'.repeat(Math.floor(review.rating));
+                    const emptyStars = '☆'.repeat(5 - Math.floor(review.rating));
+                    stars = fullStars + emptyStars;
+                }
                 
                 // Sanitize review data to prevent XSS
                 const safeClientName = escapeHtml(review.clientName || 'Anonymous');
-                const safeEventName = review.eventName ? escapeHtml(review.eventName) : '';
+                const safeServiceType = review.serviceType ? escapeHtml(review.serviceType) : '';
                 const safeComment = review.comment ? escapeHtml(review.comment) : 'No comment provided.';
                 
                 return `
@@ -3669,11 +3747,11 @@
                         <div class="review-header">
                             <div>
                                 <div class="review-client">${safeClientName}</div>
-                                ${safeEventName ? `<div class="review-event">${safeEventName}</div>` : ''}
+                                ${safeServiceType ? `<div class="review-event">${safeServiceType}</div>` : ''}
                             </div>
                             <div class="review-date">${escapeHtml(formattedDate)}</div>
                         </div>
-                        <div class="review-rating">${escapeHtml(stars)}</div>
+                        ${stars ? `<div class="review-rating">${escapeHtml(stars)}</div>` : ''}
                         <div class="review-text">${safeComment}</div>
                     </div>
                 `;
@@ -3689,15 +3767,23 @@
                 return;
             }
             
-            // Calculate average rating
-            const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-            const averageRating = (totalRating / reviews.length).toFixed(1);
+            // Calculate average rating (only from reviews that have ratings)
+            const reviewsWithRatings = reviews.filter(r => r.rating && r.rating > 0);
+            if (reviewsWithRatings.length === 0) {
+                document.getElementById('average-rating').textContent = '0.0';
+                document.getElementById('rating-stars').textContent = '★★★★★';
+                document.getElementById('total-reviews').textContent = `${reviews.length} ${reviews.length === 1 ? 'Review' : 'Reviews'}`;
+                return;
+            }
+            
+            const totalRating = reviewsWithRatings.reduce((sum, review) => sum + (review.rating || 0), 0);
+            const averageRating = (totalRating / reviewsWithRatings.length).toFixed(1);
             
             // Update average rating display
             document.getElementById('average-rating').textContent = averageRating;
             
             // Update star display (show average as filled stars)
-            const avgStars = Math.round(averageRating);
+            const avgStars = Math.round(parseFloat(averageRating));
             const fullStars = '★'.repeat(avgStars);
             const emptyStars = '☆'.repeat(5 - avgStars);
             document.getElementById('rating-stars').textContent = fullStars + emptyStars;
