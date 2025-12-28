@@ -3587,6 +3587,74 @@
             }
         }
 
+        // Get hardcoded testimonials from index.html (these are considered approved)
+        function getHardcodedTestimonials() {
+            // These are the hardcoded testimonials from index.html "What Our Clients Say" section
+            // All of these are considered approved since they're published on the website
+            return [
+                {
+                    id: 'hardcoded-dj-gavin',
+                    djUsername: null, // Will be matched by name in comment
+                    clientName: 'Client Review',
+                    rating: 5,
+                    comment: 'Gavin was absolutely amazing at our wedding! He kept the dance floor packed all night long with an incredible mix of music that appealed to all our guests. His professionalism and attention to detail were outstanding. Gavin made sure our special day had the perfect soundtrack, and we couldn\'t have been happier. We highly recommend Gavin for any wedding celebration!',
+                    serviceType: 'DJ Entertainment',
+                    eventDate: '2025-01-01',
+                    status: 'approved',
+                    createdAt: new Date('2025-01-01').toISOString(),
+                    source: 'index.html'
+                },
+                {
+                    id: 'hardcoded-dj-will',
+                    djUsername: null,
+                    clientName: 'Client Review',
+                    rating: 5,
+                    comment: 'Will made our wedding reception absolutely incredible! His energy and enthusiasm were contagious, and he had everyone on the dance floor from the first song to the last. Will took the time to understand our music preferences and created the perfect atmosphere for our celebration. His professional setup and seamless transitions kept the party going all night. We couldn\'t have asked for a better DJ experience. Thank you, Will!',
+                    serviceType: 'DJ Entertainment',
+                    eventDate: '2025-01-01',
+                    status: 'approved',
+                    createdAt: new Date('2025-01-01').toISOString(),
+                    source: 'index.html'
+                },
+                {
+                    id: 'hardcoded-dj-stephen',
+                    djUsername: null,
+                    clientName: 'Client Review',
+                    rating: 5,
+                    comment: 'Stephen was absolutely phenomenal at our wedding! He created an unforgettable atmosphere that had our guests dancing all night long. Stephen\'s attention to detail, professionalism, and ability to read the crowd was incredible. He seamlessly mixed the perfect songs that kept everyone on the dance floor. Our wedding reception wouldn\'t have been the same without Stephen\'s amazing DJ skills. Highly recommend Stephen for any event!',
+                    serviceType: 'DJ Entertainment',
+                    eventDate: '2025-01-01',
+                    status: 'approved',
+                    createdAt: new Date('2025-01-01').toISOString(),
+                    source: 'index.html'
+                },
+                {
+                    id: 'hardcoded-dj-generic-1',
+                    djUsername: null,
+                    clientName: 'Client Review',
+                    rating: 5,
+                    comment: 'The DJ brought incredible energy to our wedding reception! The dance floor was packed all night, and the music selection was perfect. They kept the party going and made sure everyone had an amazing time. Highly professional and super fun!',
+                    serviceType: 'DJ Entertainment',
+                    eventDate: '2025-01-01',
+                    status: 'approved',
+                    createdAt: new Date('2025-01-01').toISOString(),
+                    source: 'index.html'
+                },
+                {
+                    id: 'hardcoded-dj-generic-2',
+                    djUsername: null,
+                    clientName: 'Client Review',
+                    rating: 5,
+                    comment: 'Best DJ we\'ve ever worked with! They understood exactly what we wanted and kept the energy high all night. The sound quality was perfect, the music selection was spot-on, and they made our event unforgettable. Our guests are still talking about how great the music was!',
+                    serviceType: 'DJ Entertainment',
+                    eventDate: '2024-01-01',
+                    status: 'approved',
+                    createdAt: new Date('2024-01-01').toISOString(),
+                    source: 'index.html'
+                }
+            ];
+        }
+
         // Helper: Get all reviews for current DJ from API
         async function getAllReviewsForDJ() {
             const currentUsername = localStorage.getItem('dj_user');
@@ -3594,7 +3662,13 @@
             
             try {
                 // Get ALL approved reviews from API (don't filter by dj_username in the API call)
-                const allReviews = await apiGetReviews(null, 'approved');
+                const apiReviews = await apiGetReviews(null, 'approved');
+                
+                // Get hardcoded testimonials from index.html (considered approved)
+                const hardcodedTestimonials = getHardcodedTestimonials();
+                
+                // Combine API reviews and hardcoded testimonials
+                const allReviews = [...apiReviews, ...hardcodedTestimonials];
                 
                 // Get DJ user info to match by firstName/lastName or username
                 const djUsers = await apiGetUsers('dj');
@@ -3640,7 +3714,6 @@
                         const matchesInComment = possibleNames.some(name => {
                             const nameLower = name.toLowerCase();
                             // Use word boundaries to avoid partial matches (e.g., "Will" shouldn't match "William")
-                            // But allow for flexible matching (with or without word boundaries)
                             const namePattern = new RegExp(`\\b${nameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
                             return namePattern.test(commentText);
                         });
