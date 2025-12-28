@@ -2879,9 +2879,9 @@
                 const escapedPhone = dj.phone ? escapeHtml(dj.phone) : '';
                 const memberSince = dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A';
                 return `
-                    <div class="dj-card">
+                    <div class="dj-card" onclick="filterByDJ('${escapedDJNameForJS}', true)" style="cursor: pointer;" title="Click to view open projects for ${escapedDJName}">
                         <div class="dj-card-header">
-                            <div class="dj-name" onclick="filterByDJ('${escapedDJNameForJS}')" title="Click to view all projects for ${escapedDJName}">${escapedDJName}</div>
+                            <div class="dj-name">${escapedDJName}</div>
                         </div>
                         <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
                             <div>Username: ${escapedUsername}</div>
@@ -3155,7 +3155,8 @@
         }
 
         // Filter by DJ name click (from All DJs Overview)
-        async function filterByDJ(djName) {
+        // showOpenOnly: if true, filter to show only future/open projects
+        async function filterByDJ(djName, showOpenOnly = false) {
             try {
                 if (!djName) {
                     return;
@@ -3202,9 +3203,13 @@
                     }
                 }
                 
-                // Clear other filters first
-                if (timeFilterSelect) timeFilterSelect.value = '';
+                // Clear year filter first
                 if (yearFilterSelect) yearFilterSelect.value = '';
+                
+                // Set time filter to "future" if showOpenOnly is true, otherwise clear it
+                if (timeFilterSelect) {
+                    timeFilterSelect.value = showOpenOnly ? 'future' : '';
+                }
                 
                 // Always populate dropdown to ensure the value we want to set is available
                 djFilterSelect.innerHTML = '<option value="">All DJs</option>' + 
