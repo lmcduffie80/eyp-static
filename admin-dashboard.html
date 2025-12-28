@@ -4765,8 +4765,9 @@
                     const escapedComment = escapeHtml(review.comment || '');
                     const escapedServiceType = escapeHtml(review.serviceType || 'Services');
                     const escapedDjUsername = review.djUsername ? escapeHtml(review.djUsername) : '';
-                    const createdAt = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
-                    const eventDate = review.eventDate ? new Date(review.eventDate).toLocaleDateString() : '';
+                    // Use formatDateMMDDYYYYGlobal to avoid timezone issues (parse as local date)
+                    const createdAt = review.createdAt ? formatDateMMDDYYYYGlobal(review.createdAt) : '';
+                    const eventDate = review.eventDate ? formatDateMMDDYYYYGlobal(review.eventDate) : '';
                     const rating = review.rating ? '⭐'.repeat(review.rating) : '';
                     const statusBadge = getReviewStatusBadge(review.status || 'pending');
                     
