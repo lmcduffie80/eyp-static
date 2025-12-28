@@ -2679,10 +2679,10 @@
                 // Also refresh the DJ stats
                 await loadAllDJs();
                 
-                showMessage('All projects have been cleared.', 'success');
+                showToast('All projects have been cleared.', 'success');
             } catch (error) {
                 console.error('Error clearing bookings:', error);
-                alert('Failed to clear bookings. Please try again.');
+                showToast('Failed to clear bookings. Please try again.', 'error');
             }
         }
 
