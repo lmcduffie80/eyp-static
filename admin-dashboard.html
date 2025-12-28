@@ -990,7 +990,15 @@
                         Import CSV
                     </button>
                 </div>
-                <div id="import-message" style="color: var(--success-color); display: none; margin-top: 1rem;"></div>
+                <div id="import-status-box" style="display: none; margin-top: 1rem; padding: 1rem; border-radius: 8px; background: #f8f9fa; border: 2px solid #e0e0e0;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div id="import-status-spinner" style="width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; display: none;"></div>
+                        <div id="import-status-icon" style="font-size: 1.25rem;"></div>
+                        <strong id="import-status-title" style="font-size: 1rem; color: var(--text-dark);">Import Status</strong>
+                    </div>
+                    <div id="import-status-message" style="color: var(--text-dark); font-size: 0.95rem; line-height: 1.5;"></div>
+                    <div id="import-status-details" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-light);"></div>
+                </div>
             </div>
             
             <div class="section-card">
@@ -3590,17 +3598,58 @@
             }
         }
 
-        // Helper function to show import messages
-        function showImportMessage(message, type) {
-            const messageEl = document.getElementById('import-message');
-            messageEl.textContent = message;
-            messageEl.style.display = 'block';
-            messageEl.style.color = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+        // Helper function to show import status updates
+        function updateImportStatus(title, message, type = 'info', details = '') {
+            const statusBox = document.getElementById('import-status-box');
+            const statusTitle = document.getElementById('import-status-title');
+            const statusMessage = document.getElementById('import-status-message');
+            const statusDetails = document.getElementById('import-status-details');
+            const statusIcon = document.getElementById('import-status-icon');
+            const statusSpinner = document.getElementById('import-status-spinner');
             
-            // Hide message after 5 seconds
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 5000);
+            if (!statusBox) return;
+            
+            statusBox.style.display = 'block';
+            statusTitle.textContent = title;
+            statusMessage.textContent = message;
+            statusDetails.textContent = details;
+            
+            // Set styling based on type
+            if (type === 'success') {
+                statusBox.style.background = '#d4edda';
+                statusBox.style.borderColor = 'var(--success-color)';
+                statusIcon.textContent = '✅';
+                statusSpinner.style.display = 'none';
+            } else if (type === 'error') {
+                statusBox.style.background = '#f8d7da';
+                statusBox.style.borderColor = 'var(--error-color)';
+                statusIcon.textContent = '❌';
+                statusSpinner.style.display = 'none';
+            } else if (type === 'warning') {
+                statusBox.style.background = '#fff3cd';
+                statusBox.style.borderColor = 'var(--warning-color)';
+                statusIcon.textContent = '⚠️';
+                statusSpinner.style.display = 'none';
+            } else {
+                // info/loading
+                statusBox.style.background = '#d1ecf1';
+                statusBox.style.borderColor = 'var(--info-color)';
+                statusIcon.textContent = 'ℹ️';
+                statusSpinner.style.display = 'block';
+            }
+        }
+        
+        // Helper function to show import messages (backward compatibility)
+        function showImportMessage(message, type) {
+            updateImportStatus(type === 'success' ? 'Import Complete' : 'Import Error', message, type);
+            
+            // Auto-hide after 8 seconds for success/error
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    const statusBox = document.getElementById('import-status-box');
+                    if (statusBox) statusBox.style.display = 'none';
+                }, 8000);
+            }
         }
 
         // CSV Import function
@@ -3614,13 +3663,16 @@
             }
             
             if (!file) {
-                showCSVMessage('Please select a CSV file to import.', 'error');
+                updateImportStatus('Import Error', 'Please select a CSV file to import.', 'error');
                 return;
             }
+            
+            updateImportStatus('Reading File', `Reading CSV file: ${file.name}...`, 'info');
             
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
+                    updateImportStatus('Parsing CSV', 'Parsing CSV file content...', 'info');
                     let csv = e.target.result;
                     
                     // Remove BOM (Byte Order Mark) if present
@@ -3757,6 +3809,8 @@
                         showCSVMessage(`The Date column (column ${dateIndex + 1}: "${dateHeaderName}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers and that row 2 contains valid date data. Expected columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout`, 'error');
                         return;
                     }
+                    
+                    updateImportStatus('Processing Data', 'Processing CSV rows and validating data...', 'info');
                     
                     // Parse data rows starting from row 1 (row 0 is header)
                     // Note: We will replace all existing bookings with the new CSV data
@@ -3895,24 +3949,35 @@
                     // This ensures each CSV import replaces the previous data
                     try {
                         // First, get all existing bookings and delete them
+                        updateImportStatus('Deleting Old Data', `Deleting ${newBookings.length} existing booking(s)...`, 'info');
                         const existingBookings = await getAllBookings();
                         // Removed debug console.log for better performance
                         
+                        let deletedCount = 0;
                         for (const booking of existingBookings) {
                             try {
                                 await apiDeleteBooking(booking.id);
+                                deletedCount++;
+                                if (deletedCount % 10 === 0) {
+                                    updateImportStatus('Deleting Old Data', `Deleted ${deletedCount} of ${existingBookings.length} existing booking(s)...`, 'info');
+                                }
                             } catch (error) {
                                 // Continue with other bookings even if one fails
                             }
                         }
                         
                         // Create all new bookings via API
+                        updateImportStatus('Creating Bookings', `Creating ${newBookings.length} new booking(s)...`, 'info');
                         // Removed debug console.log for better performance
                         let createdCount = 0;
                         let failedCount = 0;
                         const creationErrors = [];
                         
-                        for (const booking of newBookings) {
+                        for (let i = 0; i < newBookings.length; i++) {
+                            const booking = newBookings[i];
+                            if ((i + 1) % 10 === 0 || i === 0) {
+                                updateImportStatus('Creating Bookings', `Creating booking ${i + 1} of ${newBookings.length}...`, 'info');
+                            }
                             try {
                                 // Remove the temporary ID before creating (API will assign its own)
                                 const { id, ...bookingData } = booking;
@@ -3959,9 +4024,12 @@
                         if (failedCount > 0) errorDetails.push(`${failedCount} booking(s) failed to create`);
                         
                         // Show success message
+                        updateImportStatus('Updating Dashboard', 'Refreshing dashboard data...', 'info');
+                        
                         if (createdCount > 0) {
                             const skipMessage = errorDetails.length > 0 ? `. ${errorDetails.join(', ')}.` : '';
-                            showCSVMessage(`Successfully imported ${createdCount} project(s)${skipMessage}`, 'success');
+                            const detailsMsg = errorDetails.length > 0 ? `Details: ${errorDetails.join(', ')}` : '';
+                            updateImportStatus('Import Complete', `Successfully imported ${createdCount} project(s)${skipMessage}`, 'success', detailsMsg);
                             
                             // Clear file input
                             fileInput.value = '';
@@ -3973,26 +4041,22 @@
                             await filterAllBookings();
                             await loadAllDJs();
                         } else {
-                            showCSVMessage(`No projects imported. ${errorDetails.length > 0 ? errorDetails.join(', ') : 'All bookings failed to create.'}`, 'error');
+                            const errorMsg = errorDetails.length > 0 ? errorDetails.join(', ') : 'All bookings failed to create.';
+                            updateImportStatus('Import Failed', `No projects imported. ${errorMsg}`, 'error');
                         }
-                        
-                        // Hide message after 5 seconds
-                        setTimeout(() => {
-                            messageEl.style.display = 'none';
-                        }, 5000);
                     } catch (error) {
                         console.error('Error during CSV import:', error);
-                        showCSVMessage(`Error importing CSV: ${error.message}. Please try again.`, 'error');
+                        updateImportStatus('Import Error', `Error importing CSV: ${error.message}. Please try again.`, 'error');
                     }
                     
                 } catch (error) {
                     console.error('CSV import error:', error);
-                    showCSVMessage('Error importing CSV file: ' + error.message, 'error');
+                    updateImportStatus('Import Error', `Error importing CSV file: ${error.message}`, 'error');
                 }
             };
             
             reader.onerror = function() {
-                showCSVMessage('Error reading CSV file.', 'error');
+                updateImportStatus('File Read Error', 'Error reading CSV file. Please try again.', 'error');
             };
             
             reader.readAsText(file);
