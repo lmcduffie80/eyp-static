@@ -2735,6 +2735,20 @@
             }
         }
 
+        // Load and display all DJs - fetches data and calls loadAllDJsWithData
+        async function loadAllDJs() {
+            try {
+                const [djs, bookings, blockedDates] = await Promise.all([
+                    getAllDJs(),
+                    getAllBookings(),
+                    getAllBlockedDates()
+                ]);
+                await loadAllDJsWithData(djs, bookings, blockedDates);
+            } catch (error) {
+                console.error('Error loading DJs:', error);
+            }
+        }
+
         // Load and display all DJs - optimized version that accepts pre-fetched data
         async function loadAllDJsWithData(djs, bookings, blockedDates) {
             const container = document.getElementById('djs-container');
