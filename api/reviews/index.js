@@ -51,7 +51,6 @@ export default async function handler(req, res) {
                     clientName: row.client_name,
                     rating: row.rating,
                     comment: row.comment,
-                    eventName: row.event_name,
                     eventDate: row.event_date,
                     serviceType: row.service_type,
                     status: row.status || 'pending',
@@ -66,7 +65,6 @@ export default async function handler(req, res) {
                 clientName,
                 rating,
                 comment,
-                eventName,
                 eventDate,
                 serviceType
             } = req.body;
@@ -84,10 +82,10 @@ export default async function handler(req, res) {
             try {
                 result = await sql`
                     INSERT INTO reviews (
-                        dj_username, client_name, rating, comment, event_name, event_date, service_type, status
+                        dj_username, client_name, rating, comment, event_date, service_type, status
                     ) VALUES (
                         ${djUsername || null}, ${clientName}, ${rating || null}, ${comment},
-                        ${eventName || null}, ${eventDate || null}, ${serviceType || null}, 'pending'
+                        ${eventDate || null}, ${serviceType || null}, 'pending'
                     ) RETURNING *
                 `;
             } catch (insertError) {
@@ -102,10 +100,10 @@ export default async function handler(req, res) {
                         // Retry the insert
                         result = await sql`
                             INSERT INTO reviews (
-                                dj_username, client_name, rating, comment, event_name, event_date, service_type, status
+                                dj_username, client_name, rating, comment, event_date, service_type, status
                             ) VALUES (
                                 ${djUsername || null}, ${clientName}, ${rating || null}, ${comment},
-                                ${eventName || null}, ${eventDate || null}, ${serviceType || null}, 'pending'
+                                ${eventDate || null}, ${serviceType || null}, 'pending'
                             ) RETURNING *
                         `;
                     } catch (migrationError) {
@@ -130,7 +128,6 @@ export default async function handler(req, res) {
                     clientName: review.client_name,
                     rating: review.rating,
                     comment: review.comment,
-                    eventName: review.event_name,
                     eventDate: review.event_date,
                     serviceType: review.service_type,
                     status: review.status,

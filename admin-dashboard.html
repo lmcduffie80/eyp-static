@@ -4765,7 +4765,6 @@
                     const escapedComment = escapeHtml(review.comment || '');
                     const escapedServiceType = escapeHtml(review.serviceType || 'Services');
                     const escapedDjUsername = review.djUsername ? escapeHtml(review.djUsername) : '';
-                    const escapedEventName = review.eventName ? escapeHtml(review.eventName) : '';
                     const createdAt = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
                     const eventDate = review.eventDate ? new Date(review.eventDate).toLocaleDateString() : '';
                     const rating = review.rating ? '⭐'.repeat(review.rating) : '';
@@ -4789,7 +4788,6 @@
                                         "${escapedComment}"
                                     </div>
                                 </div>
-                                ${escapedEventName ? `<div><strong>Event:</strong> ${escapedEventName}</div>` : ''}
                                 ${eventDate ? `<div><strong>Event Date:</strong> ${eventDate}</div>` : ''}
                                 <div><strong>Submitted:</strong> ${createdAt}</div>
                             </div>

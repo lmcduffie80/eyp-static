@@ -1588,10 +1588,6 @@
                         <textarea id="review-comment" required rows="5" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Share your experience with us..."></textarea>
                     </div>
                     <div style="display: flex; flex-direction: column;">
-                        <label for="review-event-name" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Event Name (Optional)</label>
-                        <input type="text" id="review-event-name" placeholder="e.g., John & Jane Wedding" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
                         <label for="review-event-date" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Event Date (Optional)</label>
                         <input type="date" id="review-event-date" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
                     </div>
@@ -2875,7 +2871,6 @@
                     const djUsername = document.getElementById('review-dj-name').value.trim() || null;
                     const rating = document.getElementById('review-rating').value || null;
                     const comment = document.getElementById('review-comment').value.trim();
-                    const eventName = document.getElementById('review-event-name').value.trim() || null;
                     const eventDate = document.getElementById('review-event-date').value || null;
                     
                     // Validation
@@ -2902,7 +2897,6 @@
                                 djUsername: djUsername,
                                 rating: rating ? parseInt(rating) : null,
                                 comment: comment,
-                                eventName: eventName,
                                 eventDate: eventDate
                             })
                         });

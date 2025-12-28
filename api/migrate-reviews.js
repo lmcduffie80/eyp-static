@@ -23,13 +23,16 @@ export default async function handler(req, res) {
         const result = await migrateReviews();
         return res.status(200).json({
             success: true,
-            message: result.message || 'Migration completed successfully'
+            message: result.message || 'Migration completed successfully',
+            details: result.details || []
         });
     } catch (error) {
         console.error('Migration API error:', error);
+        const errorMessage = error.message || 'Migration failed';
         return res.status(500).json({
             success: false,
-            error: error.message || 'Migration failed'
+            error: errorMessage,
+            details: error.stack || 'No additional details available'
         });
     }
 }

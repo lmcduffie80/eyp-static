@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- Reviews table
 CREATE TABLE IF NOT EXISTS reviews (
     id SERIAL PRIMARY KEY,
-    dj_username VARCHAR(255),
+    dj_username VARCHAR(255), -- NULLABLE: Optional, only for DJ Entertainment reviews
     client_name VARCHAR(255),
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
