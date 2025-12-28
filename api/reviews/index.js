@@ -79,14 +79,47 @@ export default async function handler(req, res) {
                 });
             }
 
-            const result = await sql`
-                INSERT INTO reviews (
-                    dj_username, client_name, rating, comment, event_name, event_date, service_type, status
-                ) VALUES (
-                    ${djUsername || null}, ${clientName}, ${rating || null}, ${comment},
-                    ${eventName || null}, ${eventDate || null}, ${serviceType || null}, 'pending'
-                ) RETURNING *
-            `;
+            // Try to insert - if columns don't exist, run migration and retry
+            let result;
+            try {
+                result = await sql`
+                    INSERT INTO reviews (
+                        dj_username, client_name, rating, comment, event_name, event_date, service_type, status
+                    ) VALUES (
+                        ${djUsername || null}, ${clientName}, ${rating || null}, ${comment},
+                        ${eventName || null}, ${eventDate || null}, ${serviceType || null}, 'pending'
+                    ) RETURNING *
+                `;
+            } catch (insertError) {
+                // If the error is about missing columns, try to run migration
+                if (insertError.message && insertError.message.includes('does not exist')) {
+                    console.log('Missing columns detected, running migration...');
+                    try {
+                        // Import and run migration
+                        const migrateReviews = (await import('../db/migrate-reviews.js')).default;
+                        await migrateReviews();
+                        
+                        // Retry the insert
+                        result = await sql`
+                            INSERT INTO reviews (
+                                dj_username, client_name, rating, comment, event_name, event_date, service_type, status
+                            ) VALUES (
+                                ${djUsername || null}, ${clientName}, ${rating || null}, ${comment},
+                                ${eventName || null}, ${eventDate || null}, ${serviceType || null}, 'pending'
+                            ) RETURNING *
+                        `;
+                    } catch (migrationError) {
+                        console.error('Migration failed:', migrationError);
+                        return res.status(500).json({
+                            success: false,
+                            error: 'Database migration failed. Please run the migration manually. Visit /api/migrate-reviews to run the migration.'
+                        });
+                    }
+                } else {
+                    // Re-throw if it's a different error
+                    throw insertError;
+                }
+            }
 
             const review = result.rows[0];
             return res.status(201).json({
