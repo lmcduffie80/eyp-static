@@ -793,11 +793,6 @@
                         <span>Analytics</span>
                     </a>
                 </li>
-                <li class="sidebar-nav-item">
-                    <a class="sidebar-nav-link" onclick="switchTab('messages')" id="nav-messages">
-                        <span>Messages</span>
-                    </a>
-                </li>
             </ul>
         </nav>
 
@@ -1159,27 +1154,6 @@
             </div>
         </div>
 
-        <!-- Messages Tab -->
-        <div id="messages-tab" class="tab-content">
-            <div class="section-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2>Chatbot Messages</h2>
-                    <div class="filter-controls" style="margin: 0;">
-                        <select id="message-filter-status" onchange="loadMessages()" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
-                            <option value="">All Messages</option>
-                            <option value="pending">Pending</option>
-                            <option value="read">Read</option>
-                            <option value="replied">Replied</option>
-                            <option value="archived">Archived</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="messages-container">
-                    <!-- Messages will be displayed here -->
-                </div>
-            </div>
-        </div>
-
         <!-- User Management Tab -->
         <div id="users-tab" class="tab-content">
             <div class="section-card">
@@ -1355,56 +1329,6 @@
             await apiRequest(`/api/users/${id}`, { method: 'DELETE' });
         }
         
-        // Chatbot Messages API
-        async function apiGetMessages(conversationId = null, status = null) {
-            let url = '/api/chatbot-messages';
-            const params = new URLSearchParams();
-            if (conversationId) params.append('conversation_id', conversationId);
-            if (status && status !== 'null' && status !== '') params.append('status', status);
-            if (params.toString()) url += '?' + params.toString();
-            console.log('Fetching messages from:', url, { conversationId, status });
-            const result = await apiRequest(url);
-            console.log('Messages API response:', result);
-            if (!result.success) {
-                console.error('API returned error:', result.error);
-                // Throw error with message so it can be displayed to user
-                throw new Error(result.error || 'Failed to fetch messages');
-            }
-            return result.data || [];
-        }
-        
-        async function apiCreateMessage(messageData) {
-            const result = await apiRequest('/api/chatbot-messages', {
-                method: 'POST',
-                body: JSON.stringify(messageData)
-            });
-            return result.data;
-        }
-        
-        async function apiReplyToMessage(conversationId, message, adminName) {
-            const result = await apiRequest('/api/chatbot-messages/reply', {
-                method: 'POST',
-                body: JSON.stringify({
-                    conversationId: conversationId,
-                    message: message,
-                    adminName: adminName
-                })
-            });
-            return result.data;
-        }
-        
-        async function apiUpdateMessageStatus(id, status) {
-            const result = await apiRequest(`/api/chatbot-messages/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ status: status })
-            });
-            return result.data;
-        }
-        
-        async function apiDeleteMessage(id) {
-            await apiRequest(`/api/chatbot-messages/${id}`, { method: 'DELETE' });
-        }
-
         // Blocked Dates API
         async function apiGetBlockedDates(djUser = null) {
             const url = djUser ? `/api/blocked-dates?dj_user=${encodeURIComponent(djUser)}` : '/api/blocked-dates';
@@ -1603,8 +1527,7 @@
                 'bookings': 'nav-bookings',
                 'calendar': 'nav-calendar',
                 'users': 'nav-users',
-                'analytics': 'nav-analytics',
-                'messages': 'nav-messages'
+                'analytics': 'nav-analytics'
             };
             
             // Map tab names to hamburger menu IDs
@@ -1613,8 +1536,7 @@
                 'bookings': 'hamburger-nav-bookings',
                 'calendar': 'hamburger-nav-calendar',
                 'users': 'hamburger-nav-users',
-                'analytics': 'hamburger-nav-analytics',
-                'messages': 'hamburger-nav-messages'
+                'analytics': 'hamburger-nav-analytics'
             };
             
             const navId = navMap[tabName];
@@ -1657,8 +1579,6 @@
                 await loadAllDJs();
             } else if (tabName === 'analytics') {
                 loadAnalytics();
-            } else if (tabName === 'messages') {
-                await loadMessages();
             }
         }
 
@@ -4765,222 +4685,6 @@
                     toast.style.display = 'none';
                 }, 300);
             }, 5000);
-        }
-
-        // Messages Functions
-        async function loadMessages() {
-            const statusFilter = document.getElementById('message-filter-status')?.value || '';
-            const container = document.getElementById('messages-container');
-            
-            if (!container) return;
-            
-            try {
-                // Show loading state
-                container.innerHTML = '<div class="empty-state"><p>Loading messages...</p></div>';
-                
-                console.log('Loading messages with filter:', statusFilter || 'none');
-                const filterValue = statusFilter && statusFilter !== '' ? statusFilter : null;
-                const messages = await apiGetMessages(null, filterValue);
-                console.log('Received messages count:', messages ? messages.length : 0, messages);
-                
-                if (!messages || messages.length === 0) {
-                    container.innerHTML = '<div class="empty-state"><p>No messages found. Try sending a message through the chatbot on the website first.</p></div>';
-                    return;
-                }
-                
-                // Group messages by conversation_id to show conversations
-                const conversations = {};
-                messages.forEach(msg => {
-                    if (!conversations[msg.conversationId]) {
-                        conversations[msg.conversationId] = {
-                            conversationId: msg.conversationId,
-                            latestMessage: msg,
-                            senderName: msg.senderName,
-                            senderEmail: msg.senderEmail,
-                            senderPhone: msg.senderPhone,
-                            status: msg.status,
-                            createdAt: msg.createdAt
-                        };
-                    } else {
-                        // Update if this message is newer
-                        const msgDate = new Date(msg.createdAt);
-                        const latestDate = new Date(conversations[msg.conversationId].latestMessage.createdAt);
-                        if (msgDate > latestDate) {
-                            conversations[msg.conversationId].latestMessage = msg;
-                            conversations[msg.conversationId].status = msg.status;
-                        }
-                    }
-                });
-                
-                // Sort conversations by latest message date (newest first)
-                const sortedConversations = Object.values(conversations).sort((a, b) => {
-                    return new Date(b.latestMessage.createdAt) - new Date(a.latestMessage.createdAt);
-                });
-                
-                container.innerHTML = sortedConversations.map(conv => {
-                    const escapedConvId = escapeHtml(conv.conversationId);
-                    const escapedSenderName = escapeHtml(conv.senderName || 'Anonymous');
-                    const escapedMessage = escapeHtml(conv.latestMessage.message);
-                    const escapedEmail = escapeHtml(conv.senderEmail || 'No email');
-                    const escapedPhone = escapeHtml(conv.senderPhone || 'No phone');
-                    const createdAt = new Date(conv.createdAt);
-                    const formattedDate = createdAt.toLocaleDateString() + ' ' + createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const statusBadge = getStatusBadge(conv.status);
-                    
-                    return `
-                        <div class="dj-card" style="cursor: pointer;" onclick="openConversation('${escapedConvId}')">
-                            <div class="dj-card-header">
-                                <div class="dj-name">${escapedSenderName}</div>
-                                ${statusBadge}
-                            </div>
-                            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
-                                <div style="margin-bottom: 0.5rem; font-weight: 500; color: var(--primary-color);">
-                                    ${escapedMessage.length > 100 ? escapedMessage.substring(0, 100) + '...' : escapedMessage}
-                                </div>
-                                <div>📧 ${escapedEmail}</div>
-                                <div>📞 ${escapedPhone}</div>
-                                <div>🕒 ${formattedDate}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error loading messages:', error);
-                let errorMessage = 'Error loading messages. ';
-                if (error.message) {
-                    errorMessage += error.message;
-                } else {
-                    errorMessage += 'Please check the browser console for details.';
-                }
-                container.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">${errorMessage}</p><p style="color: var(--text-light); font-size: 0.9rem; margin-top: 0.5rem;">If this is the first time using this feature, make sure the chatbot_messages table exists in your database.</p></div>`;
-            }
-        }
-        
-        function getStatusBadge(status) {
-            const statusMap = {
-                'pending': { text: 'Pending', color: 'var(--warning-color)', bg: '#fff3cd' },
-                'read': { text: 'Read', color: 'var(--info-color)', bg: '#d1ecf1' },
-                'replied': { text: 'Replied', color: 'var(--success-color)', bg: '#d4edda' },
-                'archived': { text: 'Archived', color: 'var(--text-light)', bg: '#e2e3e5' }
-            };
-            const statusInfo = statusMap[status] || statusMap['pending'];
-            return `<span style="padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold; background: ${statusInfo.bg}; color: ${statusInfo.color};">${statusInfo.text}</span>`;
-        }
-        
-        let currentConversationId = null;
-        
-        async function openConversation(conversationId) {
-            currentConversationId = conversationId;
-            const messages = await apiGetMessages(conversationId);
-            
-            // Create modal for conversation view
-            const modal = document.createElement('div');
-            modal.id = 'conversation-modal';
-            modal.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;';
-            
-            // Sort messages by date
-            messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-            
-            const firstMessage = messages[0];
-            const escapedSenderName = escapeHtml(firstMessage.senderName || 'Anonymous');
-            const escapedEmail = escapeHtml(firstMessage.senderEmail || 'No email');
-            const escapedPhone = escapeHtml(firstMessage.senderPhone || 'No phone');
-            
-            modal.innerHTML = `
-                <div style="background: white; border-radius: 10px; padding: 2rem; max-width: 700px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
-                    <button onclick="closeConversation()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">&times;</button>
-                    <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Conversation with ${escapedSenderName}</h2>
-                    <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0;">
-                        <div>📧 ${escapedEmail}</div>
-                        <div>📞 ${escapedPhone}</div>
-                    </div>
-                    <div id="conversation-messages" style="flex: 1; overflow-y: auto; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-light); border-radius: 5px; max-height: 400px;">
-                        ${messages.map(msg => {
-                            const isAdmin = msg.isAdminReply;
-                            const escapedMsg = escapeHtml(msg.message);
-                            const msgDate = new Date(msg.createdAt);
-                            const formattedDate = msgDate.toLocaleDateString() + ' ' + msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                            return `
-                                <div style="margin-bottom: 1rem; padding: 1rem; background: ${isAdmin ? '#e3f2fd' : 'white'}; border-radius: 8px; border-left: 4px solid ${isAdmin ? 'var(--accent-color)' : 'var(--info-color)'};">
-                                    <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">
-                                        ${isAdmin ? 'Admin' : escapedSenderName}
-                                    </div>
-                                    <div style="color: var(--text-dark); margin-bottom: 0.5rem; white-space: pre-wrap;">${escapedMsg}</div>
-                                    <div style="font-size: 0.85rem; color: var(--text-light);">${formattedDate}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    <div>
-                        <textarea id="reply-message" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical; margin-bottom: 1rem;" placeholder="Type your reply..."></textarea>
-                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                            <button onclick="closeConversation()" style="padding: 0.75rem 1.5rem; background: var(--text-light); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Close</button>
-                            <button onclick="sendReply()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Send Reply</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Mark messages as read
-            for (const msg of messages) {
-                if (!msg.isAdminReply && msg.status !== 'replied') {
-                    await apiUpdateMessageStatus(msg.id, 'read');
-                }
-            }
-            
-            // Scroll to bottom
-            const messagesContainer = document.getElementById('conversation-messages');
-            if (messagesContainer) {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-            
-            // Focus on reply textarea
-            setTimeout(() => {
-                const replyTextarea = document.getElementById('reply-message');
-                if (replyTextarea) replyTextarea.focus();
-            }, 100);
-        }
-        
-        function closeConversation() {
-            const modal = document.getElementById('conversation-modal');
-            if (modal) {
-                modal.remove();
-            }
-            currentConversationId = null;
-            // Reload messages list
-            loadMessages();
-        }
-        
-        async function sendReply() {
-            const replyTextarea = document.getElementById('reply-message');
-            const message = replyTextarea?.value.trim();
-            
-            if (!message) {
-                showToast('Please enter a reply message.', 'error');
-                return;
-            }
-            
-            if (!currentConversationId) {
-                showToast('No conversation selected.', 'error');
-                return;
-            }
-            
-            try {
-                const adminUser = localStorage.getItem('admin_user') || 'Admin';
-                await apiReplyToMessage(currentConversationId, message, adminUser);
-                
-                replyTextarea.value = '';
-                showToast('Reply sent successfully', 'success');
-                
-                // Reload conversation
-                closeConversation();
-                await openConversation(currentConversationId);
-            } catch (error) {
-                console.error('Error sending reply:', error);
-                showToast('Failed to send reply. Please try again.', 'error');
-            }
         }
 
         // Logout

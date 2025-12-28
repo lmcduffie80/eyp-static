@@ -1554,10 +1554,7 @@
                 Check our availability for upcoming bookings. Dates with scheduled events are shown as unavailable.
             </p>
             <div id="dates-calendar-container" class="dates-calendar-wrapper">
-                <div style="text-align: center; padding: 2rem;">
-                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--bg-light); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <p style="margin-top: 1rem; color: var(--text-light);">Loading available dates...</p>
-                </div>
+                <!-- Calendar will be generated immediately by JavaScript -->
             </div>
         </div>
     </section>
@@ -2777,18 +2774,13 @@
             }
         }
 
-        // Fetch blocked dates and bookings from API
+        // Load availability data in the background
         async function loadAvailableDates() {
-            const container = document.getElementById('dates-calendar-container');
-            
-            // Show calendar immediately (without availability data)
-            generateDatesCalendar();
-            
             // Check cache first
             const now = Date.now();
             if (datesCache && datesCacheTime && (now - datesCacheTime) < DATES_CACHE_DURATION) {
-                blockedDates = datesCache.blockedDates;
-                bookingDates = datesCache.bookingDates;
+                blockedDates = new Set(datesCache.blockedDates);
+                bookingDates = new Set(datesCache.bookingDates);
                 generateDatesCalendar(); // Re-render with cached data
                 return;
             }
@@ -2854,21 +2846,14 @@
                 // Update global sets and cache
                 blockedDates = blockedDatesSet;
                 bookingDates = bookingsSet;
-                datesCache = { blockedDates: blockedDatesSet, bookingDates: bookingsSet };
+                datesCache = { blockedDates: Array.from(blockedDatesSet), bookingDates: Array.from(bookingsSet) };
                 datesCacheTime = now;
 
                 // Regenerate calendar with loaded data
                 generateDatesCalendar();
             } catch (error) {
                 console.error('Error loading available dates:', error);
-                // Calendar already rendered, just show a subtle warning if needed
-                if (container) {
-                    const existingCalendar = container.querySelector('.calendar-grid');
-                    if (!existingCalendar) {
-                        container.innerHTML = 
-                            '<p style="text-align: center; color: var(--text-light); padding: 2rem;">Unable to load availability data. Calendar is showing, but dates may not reflect current availability.</p>';
-                    }
-                }
+                // Calendar already rendered, data will update when API is available
             }
         }
 
@@ -2967,8 +2952,10 @@
             document.getElementById('dates-calendar-container').innerHTML = html;
         }
 
-        // Load available dates when page loads
-        document.addEventListener('DOMContentLoaded', loadAvailableDates);
+        // Generate calendar immediately and load data in background
+        // Since script is at end of body, DOM is already ready
+        generateDatesCalendar();
+        loadAvailableDates(); // Load availability data in background
     </script>
     <!-- Cookie Consent -->
     <script src="cookie-consent.js" defer></script>
