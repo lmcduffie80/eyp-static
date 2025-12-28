@@ -1226,8 +1226,11 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">User Type</label>
-                            <select id="new-user-type" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;" onchange="handleUserTypeChange()">
+                            <select id="new-user-type" required style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px;">
                                 <option value="dj">DJ</option>
+                                <option value="photographer">Photographer</option>
+                                <option value="videographer">Videographer</option>
+                                <option value="coordination">Coordination</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
@@ -2061,6 +2064,24 @@
             });
         }
 
+        // Helper function to determine if a user type has firstName and lastName
+        function userTypeHasFullName(userType) {
+            // User types that have firstName and lastName: dj, photographer, videographer, coordination
+            return ['dj', 'photographer', 'videographer', 'coordination'].includes(userType);
+        }
+
+        // Helper function to get display name for a user type
+        function getUserTypeDisplayName(userType) {
+            const displayNames = {
+                'dj': 'DJ',
+                'photographer': 'Photographer',
+                'videographer': 'Videographer',
+                'coordination': 'Coordination',
+                'admin': 'Admin'
+            };
+            return displayNames[userType] || userType;
+        }
+
         // Get all DJ data
         
         async function getAllDJs() {
@@ -2154,6 +2175,7 @@
             }
             
             // For admin users, username is the same as firstName
+            // Other user types (dj, photographer, videographer, coordination) use the entered username
             if (userType === 'admin') {
                 username = firstName;
             }
@@ -2195,13 +2217,13 @@
                         username: finalUsername,
                         email: email,
                         password: password || undefined, // Only include if provided
-                        firstName: userType === 'dj' ? firstName : undefined,
-                        lastName: userType === 'dj' ? lastName : undefined,
+                        firstName: userTypeHasFullName(userType) ? firstName : undefined,
+                        lastName: userTypeHasFullName(userType) ? lastName : undefined,
                         phone: phone || null
                     });
 
                     // Clear cache to force refresh
-                    if (userType === 'dj') {
+                    if (userTypeHasFullName(userType)) {
                         djCache = null;
                         djCacheTime = null;
                     } else {
@@ -2209,8 +2231,8 @@
                         adminCacheTime = null;
                     }
 
-                    const displayName = userType === 'dj' ? `${firstName} ${lastName}` : firstName;
-                    showMessage(`${userType === 'dj' ? 'DJ' : 'Admin'} user "${displayName}" updated successfully!`, 'success');
+                    const displayName = userTypeHasFullName(userType) ? `${firstName} ${lastName}` : firstName;
+                    showMessage(`${getUserTypeDisplayName(userType)} user "${displayName}" updated successfully!`, 'success');
 
                     // Cancel edit mode
                     cancelEdit();
@@ -2235,14 +2257,14 @@
                         username: finalUsername,
                         email: email,
                         password: password,
-                        firstName: userType === 'dj' ? firstName : undefined,
-                        lastName: userType === 'dj' ? lastName : undefined,
+                        firstName: userTypeHasFullName(userType) ? firstName : undefined,
+                        lastName: userTypeHasFullName(userType) ? lastName : undefined,
                         phone: phone || null,
                         userType: userType || 'dj'
                     });
 
                     // Clear cache to force refresh
-                    if (userType === 'dj') {
+                    if (userTypeHasFullName(userType)) {
                         djCache = null;
                         djCacheTime = null;
                     } else {
@@ -2250,8 +2272,8 @@
                         adminCacheTime = null;
                     }
 
-                    const displayName = userType === 'dj' ? username : firstName;
-                    showMessage(`${userType === 'dj' ? 'DJ' : 'Admin'} user "${displayName}" created successfully!`, 'success');
+                    const displayName = userTypeHasFullName(userType) ? username : firstName;
+                    showMessage(`${getUserTypeDisplayName(userType)} user "${displayName}" created successfully!`, 'success');
 
                     // Reset form
                     document.getElementById('create-user-form').reset();
@@ -2274,16 +2296,19 @@
         // Edit user function
         async function editUser(userType, identifier) {
             let user;
-            if (userType === 'dj') {
-                const djs = await getAllDJs();
+            if (userTypeHasFullName(userType)) {
+                // For user types with firstName/lastName (dj, photographer, videographer, coordination)
+                // Try to fetch from their specific type, or fallback to 'dj' API call for backward compatibility
+                const users = await apiGetUsers(userType);
                 // Handle both old format (username) and new format (firstName|lastName)
                 if (identifier.includes('|')) {
                     const [first, last] = identifier.split('|');
-                    user = djs.find(u => u.firstName === first && u.lastName === last);
+                    user = users.find(u => u.firstName === first && u.lastName === last);
                 } else {
-                    user = djs.find(u => u.username === identifier || (u.firstName && u.lastName && `${u.firstName}|${u.lastName}` === identifier));
+                    user = users.find(u => u.username === identifier || (u.firstName && u.lastName && `${u.firstName}|${u.lastName}` === identifier));
                 }
             } else {
+                // For admin users
                 const admins = await getAllAdmins();
                 user = admins.find(u => u.username === identifier);
             }
@@ -2303,7 +2328,7 @@
             document.getElementById('edit-original-usertype').value = userType;
             
             // Populate firstName and lastName
-            if (userType === 'dj' && user.firstName && user.lastName) {
+            if (userTypeHasFullName(userType) && user.firstName && user.lastName) {
                 document.getElementById('new-firstname').value = user.firstName;
                 document.getElementById('new-lastname').value = user.lastName;
             } else {
@@ -2315,7 +2340,7 @@
             
             document.getElementById('new-email').value = user.email || '';
             document.getElementById('new-phone').value = user.phone || '';
-            document.getElementById('new-username').value = user.username || (userType === 'dj' ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : (user.username || firstName));
+            document.getElementById('new-username').value = user.username || (userTypeHasFullName(userType) ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : (user.username || firstName));
             document.getElementById('new-password').value = ''; // Don't populate password
             document.getElementById('new-user-type').value = userType;
             document.getElementById('new-password').required = false;
@@ -2384,8 +2409,14 @@
 
         // Load and display all users
         async function loadAllUsers() {
-            const djs = await getAllDJs();
-            const admins = await getAllAdmins();
+            // Fetch all user types
+            const [djs, photographers, videographers, coordinations, admins] = await Promise.all([
+                apiGetUsers('dj'),
+                apiGetUsers('photographer'),
+                apiGetUsers('videographer'),
+                apiGetUsers('coordination'),
+                getAllAdmins()
+            ]);
             const container = document.getElementById('users-list-container');
 
             let usersHTML = '';
@@ -2394,48 +2425,49 @@
             usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--primary-color);">Admin Users</h4>';
             usersHTML += '<div style="display: grid; gap: 0.5rem;">';
             
-            admins.forEach(admin => {
-                const superUserBadge = admin.isSuperUser ? '<span style="background: var(--accent-color); color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">Super User</span>' : '';
-                const escapedUsername = escapeHtml(admin.username);
-                const escapedEmail = escapeHtml(admin.email || 'No email');
-                const escapedUsernameForJS = escapedUsername.replace(/'/g, "\\'");
-                const createdDate = admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'N/A';
-                usersHTML += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
-                        <div>
-                            <strong>${escapedUsername}</strong> ${superUserBadge}
-                            <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
-                                ${escapedEmail} • Created: ${createdDate}
+            if (admins.length === 0) {
+                usersHTML += '<div style="padding: 2rem; text-align: center; color: var(--text-light);">No admin users found</div>';
+            } else {
+                admins.forEach(admin => {
+                    const superUserBadge = admin.isSuperUser ? '<span style="background: var(--accent-color); color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">Super User</span>' : '';
+                    const escapedUsername = escapeHtml(admin.username);
+                    const escapedEmail = escapeHtml(admin.email || 'No email');
+                    const escapedUsernameForJS = escapedUsername.replace(/'/g, "\\'");
+                    const createdDate = admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'N/A';
+                    usersHTML += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
+                            <div>
+                                <strong>${escapedUsername}</strong> ${superUserBadge}
+                                <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
+                                    ${escapedEmail} • Created: ${createdDate}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                ${!admin.isSuperUser ? `
+                                    <button onclick="editUser('admin', '${escapedUsernameForJS}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                    <button onclick="deleteUser('admin', '${escapedUsernameForJS}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                                ` : ''}
                             </div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            ${!admin.isSuperUser ? `
-                                <button onclick="editUser('admin', '${escapedUsernameForJS}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
-                                <button onclick="deleteUser('admin', '${escapedUsernameForJS}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            });
+                    `;
+                });
+            }
             usersHTML += '</div></div>';
 
-            // DJ Users Section
-            usersHTML += '<div><h4 style="margin-bottom: 1rem; color: var(--primary-color);">DJ Users</h4>';
-            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
-            
-            if (djs.length === 0) {
-                usersHTML += '<div style="padding: 2rem; text-align: center; color: var(--text-light);">No DJ users found</div>';
-            } else {
-                djs.forEach(dj => {
-                    // Display firstName and lastName for DJs
-                    const displayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
-                    const djIdentifier = (dj.firstName && dj.lastName) ? `${dj.firstName}|${dj.lastName}` : dj.username;
+            // Helper function to render users with firstName/lastName
+            const renderUsersWithFullName = (users, userType) => {
+                if (users.length === 0) {
+                    return `<div style="padding: 2rem; text-align: center; color: var(--text-light);">No ${getUserTypeDisplayName(userType).toLowerCase()} users found</div>`;
+                }
+                return users.map(user => {
+                    const displayName = (user.firstName && user.lastName) ? `${user.firstName} ${user.lastName}` : user.username;
+                    const userIdentifier = (user.firstName && user.lastName) ? `${user.firstName}|${user.lastName}` : user.username;
                     const escapedDisplayName = escapeHtml(displayName);
-                    const escapedEmail = escapeHtml(dj.email || 'No email');
-                    const escapedPhone = dj.phone ? escapeHtml(dj.phone) : '';
-                    const escapedDjIdentifier = escapeHtml(djIdentifier).replace(/'/g, "\\'");
-                    const createdDate = dj.createdAt ? new Date(dj.createdAt).toLocaleDateString() : 'N/A';
-                    usersHTML += `
+                    const escapedEmail = escapeHtml(user.email || 'No email');
+                    const escapedPhone = user.phone ? escapeHtml(user.phone) : '';
+                    const escapedUserIdentifier = escapeHtml(userIdentifier).replace(/'/g, "\\'");
+                    const createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+                    return `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 5px;">
                             <div>
                                 <strong>${escapedDisplayName}</strong>
@@ -2444,13 +2476,36 @@
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="editUser('dj', '${escapedDjIdentifier}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
-                                <button onclick="deleteUser('dj', '${escapedDjIdentifier}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                                <button onclick="editUser('${userType}', '${escapedUserIdentifier}')" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                                <button onclick="deleteUser('${userType}', '${escapedUserIdentifier}')" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
                             </div>
                         </div>
                     `;
-                });
-            }
+                }).join('');
+            };
+
+            // DJ Users Section
+            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--primary-color);">DJ Users</h4>';
+            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
+            usersHTML += renderUsersWithFullName(djs, 'dj');
+            usersHTML += '</div></div>';
+
+            // Photographer Users Section
+            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--primary-color);">Photographer Users</h4>';
+            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
+            usersHTML += renderUsersWithFullName(photographers, 'photographer');
+            usersHTML += '</div></div>';
+
+            // Videographer Users Section
+            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--primary-color);">Videographer Users</h4>';
+            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
+            usersHTML += renderUsersWithFullName(videographers, 'videographer');
+            usersHTML += '</div></div>';
+
+            // Coordination Users Section
+            usersHTML += '<div style="margin-bottom: 2rem;"><h4 style="margin-bottom: 1rem; color: var(--primary-color);">Coordination Users</h4>';
+            usersHTML += '<div style="display: grid; gap: 0.5rem;">';
+            usersHTML += renderUsersWithFullName(coordinations, 'coordination');
             usersHTML += '</div></div>';
 
             container.innerHTML = usersHTML;
@@ -2458,9 +2513,16 @@
 
         // Helper: Find user by identifier and return the user object
         async function findUserByIdentifier(userType, identifier) {
-            const users = await (userType === 'dj' ? getAllDJs() : getAllAdmins());
+            let users;
+            if (userTypeHasFullName(userType)) {
+                // For user types with firstName/lastName, fetch by type
+                users = await apiGetUsers(userType);
+            } else {
+                // For admin users
+                users = await getAllAdmins();
+            }
             
-            if (userType === 'dj') {
+            if (userTypeHasFullName(userType)) {
                 if (identifier.includes('|')) {
                     const [first, last] = identifier.split('|');
                     return users.find(u => 
@@ -2505,7 +2567,7 @@
                 await apiDeleteUser(user.id);
 
                 // Clear cache
-                if (userType === 'dj') {
+                if (userTypeHasFullName(userType)) {
                     djCache = null;
                     djCacheTime = null;
                 } else {
