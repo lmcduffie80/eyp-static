@@ -19,11 +19,26 @@ export default async function handler(req, res) {
     try {
         if (req.method === 'GET') {
             // Get all reviews
-            const { dj_username } = req.query; // Optional filter by DJ
+            const { dj_username, status, service_type } = req.query; // Optional filters
             
-            let query = sql`SELECT * FROM reviews ORDER BY created_at DESC`;
-            if (dj_username) {
+            let query;
+            // Build query with multiple filters if needed
+            if (dj_username && status && service_type) {
+                query = sql`SELECT * FROM reviews WHERE dj_username = ${dj_username} AND status = ${status} AND service_type = ${service_type} ORDER BY created_at DESC`;
+            } else if (dj_username && status) {
+                query = sql`SELECT * FROM reviews WHERE dj_username = ${dj_username} AND status = ${status} ORDER BY created_at DESC`;
+            } else if (dj_username && service_type) {
+                query = sql`SELECT * FROM reviews WHERE dj_username = ${dj_username} AND service_type = ${service_type} ORDER BY created_at DESC`;
+            } else if (status && service_type) {
+                query = sql`SELECT * FROM reviews WHERE status = ${status} AND service_type = ${service_type} ORDER BY created_at DESC`;
+            } else if (dj_username) {
                 query = sql`SELECT * FROM reviews WHERE dj_username = ${dj_username} ORDER BY created_at DESC`;
+            } else if (status) {
+                query = sql`SELECT * FROM reviews WHERE status = ${status} ORDER BY created_at DESC`;
+            } else if (service_type) {
+                query = sql`SELECT * FROM reviews WHERE service_type = ${service_type} ORDER BY created_at DESC`;
+            } else {
+                query = sql`SELECT * FROM reviews ORDER BY created_at DESC`;
             }
             
             const result = await query;
@@ -38,35 +53,38 @@ export default async function handler(req, res) {
                     comment: row.comment,
                     eventName: row.event_name,
                     eventDate: row.event_date,
+                    serviceType: row.service_type,
+                    status: row.status || 'pending',
                     createdAt: row.created_at
                 }))
             });
 
         } else if (req.method === 'POST') {
-            // Create new review
+            // Create new review (defaults to 'pending' status for approval)
             const {
                 djUsername,
                 clientName,
                 rating,
                 comment,
                 eventName,
-                eventDate
+                eventDate,
+                serviceType
             } = req.body;
 
             // Validation
-            if (!djUsername || !clientName) {
+            if (!clientName || !comment) {
                 return res.status(400).json({
                     success: false,
-                    error: 'Missing required fields: djUsername, clientName'
+                    error: 'Missing required fields: clientName, comment'
                 });
             }
 
             const result = await sql`
                 INSERT INTO reviews (
-                    dj_username, client_name, rating, comment, event_name, event_date
+                    dj_username, client_name, rating, comment, event_name, event_date, service_type, status
                 ) VALUES (
-                    ${djUsername}, ${clientName}, ${rating || null}, ${comment || null},
-                    ${eventName || null}, ${eventDate || null}
+                    ${djUsername || null}, ${clientName}, ${rating || null}, ${comment},
+                    ${eventName || null}, ${eventDate || null}, ${serviceType || null}, 'pending'
                 ) RETURNING *
             `;
 
@@ -81,6 +99,8 @@ export default async function handler(req, res) {
                     comment: review.comment,
                     eventName: review.event_name,
                     eventDate: review.event_date,
+                    serviceType: review.service_type,
+                    status: review.status,
                     createdAt: review.created_at
                 }
             });

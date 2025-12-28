@@ -793,6 +793,11 @@
                         <span>Analytics</span>
                     </a>
                 </li>
+                <li class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" onclick="switchTab('reviews')" id="nav-reviews">
+                        <span>Reviews</span>
+                    </a>
+                </li>
             </ul>
         </nav>
 
@@ -848,6 +853,12 @@
                                 <span>
                                     <span class="hamburger-menu-icon">📊</span>
                                     <span>Analytics</span>
+                                </span>
+                            </a>
+                            <a class="hamburger-menu-item" onclick="switchTab('reviews'); closeHamburgerMenu();" id="hamburger-nav-reviews">
+                                <span>
+                                    <span class="hamburger-menu-icon">⭐</span>
+                                    <span>Reviews</span>
                                 </span>
                             </a>
                         </div>
@@ -1063,6 +1074,26 @@
                     <div id="admin-block-date-content">
                         <!-- Modal content will be populated here -->
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div id="reviews-tab" class="tab-content">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Client Reviews</h2>
+                    <div class="filter-controls" style="margin: 0;">
+                        <select id="review-filter-status" onchange="loadReviews()" style="padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <option value="">All Reviews</option>
+                            <option value="pending">Pending Approval</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="reviews-container">
+                    <!-- Reviews will be displayed here -->
                 </div>
             </div>
         </div>
@@ -1329,6 +1360,26 @@
             await apiRequest(`/api/users/${id}`, { method: 'DELETE' });
         }
         
+        // Reviews API
+        async function apiGetReviews(status = null) {
+            let url = '/api/reviews';
+            if (status) url += `?status=${encodeURIComponent(status)}`;
+            const result = await apiRequest(url);
+            return result.data || [];
+        }
+        
+        async function apiUpdateReviewStatus(id, status) {
+            const result = await apiRequest(`/api/reviews/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: status })
+            });
+            return result.data;
+        }
+        
+        async function apiDeleteReview(id) {
+            await apiRequest(`/api/reviews/${id}`, { method: 'DELETE' });
+        }
+        
         // Blocked Dates API
         async function apiGetBlockedDates(djUser = null) {
             const url = djUser ? `/api/blocked-dates?dj_user=${encodeURIComponent(djUser)}` : '/api/blocked-dates';
@@ -1527,7 +1578,8 @@
                 'bookings': 'nav-bookings',
                 'calendar': 'nav-calendar',
                 'users': 'nav-users',
-                'analytics': 'nav-analytics'
+                'analytics': 'nav-analytics',
+                'reviews': 'nav-reviews'
             };
             
             // Map tab names to hamburger menu IDs
@@ -1536,7 +1588,8 @@
                 'bookings': 'hamburger-nav-bookings',
                 'calendar': 'hamburger-nav-calendar',
                 'users': 'hamburger-nav-users',
-                'analytics': 'hamburger-nav-analytics'
+                'analytics': 'hamburger-nav-analytics',
+                'reviews': 'hamburger-nav-reviews'
             };
             
             const navId = navMap[tabName];
@@ -1579,6 +1632,8 @@
                 await loadAllDJs();
             } else if (tabName === 'analytics') {
                 loadAnalytics();
+            } else if (tabName === 'reviews') {
+                await loadReviews();
             }
         }
 
@@ -4685,6 +4740,144 @@
                     toast.style.display = 'none';
                 }, 300);
             }, 5000);
+        }
+
+        // Reviews Functions
+        async function loadReviews() {
+            const statusFilter = document.getElementById('review-filter-status')?.value || '';
+            const container = document.getElementById('reviews-container');
+            
+            if (!container) return;
+            
+            try {
+                container.innerHTML = '<div class="empty-state"><p>Loading reviews...</p></div>';
+                
+                const filterValue = statusFilter && statusFilter !== '' ? statusFilter : null;
+                const reviews = await apiGetReviews(filterValue);
+                
+                if (!reviews || reviews.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No reviews found.</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = reviews.map(review => {
+                    const escapedClientName = escapeHtml(review.clientName || 'Anonymous');
+                    const escapedComment = escapeHtml(review.comment || '');
+                    const escapedServiceType = escapeHtml(review.serviceType || 'Services');
+                    const escapedDjUsername = review.djUsername ? escapeHtml(review.djUsername) : '';
+                    const escapedEventName = review.eventName ? escapeHtml(review.eventName) : '';
+                    const createdAt = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
+                    const eventDate = review.eventDate ? new Date(review.eventDate).toLocaleDateString() : '';
+                    const rating = review.rating ? '⭐'.repeat(review.rating) : '';
+                    const statusBadge = getReviewStatusBadge(review.status || 'pending');
+                    
+                    return `
+                        <div class="dj-card" style="margin-bottom: 1.5rem;">
+                            <div class="dj-card-header">
+                                <div>
+                                    <div class="dj-name">${escapedClientName}</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.25rem;">
+                                        ${escapedServiceType}${escapedDjUsername ? ' • ' + escapedDjUsername : ''}
+                                    </div>
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <div style="color: var(--text-light); font-size: 0.9rem; margin: 1rem 0;">
+                                <div style="margin-bottom: 0.5rem;">
+                                    ${rating ? `<div style="margin-bottom: 0.5rem; font-size: 1.2rem;">${rating}</div>` : ''}
+                                    <div style="color: var(--text-dark); font-size: 1rem; line-height: 1.6; font-style: italic;">
+                                        "${escapedComment}"
+                                    </div>
+                                </div>
+                                ${escapedEventName ? `<div><strong>Event:</strong> ${escapedEventName}</div>` : ''}
+                                ${eventDate ? `<div><strong>Event Date:</strong> ${eventDate}</div>` : ''}
+                                <div><strong>Submitted:</strong> ${createdAt}</div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                                ${(review.status || 'pending') === 'pending' ? `
+                                    <button onclick="approveReview(${review.id})" style="padding: 0.5rem 1rem; background: var(--success-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                                        Approve
+                                    </button>
+                                    <button onclick="rejectReview(${review.id})" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                                        Reject
+                                    </button>
+                                ` : ''}
+                                ${(review.status || 'pending') === 'approved' ? `
+                                    <button onclick="rejectReview(${review.id})" style="padding: 0.5rem 1rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                                        Reject
+                                    </button>
+                                ` : ''}
+                                ${(review.status || 'pending') === 'rejected' ? `
+                                    <button onclick="approveReview(${review.id})" style="padding: 0.5rem 1rem; background: var(--success-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                                        Approve
+                                    </button>
+                                ` : ''}
+                                <button onclick="deleteReview(${review.id})" style="padding: 0.5rem 1rem; background: var(--text-light); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                container.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">Error loading reviews: ${error.message || 'Unknown error'}</p></div>`;
+            }
+        }
+        
+        function getReviewStatusBadge(status) {
+            const statusMap = {
+                'pending': { text: 'Pending', color: 'var(--warning-color)', bg: '#fff3cd' },
+                'approved': { text: 'Approved', color: 'var(--success-color)', bg: '#d4edda' },
+                'rejected': { text: 'Rejected', color: 'var(--error-color)', bg: '#f8d7da' }
+            };
+            const statusInfo = statusMap[status] || statusMap['pending'];
+            return `<span style="padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold; background: ${statusInfo.bg}; color: ${statusInfo.color};">${statusInfo.text}</span>`;
+        }
+        
+        async function approveReview(id) {
+            if (!confirm('Are you sure you want to approve this review? It will be published on the website.')) {
+                return;
+            }
+            
+            try {
+                await apiUpdateReviewStatus(id, 'approved');
+                showToast('Review approved successfully', 'success');
+                await loadReviews();
+            } catch (error) {
+                console.error('Error approving review:', error);
+                showToast('Failed to approve review. Please try again.', 'error');
+            }
+        }
+        
+        async function rejectReview(id) {
+            if (!confirm('Are you sure you want to reject this review? It will not be published on the website.')) {
+                return;
+            }
+            
+            try {
+                await apiUpdateReviewStatus(id, 'rejected');
+                showToast('Review rejected', 'info');
+                await loadReviews();
+            } catch (error) {
+                console.error('Error rejecting review:', error);
+                showToast('Failed to reject review. Please try again.', 'error');
+            }
+        }
+        
+        async function deleteReview(id) {
+            if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                await apiDeleteReview(id);
+                showToast('Review deleted successfully', 'success');
+                await loadReviews();
+            } catch (error) {
+                console.error('Error deleting review:', error);
+                showToast('Failed to delete review. Please try again.', 'error');
+            }
         }
 
         // Logout

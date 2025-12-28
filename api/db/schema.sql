@@ -39,13 +39,16 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- Reviews table
 CREATE TABLE IF NOT EXISTS reviews (
     id SERIAL PRIMARY KEY,
-    dj_username VARCHAR(255) NOT NULL,
+    dj_username VARCHAR(255),
     client_name VARCHAR(255),
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     event_name VARCHAR(255),
     event_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    service_type VARCHAR(100), -- 'Photography Services', 'Videography Services', 'DJ Entertainment'
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Blocked dates table
@@ -90,6 +93,8 @@ CREATE TABLE IF NOT EXISTS chatbot_messages (
 CREATE INDEX IF NOT EXISTS idx_bookings_dj_user ON bookings(dj_user);
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date);
 CREATE INDEX IF NOT EXISTS idx_reviews_dj_username ON reviews(dj_username);
+CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
+CREATE INDEX IF NOT EXISTS idx_reviews_service_type ON reviews(service_type);
 CREATE INDEX IF NOT EXISTS idx_blocked_dates_dj_user ON blocked_dates(dj_user);
 CREATE INDEX IF NOT EXISTS idx_blocked_dates_date ON blocked_dates(date);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

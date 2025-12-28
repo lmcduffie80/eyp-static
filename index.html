@@ -1443,7 +1443,7 @@
     <section id="testimonials" class="testimonials">
         <div class="container">
             <h2 class="section-title">What Our Clients Say</h2>
-            <div class="testimonials-grid">
+            <div class="testimonials-grid" id="testimonials-container">
                 <!-- Photography Testimonial -->
                 <div class="testimonial-card">
                     <div class="testimonial-content">
@@ -1542,6 +1542,67 @@
                         <p class="testimonial-date">2025</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Submit Review Section -->
+    <section id="submit-review" style="background: var(--bg-light); padding: 4rem 0;">
+        <div class="container">
+            <h2 class="section-title">Share Your Experience</h2>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 2rem;">
+                We'd love to hear about your experience with Externally Yours Productions!
+            </p>
+            <div style="max-width: 700px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);">
+                <form id="review-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-client-name" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Your Name *</label>
+                        <input type="text" id="review-client-name" required style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-service-type" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Service Type *</label>
+                        <select id="review-service-type" required style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
+                            <option value="">Select a service...</option>
+                            <option value="Photography Services">Photography Services</option>
+                            <option value="Videography Services">Videography Services</option>
+                            <option value="DJ Entertainment">DJ Entertainment</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-dj-name" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">DJ Name (Optional)</label>
+                        <input type="text" id="review-dj-name" placeholder="Leave blank if not applicable" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-rating" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Rating (1-5 stars)</label>
+                        <select id="review-rating" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
+                            <option value="">Select rating...</option>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-comment" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Your Review *</label>
+                        <textarea id="review-comment" required rows="5" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Share your experience with us..."></textarea>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-event-name" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Event Name (Optional)</label>
+                        <input type="text" id="review-event-name" placeholder="e.g., John & Jane Wedding" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="review-event-date" style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">Event Date (Optional)</label>
+                        <input type="date" id="review-event-date" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; font-family: inherit;">
+                    </div>
+                    <div id="review-message" style="display: none; padding: 1rem; border-radius: 5px; margin-top: 1rem;"></div>
+                    <button type="submit" style="padding: 1rem 2rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.3s ease;">
+                        Submit Review
+                    </button>
+                    <p style="font-size: 0.85rem; color: var(--text-light); text-align: center; margin-top: 0.5rem;">
+                        * Reviews are subject to approval before being published.
+                    </p>
+                </form>
             </div>
         </div>
     </section>
@@ -2745,6 +2806,146 @@
 
         // Extract testimonials when page loads
         document.addEventListener('DOMContentLoaded', extractTestimonialsFromPage);
+
+        // Load approved reviews from API and add to testimonials
+        async function loadApprovedReviews() {
+            try {
+                const response = await fetch('/api/reviews?status=approved');
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    const testimonialsContainer = document.getElementById('testimonials-container');
+                    if (!testimonialsContainer) return;
+                    
+                    // Get existing hardcoded testimonials count
+                    const existingCount = testimonialsContainer.querySelectorAll('.testimonial-card').length;
+                    
+                    // Add approved reviews to the container
+                    result.data.forEach(review => {
+                        const year = review.eventDate 
+                            ? new Date(review.eventDate).getFullYear() 
+                            : review.createdAt 
+                                ? new Date(review.createdAt).getFullYear() 
+                                : new Date().getFullYear();
+                        
+                        const testimonialCard = document.createElement('div');
+                        testimonialCard.className = 'testimonial-card';
+                        testimonialCard.innerHTML = `
+                            <div class="testimonial-content">
+                                <p class="testimonial-text">"${escapeHtml(review.comment)}"</p>
+                            </div>
+                            <div class="testimonial-service">
+                                <p class="testimonial-service-label">${escapeHtml(review.serviceType || 'Services')}</p>
+                                <p class="testimonial-date">${year}</p>
+                            </div>
+                        `;
+                        
+                        // Insert after existing testimonials
+                        testimonialsContainer.appendChild(testimonialCard);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading approved reviews:', error);
+                // Silently fail - hardcoded testimonials will still show
+            }
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Load approved reviews when page loads
+        document.addEventListener('DOMContentLoaded', loadApprovedReviews);
+
+        // Review Form Submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const reviewForm = document.getElementById('review-form');
+            const reviewMessage = document.getElementById('review-message');
+            
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const clientName = document.getElementById('review-client-name').value.trim();
+                    const serviceType = document.getElementById('review-service-type').value;
+                    const djUsername = document.getElementById('review-dj-name').value.trim() || null;
+                    const rating = document.getElementById('review-rating').value || null;
+                    const comment = document.getElementById('review-comment').value.trim();
+                    const eventName = document.getElementById('review-event-name').value.trim() || null;
+                    const eventDate = document.getElementById('review-event-date').value || null;
+                    
+                    // Validation
+                    if (!clientName || !serviceType || !comment) {
+                        showReviewMessage('Please fill in all required fields.', 'error');
+                        return;
+                    }
+                    
+                    // Disable submit button
+                    const submitButton = reviewForm.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.textContent;
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Submitting...';
+                    
+                    try {
+                        const response = await fetch('/api/reviews', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                clientName: clientName,
+                                serviceType: serviceType,
+                                djUsername: djUsername,
+                                rating: rating ? parseInt(rating) : null,
+                                comment: comment,
+                                eventName: eventName,
+                                eventDate: eventDate
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showReviewMessage('Thank you for your review! It has been submitted and will be reviewed before being published.', 'success');
+                            reviewForm.reset();
+                        } else {
+                            showReviewMessage(result.error || 'Failed to submit review. Please try again.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error submitting review:', error);
+                        showReviewMessage('An error occurred while submitting your review. Please try again later.', 'error');
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalButtonText;
+                    }
+                });
+            }
+            
+            function showReviewMessage(message, type) {
+                if (!reviewMessage) return;
+                reviewMessage.textContent = message;
+                reviewMessage.style.display = 'block';
+                reviewMessage.style.padding = '1rem';
+                reviewMessage.style.borderRadius = '5px';
+                reviewMessage.style.marginTop = '1rem';
+                if (type === 'success') {
+                    reviewMessage.style.background = '#d4edda';
+                    reviewMessage.style.color = '#155724';
+                    reviewMessage.style.border = '1px solid #c3e6cb';
+                } else {
+                    reviewMessage.style.background = '#f8d7da';
+                    reviewMessage.style.color = '#721c24';
+                    reviewMessage.style.border = '1px solid #f5c6cb';
+                }
+                
+                // Scroll to message
+                reviewMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
 
         // Available Dates Calendar
         let calendarMonth = new Date().getMonth();
