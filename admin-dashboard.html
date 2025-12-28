@@ -3721,14 +3721,14 @@
                         }
                     }
                     
-                    // Skip first 5 data rows, start processing at row 6 (0-indexed: row 0 is header, rows 1-5 are skipped)
-                    const startRow = 6;
+                    // Start processing from row 1 (row 0 is the header)
+                    const startRow = 1;
                     
-                    // Validate that the date column actually looks like it contains dates by checking first few data rows (starting at row 6)
+                    // Validate that the date column actually looks like it contains dates by checking first few data rows
                     let dateColumnValid = false;
                     let sampleDateValue = '';
                     
-                    // Only validate if we have enough rows after skipping
+                    // Only validate if we have enough rows
                     if (lines.length > startRow && dateIndex !== -1) {
                         for (let i = startRow; i < Math.min(startRow + 10, lines.length); i++) {
                             const testValues = parseRow(lines[i]);
@@ -3754,11 +3754,11 @@
                     
                     if (!dateColumnValid && sampleDateValue) {
                         const dateHeaderName = headerValues[dateIndex] || 'Date of Project';
-                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${dateHeaderName}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers and that row 6 (after skipping first 5 rows) contains valid date data. Expected columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout`, 'error');
+                        showCSVMessage(`The Date column (column ${dateIndex + 1}: "${dateHeaderName}") doesn't contain valid date values. Sample value found: "${sampleDateValue}". Please check that your CSV has the correct column headers and that row 2 contains valid date data. Expected columns: Data (Date), DJ, Project, Location, Payment, CC Payment 6%, DJ Payout`, 'error');
                         return;
                     }
                     
-                    // Parse data rows (skip first 5 data rows, start at row 6)
+                    // Parse data rows starting from row 1 (row 0 is header)
                     // Note: We will replace all existing bookings with the new CSV data
                     const newBookings = [];
                     let importedCount = 0;
@@ -3767,15 +3767,9 @@
                         notEnoughColumns: 0,
                         missingFields: 0,
                         invalidDate: 0,
-                        duplicate: 0,
-                        skippedRows: 0
+                        duplicate: 0
                     };
                     const invalidDateExamples = []; // Store examples of invalid dates
-                    
-                    // Skip first 5 data rows
-                    if (lines.length > startRow) {
-                        skipReasons.skippedRows = startRow - 1; // Rows 1-5 are skipped (row 0 is header)
-                    }
                     
                     for (let i = startRow; i < lines.length; i++) {
                         const values = parseRow(lines[i]);
@@ -3958,7 +3952,6 @@
                         
                         // Build detailed error message
                         let errorDetails = [];
-                        if (skipReasons.skippedRows > 0) errorDetails.push(`${skipReasons.skippedRows} row(s) skipped (first 5 data rows)`);
                         if (skipReasons.notEnoughColumns > 0) errorDetails.push(`${skipReasons.notEnoughColumns} row(s) with not enough columns`);
                         if (skipReasons.missingFields > 0) errorDetails.push(`${skipReasons.missingFields} row(s) with missing required fields`);
                         if (skipReasons.invalidDate > 0) errorDetails.push(`${skipReasons.invalidDate} row(s) with invalid date format`);
