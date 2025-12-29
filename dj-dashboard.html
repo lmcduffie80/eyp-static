@@ -3155,10 +3155,15 @@
                             ${safePhone ? `<div><strong>Phone:</strong> ${safePhone}</div>` : ''}
                             ${safeNotes ? `
                                 <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #e0e0e0;">
-                                    <button onclick="toggleBookingDetailsNotes('${dateStr}', ${booking.id})" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600; font-size: 0.95rem; padding: 0; text-decoration: underline; display: flex; align-items: center; gap: 0.5rem;">
-                                        <span id="details-notes-toggle-icon-${booking.id}" style="transition: transform 0.2s;">▼</span>
-                                        <span>View Event Details & Notes</span>
-                                    </button>
+                                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                        <button onclick="toggleBookingDetailsNotes('${dateStr}', ${booking.id})" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600; font-size: 0.95rem; padding: 0; text-decoration: underline; display: flex; align-items: center; gap: 0.5rem;">
+                                            <span id="details-notes-toggle-icon-${booking.id}" style="transition: transform 0.2s;">▼</span>
+                                            <span>View Event Details & Notes</span>
+                                        </button>
+                                        <button onclick="printBookingDetailsNotesAsPDF('${safeClientName.replace(/'/g, "\\'")}', '${escapeHtml(formattedDate).replace(/'/g, "\\'")}', '${safeEventType.replace(/'/g, "\\'")}', '${safeNotes.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background: var(--info-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.3rem; font-weight: 500;">
+                                            📄 PDF
+                                        </button>
+                                    </div>
                                     <div id="booking-details-notes-${booking.id}" style="display: none; margin-top: 0.5rem;">
                                         <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 0.75rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.9rem;">${safeNotes}</div>
                                     </div>
@@ -3177,6 +3182,189 @@
             const modal = document.getElementById('booking-details-modal');
             if (modal) {
                 modal.style.display = 'none';
+            }
+        }
+
+        // Toggle booking notes visibility in booking cards
+        function toggleBookingNotes(bookingId) {
+            const notesContainer = document.getElementById(`booking-notes-${bookingId}`);
+            const toggleIcon = document.getElementById(`notes-toggle-icon-${bookingId}`);
+            
+            if (!notesContainer || !toggleIcon) return;
+            
+            const isHidden = notesContainer.style.display === 'none';
+            
+            if (isHidden) {
+                notesContainer.style.display = 'block';
+                toggleIcon.textContent = '▲';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            } else {
+                notesContainer.style.display = 'none';
+                toggleIcon.textContent = '▼';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Toggle booking details notes visibility in modal
+        function toggleBookingDetailsNotes(dateStr, bookingId) {
+            const notesContainer = document.getElementById(`booking-details-notes-${bookingId}`);
+            const toggleIcon = document.getElementById(`details-notes-toggle-icon-${bookingId}`);
+            
+            if (!notesContainer || !toggleIcon) return;
+            
+            const isHidden = notesContainer.style.display === 'none';
+            
+            if (isHidden) {
+                notesContainer.style.display = 'block';
+                toggleIcon.textContent = '▲';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            } else {
+                notesContainer.style.display = 'none';
+                toggleIcon.textContent = '▼';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Print Booking Notes as PDF (from booking cards)
+        function printBookingNotesAsPDF(bookingId, clientName, date, eventType) {
+            const notesContainer = document.getElementById(`booking-notes-${bookingId}`);
+            if (!notesContainer) return;
+            
+            const notesText = notesContainer.querySelector('div')?.textContent || '';
+            printNotesAsPDF(clientName, date, eventType, notesText);
+        }
+
+        // Print Booking Details Notes as PDF (from modal)
+        function printBookingDetailsNotesAsPDF(clientName, date, eventType, notes) {
+            // Decode the escaped notes
+            const notesText = notes.replace(/\\n/g, '\n').replace(/\\'/g, "'");
+            printNotesAsPDF(clientName, date, eventType, notesText);
+        }
+
+        // Common function to generate PDF from notes
+        function printNotesAsPDF(clientName, date, eventType, notes) {
+            // Create HTML content for PDF
+            const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${escapeHtml(eventType)} - Event Notes</title>
+    <style>
+        @media print {
+            @page {
+                margin: 1in;
+                size: letter;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            border-bottom: 3px solid #ff6b35;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #1a1a1a;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        .header-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            color: #1a1a1a;
+        }
+        .notes-content {
+            background: #f8f8f8;
+            padding: 30px;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b35;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${escapeHtml(eventType)}</h1>
+        <div class="header-info">
+            <div class="info-item">
+                <div class="info-label">Client</div>
+                <div class="info-value">${escapeHtml(clientName)}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Date</div>
+                <div class="info-value">${escapeHtml(date)}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <h2 style="color: #1a1a1a; margin-bottom: 15px; font-size: 20px;">Event Details & Notes</h2>
+        <div class="notes-content">${notes ? escapeHtml(notes) : 'No notes available.'}</div>
+    </div>
+    
+    <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p>Externally Yours Productions, LLC</p>
+    </div>
+</body>
+</html>
+            `;
+            
+            // Open popup window with content
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (printWindow) {
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+                
+                // Wait for content to load, then trigger print dialog
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 250);
+                };
+            } else {
+                alert('Please allow popups to print notes as PDF.');
             }
         }
 
@@ -3561,10 +3749,15 @@
                         </div>
                         ${safeNotes ? `
                             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-                                <button onclick="toggleBookingNotes(${booking.id})" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600; font-size: 1rem; padding: 0; text-decoration: underline; display: flex; align-items: center; gap: 0.5rem;">
-                                    <span id="notes-toggle-icon-${booking.id}" style="transition: transform 0.2s;">▼</span>
-                                    <span>View Event Details & Notes</span>
-                                </button>
+                                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                    <button onclick="toggleBookingNotes(${booking.id})" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600; font-size: 1rem; padding: 0; text-decoration: underline; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span id="notes-toggle-icon-${booking.id}" style="transition: transform 0.2s;">▼</span>
+                                        <span>View Event Details & Notes</span>
+                                    </button>
+                                    <button onclick="printBookingNotesAsPDF(${booking.id}, '${safeClientName.replace(/'/g, "\\'")}', '${escapeHtml(formattedDate).replace(/'/g, "\\'")}', '${safeEventType.replace(/'/g, "\\'")}')" style="background: var(--info-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.3rem; font-weight: 500;">
+                                        📄 PDF
+                                    </button>
+                                </div>
                                 <div id="booking-notes-${booking.id}" style="display: none; margin-top: 0.75rem;">
                                     <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 1rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.95rem;">${safeNotes}</div>
                                 </div>
