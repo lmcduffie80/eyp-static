@@ -449,6 +449,14 @@
                         firstName: 'Stephen',
                         lastName: 'Kena',
                         createdAt: new Date().toISOString()
+                    },
+                    {
+                        username: 'misty',
+                        email: 'mistymcduffie@yahoo.com',
+                        password: 'admin123', // In production, this should be hashed!
+                        firstName: 'Misty',
+                        lastName: 'McDuffie',
+                        createdAt: new Date().toISOString()
                     }
                 ];
                 
@@ -517,7 +525,8 @@
                         { username: 'admin', email: 'admin@externallyyours.com', password: 'admin123', firstName: 'Admin', lastName: 'User', createdAt: new Date().toISOString() },
                         { username: 'Will Luke', email: 'will@externallyyoursproductions.com', password: 'admin123', firstName: 'Will', lastName: 'Luke', createdAt: new Date().toISOString() },
                         { username: 'Gavin McDuffie', email: 'gavin@externallyyoursproductions.com', password: 'admin123', firstName: 'Gavin', lastName: 'McDuffie', createdAt: new Date().toISOString() },
-                        { username: 'Stephen Kena', email: 'stephen@externallyyoursproductions.com', password: 'admin123', firstName: 'Stephen', lastName: 'Kena', createdAt: new Date().toISOString() }
+                        { username: 'Stephen Kena', email: 'stephen@externallyyoursproductions.com', password: 'admin123', firstName: 'Stephen', lastName: 'Kena', createdAt: new Date().toISOString() },
+                        { username: 'misty', email: 'mistymcduffie@yahoo.com', password: 'admin123', firstName: 'Misty', lastName: 'McDuffie', createdAt: new Date().toISOString() }
                     ];
                     localStorage.setItem('dj_users', JSON.stringify(fallbackUsers));
                     console.log('Fallback: Initialized default users with minimal data');
