@@ -2996,19 +2996,25 @@
                 const blockedDatesSet = new Set();
                 const bookingsSet = new Set();
 
-                // Get approved blocked dates
+                // Get admin-approved blocked dates only for DJ-Admin (exclude all other DJs)
                 if (blockedDatesResponse && blockedDatesResponse.ok) {
                     try {
                         const blockedDatesResult = await blockedDatesResponse.json();
                         if (blockedDatesResult.success && blockedDatesResult.data) {
                             blockedDatesResult.data.forEach(bd => {
-                                if ((bd.status || 'approved') === 'approved' && bd.date) {
-                                    // Normalize date to YYYY-MM-DD
-                                    let dateStr = bd.date;
-                                    if (dateStr.includes('T')) {
-                                        dateStr = dateStr.split('T')[0];
+                                // Only include admin-approved blocked dates with status 'approved'
+                                // Only show blocked dates where djUser is "DJ-Admin" (case-insensitive)
+                                if (bd.status === 'approved' && bd.date) {
+                                    const djUser = (bd.djUser || '').trim();
+                                    // Only include blocked dates for DJ-Admin
+                                    if (djUser.toLowerCase() === 'dj-admin' || djUser.toLowerCase().includes('dj-admin')) {
+                                        // Normalize date to YYYY-MM-DD
+                                        let dateStr = bd.date;
+                                        if (dateStr.includes('T')) {
+                                            dateStr = dateStr.split('T')[0];
+                                        }
+                                        blockedDatesSet.add(dateStr);
                                     }
-                                    blockedDatesSet.add(dateStr);
                                 }
                             });
                         }
@@ -3017,7 +3023,7 @@
                     }
                 }
 
-                // Get booking dates
+                // Get booking dates (events)
                 if (bookingsResponse && bookingsResponse.ok) {
                     try {
                         const bookingsResult = await bookingsResponse.json();
@@ -3108,13 +3114,13 @@
                 const hasBooking = bookingDates.has(dateStr);
                 const isUnavailable = isBlocked || hasBooking;
 
+                // Only show blacked out dates for events and admin approved blackout dates
                 if (isToday) {
                     dayClass += ' today';
                 } else if (isUnavailable) {
                     dayClass += ' blocked';
-                } else {
-                    dayClass += ' available';
                 }
+                // Available dates don't get a special class - they appear as normal calendar days
 
                 html += `<div class="${dayClass}">${day}</div>`;
             }
@@ -3130,12 +3136,8 @@
                 </div>
                 <div class="calendar-legend">
                     <div class="legend-item">
-                        <div class="legend-color available"></div>
-                        <span>Available</span>
-                    </div>
-                    <div class="legend-item">
                         <div class="legend-color blocked"></div>
-                        <span>Unavailable (Booked/Blocked)</span>
+                        <span>Unavailable (Events/Blocked Dates)</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color today"></div>
