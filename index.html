@@ -2948,7 +2948,7 @@
         let bookingDates = new Set();
         let datesCache = null;
         let datesCacheTime = null;
-        const DATES_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+        const DATES_CACHE_DURATION = 1 * 60 * 1000; // 1 minute cache (reduced for debugging)
         const API_TIMEOUT = 8000; // 8 second timeout
 
         // Fetch with timeout
@@ -3006,16 +3006,20 @@
                                 // ONLY show blocked dates where djUser is "DJ-Admin" or "DJ: Admin" (case-insensitive, handles space/hyphen/colon variations)
                                 // EXCLUDE all other DJs (Gavin, Stephen, Will, etc.)
                                 if (bd.status === 'approved' && bd.date) {
-                                    const djUser = (bd.djUser || '').trim().toLowerCase();
+                                    const djUser = (bd.djUser || '').trim();
+                                    const djUserLower = djUser.toLowerCase();
                                     // Normalize spaces, hyphens, and colons for comparison
-                                    // Handles "dj-admin", "dj admin", "dj: admin", "DJ-Admin", "DJ: Admin", etc.
-                                    const normalizedDJUser = djUser
+                                    // Handles "dj-admin", "dj admin", "dj: admin", "DJ-Admin", "DJ: Admin", "admin", etc.
+                                    const normalizedDJUser = djUserLower
                                         .replace(/[:]+/g, '-')  // Replace colons with hyphens
                                         .replace(/\s+/g, '-')   // Replace spaces with hyphens
                                         .replace(/-+/g, '-');   // Normalize multiple hyphens to single hyphen
                                     
-                                    // Only include if djUser matches "dj-admin" (handles all variations)
-                                    if (normalizedDJUser === 'dj-admin') {
+                                    // Include if djUser matches "dj-admin" or just "admin" (handles all variations)
+                                    // This covers "DJ-Admin", "DJ: Admin", "DJ Admin", "Admin", etc.
+                                    const isAdminBlocked = normalizedDJUser === 'dj-admin' || normalizedDJUser === 'admin';
+                                    if (isAdminBlocked) {
+                                        console.log('Including blocked date:', bd.date, 'for djUser:', djUser, 'normalized:', normalizedDJUser);
                                         // Normalize date to YYYY-MM-DD format (calendar uses this format)
                                         let dateStr = bd.date;
                                         
@@ -3044,10 +3048,16 @@
                                                     const day = String(dateObj.getDate()).padStart(2, '0');
                                                     dateStr = `${year}-${month}-${day}`;
                                                     blockedDatesSet.add(dateStr);
+                                                    console.log('Added blocked date to set:', dateStr);
                                                 }
                                             } catch (e) {
                                                 console.warn('Error parsing blocked date:', bd.date, e);
                                             }
+                                        }
+                                    } else {
+                                        // Debug: log excluded blocked dates
+                                        if (bd.date === '2026-02-14' || bd.date === '02-14-2026' || bd.date.includes('2026-02-14') || bd.date.includes('02-14-2026')) {
+                                            console.log('Excluded blocked date:', bd.date, 'djUser:', djUser, 'normalized:', normalizedDJUser, 'status:', bd.status);
                                         }
                                     }
                                     // All other djUser values (Gavin, Stephen, Will, etc.) are excluded
