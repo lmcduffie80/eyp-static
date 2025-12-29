@@ -3155,8 +3155,13 @@
                             ${safePhone ? `<div><strong>Phone:</strong> ${safePhone}</div>` : ''}
                             ${safeNotes ? `
                                 <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #e0e0e0;">
-                                    <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">Event Details & Notes:</div>
-                                    <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 0.75rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.9rem;">${safeNotes}</div>
+                                    <button onclick="toggleBookingDetailsNotes('${dateStr}', ${booking.id})" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600; font-size: 0.95rem; padding: 0; text-decoration: underline; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span id="details-notes-toggle-icon-${booking.id}" style="transition: transform 0.2s;">▼</span>
+                                        <span>View Event Details & Notes</span>
+                                    </button>
+                                    <div id="booking-details-notes-${booking.id}" style="display: none; margin-top: 0.5rem;">
+                                        <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 0.75rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.9rem;">${safeNotes}</div>
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
@@ -3556,8 +3561,13 @@
                         </div>
                         ${safeNotes ? `
                             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-                                <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1.1rem;">Event Details & Notes:</div>
-                                <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 1rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.95rem;">${safeNotes}</div>
+                                <button onclick="toggleBookingNotes(${booking.id})" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600; font-size: 1rem; padding: 0; text-decoration: underline; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span id="notes-toggle-icon-${booking.id}" style="transition: transform 0.2s;">▼</span>
+                                    <span>View Event Details & Notes</span>
+                                </button>
+                                <div id="booking-notes-${booking.id}" style="display: none; margin-top: 0.75rem;">
+                                    <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 1rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.95rem;">${safeNotes}</div>
+                                </div>
                             </div>
                         ` : ''}
                     </div>

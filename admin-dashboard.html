@@ -4120,22 +4120,21 @@
                     <tr>
                         <td>${escapeHtml(formattedDate)}</td>
                         <td>${escapeHtml(booking.djUser || 'Unassigned')}</td>
-                        <td>
-                            <span onclick="openProjectNotesModal(${booking.id})" 
-                                  style="color: var(--accent-color); cursor: pointer; text-decoration: underline; font-weight: 500;" 
-                                  title="Click to view/edit project notes">
-                                ${escapedEventType}
-                            </span>
-                            ${booking.notes ? '<span style="margin-left: 0.5rem; color: var(--success-color); font-size: 1.2rem;" title="Notes available">📝</span>' : ''}
-                        </td>
+                        <td>${escapedEventType}</td>
                         <td>${escapeHtml(booking.location || '')}</td>
                         <td>${escapeHtml(formattedPayment)}</td>
                         <td>${escapeHtml(formattedCCPayment)}</td>
                         <td>${escapeHtml(formattedPayout)}</td>
                         <td>
-                            <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
-                                Delete
-                            </button>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button onclick="openProjectNotesModal(${booking.id})" style="padding: 0.4rem 0.8rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;" title="Add or edit project notes">
+                                    ${booking.notes ? '📝' : ''}
+                                    <span>${booking.notes ? 'Edit Notes' : 'Add Notes'}</span>
+                                </button>
+                                <button onclick="deleteProject(${booking.id})" class="btn-delete" style="padding: 0.4rem 0.8rem; background: var(--error-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" title="Delete project">
+                                    Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
