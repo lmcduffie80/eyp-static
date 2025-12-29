@@ -22,6 +22,35 @@ export default async function handler(req, res) {
             // Get all bookings
             const { dj_user } = req.query; // Optional filter by DJ
             
+            // First, get all DJ users to normalize DJ names in bookings
+            const djUsersResult = await sql`SELECT id, username, first_name, last_name FROM users WHERE user_type = 'dj'`;
+            const djUsers = djUsersResult.rows;
+            
+            // Create a map for quick lookup: map any variation of DJ name to normalized name
+            const djNameMap = new Map();
+            djUsers.forEach(dj => {
+                const normalizedName = (dj.first_name && dj.last_name) 
+                    ? `${dj.first_name} ${dj.last_name}` 
+                    : dj.username;
+                
+                // Map all possible variations to the normalized name
+                if (dj.first_name && dj.last_name) {
+                    djNameMap.set(`${dj.first_name} ${dj.last_name}`.toLowerCase(), normalizedName);
+                    djNameMap.set(`${dj.last_name} ${dj.first_name}`.toLowerCase(), normalizedName);
+                }
+                if (dj.first_name) {
+                    djNameMap.set(dj.first_name.toLowerCase(), normalizedName);
+                }
+                if (dj.last_name) {
+                    djNameMap.set(dj.last_name.toLowerCase(), normalizedName);
+                }
+                if (dj.username) {
+                    djNameMap.set(dj.username.toLowerCase(), normalizedName);
+                }
+                // Also map the normalized name itself (case-insensitive)
+                djNameMap.set(normalizedName.toLowerCase(), normalizedName);
+            });
+            
             let query = sql`SELECT * FROM bookings ORDER BY date DESC`;
             if (dj_user) {
                 query = sql`SELECT * FROM bookings WHERE dj_user = ${dj_user} ORDER BY date DESC`;
@@ -31,21 +60,32 @@ export default async function handler(req, res) {
             
             return res.status(200).json({
                 success: true,
-                data: result.rows.map(row => ({
-                    id: row.id,
-                    djUser: row.dj_user,
-                    clientName: row.client_name,
-                    eventType: row.event_type,
-                    date: row.date,
-                    time: row.time,
-                    location: row.location,
-                    contactEmail: row.contact_email,
-                    contactPhone: row.contact_phone,
-                    notes: row.notes,
-                    totalRevenue: row.total_revenue ? parseFloat(row.total_revenue) : null,
-                    ccPayment: row.cc_payment ? parseFloat(row.cc_payment) : null,
-                    payout: row.payout ? parseFloat(row.payout) : null
-                }))
+                data: result.rows.map(row => {
+                    // Normalize the DJ name
+                    let normalizedDjUser = row.dj_user;
+                    if (row.dj_user) {
+                        const djUserLower = row.dj_user.toLowerCase().trim();
+                        if (djNameMap.has(djUserLower)) {
+                            normalizedDjUser = djNameMap.get(djUserLower);
+                        }
+                    }
+                    
+                    return {
+                        id: row.id,
+                        djUser: normalizedDjUser,
+                        clientName: row.client_name,
+                        eventType: row.event_type,
+                        date: row.date,
+                        time: row.time,
+                        location: row.location,
+                        contactEmail: row.contact_email,
+                        contactPhone: row.contact_phone,
+                        notes: row.notes,
+                        totalRevenue: row.total_revenue ? parseFloat(row.total_revenue) : null,
+                        ccPayment: row.cc_payment ? parseFloat(row.cc_payment) : null,
+                        payout: row.payout ? parseFloat(row.payout) : null
+                    };
+                })
             });
 
         } else if (req.method === 'POST') {
