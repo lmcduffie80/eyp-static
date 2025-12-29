@@ -1075,6 +1075,9 @@
                 </div>
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid #e0e0e0; padding-top: 1.5rem;">
                     <button onclick="closeProjectNotesModal()" style="padding: 0.75rem 1.5rem; background: var(--text-light); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Cancel</button>
+                    <button onclick="printProjectNotesAsPDF()" style="padding: 0.75rem 1.5rem; background: var(--info-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
+                        📄 Print/Save as PDF
+                    </button>
                     <button onclick="saveProjectNotes()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Save Notes</button>
                 </div>
             </div>
@@ -3066,6 +3069,138 @@
             } catch (error) {
                 console.error('Error saving project notes:', error);
                 showToast('Failed to save notes. Please try again.', 'error');
+            }
+        }
+
+        // Print/Save Project Notes as PDF
+        function printProjectNotesAsPDF() {
+            const projectName = document.getElementById('project-notes-project-name')?.textContent || 'Project';
+            const date = document.getElementById('project-notes-date')?.textContent || '';
+            const dj = document.getElementById('project-notes-dj')?.textContent || '';
+            const notes = document.getElementById('project-notes-textarea')?.value || '';
+            
+            // Create HTML content for PDF
+            const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${escapeHtml(projectName)} - Event Notes</title>
+    <style>
+        @media print {
+            @page {
+                margin: 1in;
+                size: letter;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            border-bottom: 3px solid #ff6b35;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #1a1a1a;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        .header-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            color: #1a1a1a;
+        }
+        .notes-content {
+            background: #f8f8f8;
+            padding: 30px;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b35;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${escapeHtml(projectName)}</h1>
+        <div class="header-info">
+            <div class="info-item">
+                <div class="info-label">Date</div>
+                <div class="info-value">${escapeHtml(date)}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">DJ</div>
+                <div class="info-value">${escapeHtml(dj)}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <h2 style="color: #1a1a1a; margin-bottom: 15px; font-size: 20px;">Event Details & Notes</h2>
+        <div class="notes-content">${notes ? escapeHtml(notes) : 'No notes available.'}</div>
+    </div>
+    
+    <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p>Externally Yours Productions, LLC</p>
+    </div>
+</body>
+</html>
+            `;
+            
+            // Open popup window with content
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (printWindow) {
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+                
+                // Wait for content to load, then trigger print dialog
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 250);
+                };
+            } else {
+                alert('Please allow popups to print notes as PDF.');
             }
         }
 
