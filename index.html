@@ -3003,14 +3003,18 @@
                         if (blockedDatesResult.success && blockedDatesResult.data) {
                             blockedDatesResult.data.forEach(bd => {
                                 // Only include admin-approved blocked dates with status 'approved'
-                                // ONLY show blocked dates where djUser is "DJ-Admin" (case-insensitive, handles space/hyphen variations)
+                                // ONLY show blocked dates where djUser is "DJ-Admin" or "DJ: Admin" (case-insensitive, handles space/hyphen/colon variations)
                                 // EXCLUDE all other DJs (Gavin, Stephen, Will, etc.)
                                 if (bd.status === 'approved' && bd.date) {
                                     const djUser = (bd.djUser || '').trim().toLowerCase();
-                                    // Normalize spaces and hyphens for comparison (handles "dj-admin", "dj admin", "DJ-Admin", etc.)
-                                    const normalizedDJUser = djUser.replace(/\s+/g, '-').replace(/-+/g, '-');
+                                    // Normalize spaces, hyphens, and colons for comparison
+                                    // Handles "dj-admin", "dj admin", "dj: admin", "DJ-Admin", "DJ: Admin", etc.
+                                    const normalizedDJUser = djUser
+                                        .replace(/[:]+/g, '-')  // Replace colons with hyphens
+                                        .replace(/\s+/g, '-')   // Replace spaces with hyphens
+                                        .replace(/-+/g, '-');   // Normalize multiple hyphens to single hyphen
                                     
-                                    // Only include if djUser matches "dj-admin" (handles variations with spaces/hyphens)
+                                    // Only include if djUser matches "dj-admin" (handles all variations)
                                     if (normalizedDJUser === 'dj-admin') {
                                         // Normalize date to YYYY-MM-DD
                                         let dateStr = bd.date;
