@@ -35,8 +35,17 @@ export default async function handler(req, res) {
                 
                 // Map all possible variations to the normalized name
                 if (dj.first_name && dj.last_name) {
-                    djNameMap.set(`${dj.first_name} ${dj.last_name}`.toLowerCase(), normalizedName);
+                    const fullName = `${dj.first_name} ${dj.last_name}`;
+                    djNameMap.set(fullName.toLowerCase(), normalizedName);
                     djNameMap.set(`${dj.last_name} ${dj.first_name}`.toLowerCase(), normalizedName);
+                    // Also add partial variations like "Lee McD" -> "Lee McDuffie"
+                    // Map first name + partial last name
+                    if (dj.last_name.length >= 3) {
+                        for (let i = 3; i <= dj.last_name.length; i++) {
+                            const partialLast = dj.last_name.substring(0, i);
+                            djNameMap.set(`${dj.first_name} ${partialLast}`.toLowerCase(), normalizedName);
+                        }
+                    }
                 }
                 if (dj.first_name) {
                     djNameMap.set(dj.first_name.toLowerCase(), normalizedName);
@@ -65,8 +74,17 @@ export default async function handler(req, res) {
                     let normalizedDjUser = row.dj_user;
                     if (row.dj_user) {
                         const djUserLower = row.dj_user.toLowerCase().trim();
+                        // Try exact match first
                         if (djNameMap.has(djUserLower)) {
                             normalizedDjUser = djNameMap.get(djUserLower);
+                        } else {
+                            // Try partial matching - find if any key in the map starts with or contains this name
+                            for (const [key, value] of djNameMap.entries()) {
+                                if (djUserLower === key || key.startsWith(djUserLower) || djUserLower.startsWith(key)) {
+                                    normalizedDjUser = value;
+                                    break;
+                                }
+                            }
                         }
                     }
                     

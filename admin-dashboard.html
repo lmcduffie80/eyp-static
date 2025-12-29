@@ -3325,16 +3325,40 @@
                         });
                     }
                     
-                    // If still no match, try matching by first name using DJ users list
+                    // If still no match, try matching by first name or partial name using DJ users list
                     if (!match) {
                         const matchingDJ = allDJs.find(dj => {
-                            if (dj.firstName && dj.firstName.toLowerCase() === djNameLower) {
-                                // Found by first name, now find the normalized name in bookings
-                                const normalizedName = (dj.firstName && dj.lastName) 
-                                    ? `${dj.firstName} ${dj.lastName}` 
-                                    : dj.username;
-                                return uniqueDJs.includes(normalizedName);
+                            if (!dj.firstName) return false;
+                            const firstNameLower = dj.firstName.toLowerCase();
+                            const lastNameLower = dj.lastName ? dj.lastName.toLowerCase() : '';
+                            
+                            // Try matching by first name
+                            if (firstNameLower === djNameLower) {
+                                return true;
                             }
+                            
+                            // Try matching if provided name starts with first name and contains partial last name
+                            // e.g., "Lee McD" should match "Lee McDuffie"
+                            if (dj.firstName && dj.lastName) {
+                                const fullNameLower = `${firstNameLower} ${lastNameLower}`;
+                                // Check if provided name is a prefix of the full name
+                                if (fullNameLower.startsWith(djNameLower) || djNameLower.startsWith(firstNameLower + ' ')) {
+                                    return true;
+                                }
+                                // Check if provided name matches first name + partial last name (3+ chars)
+                                if (djNameLower.startsWith(firstNameLower + ' ')) {
+                                    const providedSuffix = djNameLower.substring(firstNameLower.length + 1);
+                                    if (providedSuffix && lastNameLower.startsWith(providedSuffix) && providedSuffix.length >= 3) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            
+                            // Try matching if first name is contained in provided name or vice versa
+                            if (djNameLower.includes(firstNameLower) || firstNameLower.includes(djNameLower)) {
+                                return true;
+                            }
+                            
                             return false;
                         });
                         
