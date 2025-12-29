@@ -2780,6 +2780,16 @@
                     getAllBookings(),
                     getAllBlockedDates()
                 ]);
+                
+                // Debug: Log DJs and bookings to help troubleshoot
+                console.log('Loaded DJs:', djs.map(d => ({ 
+                    id: d.id, 
+                    name: `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.username,
+                    username: d.username 
+                })));
+                console.log('Total bookings:', bookings.length);
+                console.log('Unique DJ names in bookings:', [...new Set(bookings.map(b => b.djUser).filter(Boolean))]);
+                
                 await loadAllDJsWithData(djs, bookings, blockedDates);
             } catch (error) {
                 console.error('Error loading DJs:', error);
@@ -2809,6 +2819,16 @@
                 if (dj.firstName && dj.lastName) {
                     nameVariations.add(`${dj.firstName} ${dj.lastName}`.toLowerCase());
                     nameVariations.add(`${dj.lastName} ${dj.firstName}`.toLowerCase()); // Reverse order
+                }
+                
+                // Debug logging for Lee and Misty
+                if (djDisplayName.toLowerCase().includes('lee') || djDisplayName.toLowerCase().includes('misty')) {
+                    console.log(`Matching bookings for ${djDisplayName}:`, {
+                        nameVariations: Array.from(nameVariations),
+                        firstName: dj.firstName,
+                        lastName: dj.lastName,
+                        username: dj.username
+                    });
                 }
                 
                 // Match bookings to this DJ - case-insensitive matching with smart name matching
@@ -2843,18 +2863,31 @@
                             
                             // Only match if no other DJ has the same first name, or if booking also contains the last name
                             if (!otherDJWithSameFirstName || bookingDJLower.includes(djLastNameLower)) {
+                                // Debug for Lee and Misty
+                                if (djDisplayName.toLowerCase().includes('lee') || djDisplayName.toLowerCase().includes('misty')) {
+                                    console.log(`Matched booking "${bookingDJ}" to ${djDisplayName} (first name only, no conflict)`);
+                                }
                                 return true;
                             }
                         }
                         
                         // Match if booking DJ contains both first and last name (even if in different order)
                         if (bookingDJLower.includes(djFirstNameLower) && bookingDJLower.includes(djLastNameLower)) {
+                            // Debug for Lee and Misty
+                            if (djDisplayName.toLowerCase().includes('lee') || djDisplayName.toLowerCase().includes('misty')) {
+                                console.log(`Matched booking "${bookingDJ}" to ${djDisplayName} (contains both names)`);
+                            }
                             return true;
                         }
                     }
                     
                     return false;
                 });
+                
+                // Debug logging for Lee and Misty
+                if (djDisplayName.toLowerCase().includes('lee') || djDisplayName.toLowerCase().includes('misty')) {
+                    console.log(`${djDisplayName} matched ${djBookings.length} bookings:`, djBookings.map(b => b.djUser));
+                }
                 
                 // Removed debug console.log for better performance
                 const djBlocked = blockedDates.filter(bd => {
@@ -3272,10 +3305,49 @@
                 const bookings = await getAllBookings();
                 const uniqueDJs = [...new Set(bookings.map(b => b.djUser).filter(dj => dj))].sort();
                 
-                // Find exact or case-insensitive match
+                // Also get all DJ users to help with matching
+                const allDJs = await getAllDJs();
+                
+                // Find exact or case-insensitive match, or partial match
                 let matchingDJName = djName;
+                const djNameLower = djName.toLowerCase();
+                
                 if (!uniqueDJs.includes(djName)) {
-                    const match = uniqueDJs.find(dj => dj.toLowerCase() === djName.toLowerCase());
+                    // Try case-insensitive exact match
+                    let match = uniqueDJs.find(dj => dj.toLowerCase() === djNameLower);
+                    
+                    // If no exact match, try partial matching
+                    if (!match) {
+                        // Try to find a DJ name that starts with the provided name, or vice versa
+                        match = uniqueDJs.find(dj => {
+                            const djLower = dj.toLowerCase();
+                            return djLower.startsWith(djNameLower) || djNameLower.startsWith(djLower);
+                        });
+                    }
+                    
+                    // If still no match, try matching by first name using DJ users list
+                    if (!match) {
+                        const matchingDJ = allDJs.find(dj => {
+                            if (dj.firstName && dj.firstName.toLowerCase() === djNameLower) {
+                                // Found by first name, now find the normalized name in bookings
+                                const normalizedName = (dj.firstName && dj.lastName) 
+                                    ? `${dj.firstName} ${dj.lastName}` 
+                                    : dj.username;
+                                return uniqueDJs.includes(normalizedName);
+                            }
+                            return false;
+                        });
+                        
+                        if (matchingDJ) {
+                            const normalizedName = (matchingDJ.firstName && matchingDJ.lastName) 
+                                ? `${matchingDJ.firstName} ${matchingDJ.lastName}` 
+                                : matchingDJ.username;
+                            if (uniqueDJs.includes(normalizedName)) {
+                                match = normalizedName;
+                            }
+                        }
+                    }
+                    
                     if (match) {
                         matchingDJName = match;
                     } else {
