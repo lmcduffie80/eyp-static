@@ -3016,12 +3016,39 @@
                                     
                                     // Only include if djUser matches "dj-admin" (handles all variations)
                                     if (normalizedDJUser === 'dj-admin') {
-                                        // Normalize date to YYYY-MM-DD
+                                        // Normalize date to YYYY-MM-DD format (calendar uses this format)
                                         let dateStr = bd.date;
+                                        
+                                        // Handle ISO format with time (e.g., "2026-02-14T00:00:00.000Z")
                                         if (dateStr.includes('T')) {
                                             dateStr = dateStr.split('T')[0];
                                         }
-                                        blockedDatesSet.add(dateStr);
+                                        
+                                        // Check if already in YYYY-MM-DD format
+                                        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                                            blockedDatesSet.add(dateStr);
+                                        } else {
+                                            // Try to parse other formats
+                                            try {
+                                                // Handle MM-DD-YYYY format explicitly
+                                                if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+                                                    const parts = dateStr.split('-');
+                                                    dateStr = `${parts[2]}-${parts[0]}-${parts[1]}`;
+                                                }
+                                                // Parse with Date object to handle various formats
+                                                const dateObj = new Date(dateStr);
+                                                if (!isNaN(dateObj.getTime())) {
+                                                    // Convert to YYYY-MM-DD format
+                                                    const year = dateObj.getFullYear();
+                                                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(dateObj.getDate()).padStart(2, '0');
+                                                    dateStr = `${year}-${month}-${day}`;
+                                                    blockedDatesSet.add(dateStr);
+                                                }
+                                            } catch (e) {
+                                                console.warn('Error parsing blocked date:', bd.date, e);
+                                            }
+                                        }
                                     }
                                     // All other djUser values (Gavin, Stephen, Will, etc.) are excluded
                                 }
