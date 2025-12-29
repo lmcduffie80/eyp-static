@@ -2807,7 +2807,8 @@
 
             // Removed debug console.logs for better performance
 
-            container.innerHTML = djs.map(dj => {
+            // First, calculate booking counts for each DJ and create an array with DJs and their booking counts
+            const djsWithBookings = djs.map(dj => {
                 const djDisplayName = (dj.firstName && dj.lastName) ? `${dj.firstName} ${dj.lastName}` : dj.username;
                 
                 // Build all possible name variations for matching
@@ -2904,6 +2905,71 @@
                     return bookingDate >= today;
                 });
 
+                // Return DJ data with booking counts for sorting
+                return {
+                    dj: dj,
+                    djDisplayName: djDisplayName,
+                    djBookings: djBookings,
+                    upcomingBookings: upcomingBookings,
+                    bookingCount: djBookings.length // Total bookings (all time) for sorting
+                };
+            });
+
+            // Sort DJs by booking count (most to least)
+            djsWithBookings.sort((a, b) => b.bookingCount - a.bookingCount);
+
+            // Format currency helper function
+            const formatCurrency = (amount) => {
+                return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            };
+
+            // Format date for display (MM-DD-YYYY) - handles various date formats including malformed ISO strings
+            const formatDate = (dateStr) => {
+                if (!dateStr) return '';
+                
+                // Handle malformed ISO strings like "04-11T00:00:00.000Z-2026"
+                if (typeof dateStr === 'string' && dateStr.includes('T') && dateStr.includes('-')) {
+                    // Try to extract date parts from malformed format
+                    // Pattern: MM-DDTHH:mm:ss.sssZ-YYYY
+                    const malformedMatch = dateStr.match(/^(\d{2})-(\d{2})T.*-(\d{4})$/);
+                    if (malformedMatch) {
+                        const [, month, day, year] = malformedMatch;
+                        return `${month}-${day}-${year}`;
+                    }
+                    
+                    // Try to extract date part from ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)
+                    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                    if (isoMatch) {
+                        const [, year, month, day] = isoMatch;
+                        return `${month}-${day}-${year}`;
+                    }
+                }
+                
+                // Handle YYYY-MM-DD format
+                if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = dateStr.split('-');
+                    return `${parts[1]}-${parts[2]}-${parts[0]}`;
+                }
+                
+                // Try to parse as Date object and format
+                try {
+                    const dateObj = parseBookingDate(dateStr);
+                    if (dateObj && !isNaN(dateObj.getTime())) {
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        const year = dateObj.getFullYear();
+                        return `${month}-${day}-${year}`;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing date:', dateStr, e);
+                }
+                
+                // Fallback: return as-is if we can't parse it
+                return dateStr;
+            };
+
+            // Now render the sorted DJs
+            container.innerHTML = djsWithBookings.map(({ dj, djDisplayName, djBookings, upcomingBookings }) => {
                 // Calculate revenue for this DJ (only DJ payout from future bookings)
                 const djRevenue = upcomingBookings.reduce((sum, booking) => {
                     if (booking.payout) {
@@ -2912,11 +2978,6 @@
                     }
                     return sum;
                 }, 0);
-
-                // Format currency
-                const formatCurrency = (amount) => {
-                    return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                };
 
                 // Find next booking - parse dates as local dates
                 let nextBooking = null;
@@ -2939,51 +3000,6 @@
                     });
                     nextBooking = upcomingBookings[0];
                 }
-
-                // Format date for display (MM-DD-YYYY) - handles various date formats including malformed ISO strings
-                const formatDate = (dateStr) => {
-                    if (!dateStr) return '';
-                    
-                    // Handle malformed ISO strings like "04-11T00:00:00.000Z-2026"
-                    if (typeof dateStr === 'string' && dateStr.includes('T') && dateStr.includes('-')) {
-                        // Try to extract date parts from malformed format
-                        // Pattern: MM-DDTHH:mm:ss.sssZ-YYYY
-                        const malformedMatch = dateStr.match(/^(\d{2})-(\d{2})T.*-(\d{4})$/);
-                        if (malformedMatch) {
-                            const [, month, day, year] = malformedMatch;
-                            return `${month}-${day}-${year}`;
-                        }
-                        
-                        // Try to extract date part from ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)
-                        const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-                        if (isoMatch) {
-                            const [, year, month, day] = isoMatch;
-                            return `${month}-${day}-${year}`;
-                        }
-                    }
-                    
-                    // Handle YYYY-MM-DD format
-                    if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        const parts = dateStr.split('-');
-                        return `${parts[1]}-${parts[2]}-${parts[0]}`;
-                    }
-                    
-                    // Try to parse as Date object and format
-                    try {
-                        const dateObj = parseBookingDate(dateStr);
-                        if (dateObj && !isNaN(dateObj.getTime())) {
-                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                            const day = String(dateObj.getDate()).padStart(2, '0');
-                            const year = dateObj.getFullYear();
-                            return `${month}-${day}-${year}`;
-                        }
-                    } catch (e) {
-                        console.warn('Error parsing date:', dateStr, e);
-                    }
-                    
-                    // Fallback: return as-is if we can't parse it
-                    return dateStr;
-                };
                 
                 // Escape DJ name for use in HTML attribute (escape single quotes and double quotes)
                 const escapedDJName = escapeHtml(djDisplayName).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
