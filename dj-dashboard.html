@@ -3153,7 +3153,12 @@
                             ${payout ? `<div><strong>Payout:</strong> <span style="color: var(--success-color); font-weight: bold;">$${payout}</span></div>` : ''}
                             ${safeEmail ? `<div><strong>Email:</strong> ${safeEmail}</div>` : ''}
                             ${safePhone ? `<div><strong>Phone:</strong> ${safePhone}</div>` : ''}
-                            ${safeNotes ? `<div style="margin-top: 0.5rem;"><strong>Notes:</strong> ${safeNotes}</div>` : ''}
+                            ${safeNotes ? `
+                                <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #e0e0e0;">
+                                    <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">Event Details & Notes:</div>
+                                    <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 0.75rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.9rem;">${safeNotes}</div>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -3549,7 +3554,12 @@
                                 <span class="booking-detail-value">${safeEmail}<br>${safePhone}</span>
                             </div>
                         </div>
-                        ${safeNotes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong> ${safeNotes}</div>` : ''}
+                        ${safeNotes ? `
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                                <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1.1rem;">Event Details & Notes:</div>
+                                <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: var(--bg-light); padding: 1rem; border-radius: 5px; line-height: 1.6; color: var(--text-dark); font-size: 0.95rem;">${safeNotes}</div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }).join('');
