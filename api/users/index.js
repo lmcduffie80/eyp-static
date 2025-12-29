@@ -23,9 +23,9 @@ export default async function handler(req, res) {
             // Get all users
             const { user_type } = req.query; // Optional filter by type (dj/admin)
             
-            let query = sql`SELECT * FROM users ORDER BY created_at DESC`;
+            let query = sql`SELECT * FROM users ORDER BY created_at DESC, id DESC`;
             if (user_type) {
-                query = sql`SELECT * FROM users WHERE user_type = ${user_type} ORDER BY created_at DESC`;
+                query = sql`SELECT * FROM users WHERE user_type = ${user_type} ORDER BY created_at DESC, id DESC`;
             }
             
             const result = await query;

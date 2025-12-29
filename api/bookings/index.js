@@ -60,9 +60,9 @@ export default async function handler(req, res) {
                 djNameMap.set(normalizedName.toLowerCase(), normalizedName);
             });
             
-            let query = sql`SELECT * FROM bookings ORDER BY date DESC`;
+            let query = sql`SELECT * FROM bookings ORDER BY date DESC, id DESC`;
             if (dj_user) {
-                query = sql`SELECT * FROM bookings WHERE dj_user = ${dj_user} ORDER BY date DESC`;
+                query = sql`SELECT * FROM bookings WHERE dj_user = ${dj_user} ORDER BY date DESC, id DESC`;
             }
             
             const result = await query;
