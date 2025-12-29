@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             },
             {
                 username: 'misty',
-                email: 'misty.mcduffie@externallyyoursproductions.com', // Update with actual email if different
+                email: 'mistymcduffie@yahoo.com',
                 firstName: 'Misty',
                 lastName: 'McDuffie',
                 phone: null, // Add phone number if available

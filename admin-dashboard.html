@@ -1464,13 +1464,42 @@
                     if (!booking.djUser) continue;
                     
                     // Try to find matching DJ user
+                    const bookingDJLower = booking.djUser.toLowerCase().trim();
                     const matchingDJ = djs.find(dj => {
                         const djFullName = dj.firstName && dj.lastName ? `${dj.firstName} ${dj.lastName}` : dj.username;
-                        // Case-insensitive match
-                        return djFullName.toLowerCase() === booking.djUser.toLowerCase().trim() ||
-                               dj.username.toLowerCase() === booking.djUser.toLowerCase().trim() ||
-                               (dj.firstName && dj.firstName.toLowerCase() === booking.djUser.toLowerCase().trim()) ||
-                               (dj.lastName && dj.lastName.toLowerCase() === booking.djUser.toLowerCase().trim());
+                        const djFullNameLower = djFullName.toLowerCase();
+                        
+                        // Exact matches
+                        if (djFullNameLower === bookingDJLower) return true;
+                        if (dj.username && dj.username.toLowerCase() === bookingDJLower) return true;
+                        if (dj.firstName && dj.firstName.toLowerCase() === bookingDJLower) return true;
+                        if (dj.lastName && dj.lastName.toLowerCase() === bookingDJLower) return true;
+                        
+                        // If DJ has first and last name, match if booking contains both names
+                        if (dj.firstName && dj.lastName) {
+                            const firstNameLower = dj.firstName.toLowerCase();
+                            const lastNameLower = dj.lastName.toLowerCase();
+                            
+                            // Match if booking contains both first and last name
+                            if (bookingDJLower.includes(firstNameLower) && bookingDJLower.includes(lastNameLower)) {
+                                return true;
+                            }
+                            
+                            // Match if booking is just first name, but only if no other DJ has same first name
+                            if (bookingDJLower === firstNameLower) {
+                                const otherDJWithSameFirstName = djs.find(otherDJ => 
+                                    otherDJ.id !== dj.id && 
+                                    otherDJ.firstName && 
+                                    otherDJ.firstName.toLowerCase() === firstNameLower
+                                );
+                                // Only match if no other DJ has the same first name
+                                if (!otherDJWithSameFirstName) {
+                                    return true;
+                                }
+                            }
+                        }
+                        
+                        return false;
                     });
                     
                     if (matchingDJ) {
@@ -2782,16 +2811,44 @@
                     nameVariations.add(`${dj.lastName} ${dj.firstName}`.toLowerCase()); // Reverse order
                 }
                 
-                // Match bookings to this DJ - case-insensitive exact matching only (no partial matching to avoid false matches)
+                // Match bookings to this DJ - case-insensitive matching with smart name matching
                 const djBookings = bookings.filter(b => {
                     const bookingDJ = (b.djUser || '').trim();
                     if (!bookingDJ) return false; // Don't include bookings without a DJ assigned
                     
                     const bookingDJLower = bookingDJ.toLowerCase();
                     
-                    // Check if booking DJ exactly matches any of our name variations (exact match only)
+                    // Check if booking DJ exactly matches any of our name variations
                     for (const variation of nameVariations) {
                         if (bookingDJLower === variation) {
+                            return true;
+                        }
+                    }
+                    
+                    // Special case: If DJ has first and last name, also match if booking has just first name
+                    // but only if there's no other DJ with the same first name (to avoid false matches)
+                    if (dj.firstName && dj.lastName) {
+                        const djFirstNameLower = dj.firstName.toLowerCase();
+                        const djLastNameLower = dj.lastName.toLowerCase();
+                        
+                        // Match if booking DJ is just the first name (e.g., "Lee" matches "Lee McDuffie")
+                        if (bookingDJLower === djFirstNameLower) {
+                            // Additional check: make sure no other DJ has the same first name
+                            // This prevents "Lee" from matching both "Lee McDuffie" and another "Lee Something"
+                            const otherDJWithSameFirstName = djs.find(otherDJ => 
+                                otherDJ.id !== dj.id && 
+                                otherDJ.firstName && 
+                                otherDJ.firstName.toLowerCase() === djFirstNameLower
+                            );
+                            
+                            // Only match if no other DJ has the same first name, or if booking also contains the last name
+                            if (!otherDJWithSameFirstName || bookingDJLower.includes(djLastNameLower)) {
+                                return true;
+                            }
+                        }
+                        
+                        // Match if booking DJ contains both first and last name (even if in different order)
+                        if (bookingDJLower.includes(djFirstNameLower) && bookingDJLower.includes(djLastNameLower)) {
                             return true;
                         }
                     }
