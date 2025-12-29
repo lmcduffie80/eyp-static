@@ -869,9 +869,10 @@
 
             <div class="dashboard-container">
         <!-- Loading Indicator -->
-        <div id="loading-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10000; text-align: center;">
-            <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem;">Loading dashboard...</div>
+        <div id="loading-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10000; text-align: center; min-width: 200px; max-width: 90%;">
+            <div style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 500;">Loading dashboard...</div>
             <div style="width: 40px; height: 40px; border: 4px solid var(--bg-light); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 1rem;">Please wait...</div>
         </div>
         <style>
             @keyframes spin {
@@ -1272,9 +1273,30 @@
         // API Helper Functions
         const API_BASE = ''; // Use relative URLs for same domain
         const CACHE_DURATION = 120000; // 2 minutes (increased for better performance)
+        const API_TIMEOUT = 30000; // 30 seconds timeout for mobile devices
         
         // Request deduplication - prevents multiple identical requests
         const inFlightRequests = new Map();
+        
+        // Helper function to create a timeout promise
+        function createTimeoutPromise(timeoutMs) {
+            return new Promise((_, reject) => {
+                setTimeout(() => reject(new Error(`Request timeout after ${timeoutMs}ms`)), timeoutMs);
+            });
+        }
+        
+        // Helper function to retry a failed request
+        async function retryRequest(fn, maxRetries = 2, delay = 1000) {
+            for (let i = 0; i <= maxRetries; i++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (i === maxRetries) throw error;
+                    // Wait before retrying (exponential backoff)
+                    await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+                }
+            }
+        }
         
         async function apiRequest(endpoint, options = {}) {
             // Create a unique key for this request
@@ -1285,23 +1307,33 @@
                 return inFlightRequests.get(requestKey);
             }
             
-            // Create new request promise
+            // Create new request promise with timeout and retry logic
             const requestPromise = (async () => {
                 try {
-                    const response = await fetch(`${API_BASE}${endpoint}`, {
-                        ...options,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...options.headers
+                    // Use retry logic for better reliability on mobile
+                    return await retryRequest(async () => {
+                        // Create fetch with timeout
+                        const fetchPromise = fetch(`${API_BASE}${endpoint}`, {
+                            ...options,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...options.headers
+                            }
+                        });
+                        
+                        // Race between fetch and timeout
+                        const response = await Promise.race([
+                            fetchPromise,
+                            createTimeoutPromise(API_TIMEOUT)
+                        ]);
+                        
+                        if (!response.ok) {
+                            const error = await response.json().catch(() => ({ error: response.statusText }));
+                            throw new Error(error.error || `HTTP ${response.status}`);
                         }
+                        
+                        return await response.json();
                     });
-                    
-                    if (!response.ok) {
-                        const error = await response.json().catch(() => ({ error: response.statusText }));
-                        throw new Error(error.error || `HTTP ${response.status}`);
-                    }
-                    
-                    return await response.json();
                 } catch (error) {
                     console.error('API request failed:', endpoint, error);
                     throw error;
@@ -2047,23 +2079,55 @@
         let djCacheTime = null;
         let adminCache = null;
         let adminCacheTime = null;
+        
+        // Clear all caches (useful for troubleshooting on mobile)
+        function clearAllCaches() {
+            bookingsCache = null;
+            bookingsCacheTime = null;
+            blockedDatesCache = null;
+            blockedDatesCacheTime = null;
+            djCache = null;
+            djCacheTime = null;
+            adminCache = null;
+            adminCacheTime = null;
+        }
 
-        // Initialize dashboard on load - optimized to parallelize API calls
+        // Initialize dashboard on load - optimized to parallelize API calls with better error handling
         async function initializeDashboard() {
             // Show loading indicator
             const loadingIndicator = document.getElementById('loading-indicator');
-            if (loadingIndicator) loadingIndicator.style.display = 'block';
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'block';
+                // Update loading message
+                const loadingMessage = loadingIndicator.querySelector('div:first-child');
+                if (loadingMessage) loadingMessage.textContent = 'Loading dashboard...';
+            }
             
             try {
                 initializeAnalytics();
                 
-                // Load all data in parallel for faster initial load
-                const [bookings, blockedDates, djs, admins] = await Promise.all([
+                // Load all data in parallel, but use Promise.allSettled to handle individual failures gracefully
+                // This ensures that if one API call fails, others can still succeed
+                const results = await Promise.allSettled([
                     getAllBookings(),
                     getAllBlockedDates(),
                     getAllDJs(),
                     getAllAdmins()
                 ]);
+                
+                // Extract successful results, use empty arrays for failed ones
+                const bookings = results[0].status === 'fulfilled' ? results[0].value : [];
+                const blockedDates = results[1].status === 'fulfilled' ? results[1].value : [];
+                const djs = results[2].status === 'fulfilled' ? results[2].value : [];
+                const admins = results[3].status === 'fulfilled' ? results[3].value : [];
+                
+                // Log any failures for debugging
+                results.forEach((result, index) => {
+                    if (result.status === 'rejected') {
+                        const apiNames = ['bookings', 'blockedDates', 'djs', 'admins'];
+                        console.error(`Failed to load ${apiNames[index]}:`, result.reason);
+                    }
+                });
                 
                 // Update dashboard stats with already-fetched data (execute immediately, no delay)
                 await updateDashboardStatsWithData(bookings, blockedDates);
@@ -2073,9 +2137,24 @@
                 
                 // Hide loading indicator
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
+                
+                // Show error toast if any critical data failed to load
+                const criticalFailures = results.slice(0, 2).filter(r => r.status === 'rejected');
+                if (criticalFailures.length > 0) {
+                    showToast('Some data failed to load. Please refresh the page.', 'error');
+                }
             } catch (error) {
                 console.error('Error loading dashboard:', error);
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                if (loadingIndicator) {
+                    const loadingMessage = loadingIndicator.querySelector('div:first-child');
+                    if (loadingMessage) loadingMessage.textContent = 'Error loading dashboard. Please refresh.';
+                }
+                showToast('Error loading dashboard. Please refresh the page.', 'error');
+                
+                // Still try to hide loading indicator after a delay
+                setTimeout(() => {
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                }, 3000);
             }
         }
         
@@ -2098,13 +2177,37 @@
             window.location.href = window.location.pathname;
             // Exit early - code below will not execute
         } else {
-            // Initialize immediately if DOM is ready, otherwise wait for DOMContentLoaded
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initializeDashboard);
-            } else {
-                // DOM is already ready, initialize immediately
-                initializeDashboard();
+            // On mobile, clear caches if they're older than 5 minutes to prevent stale data
+            const now = Date.now();
+            if (bookingsCacheTime && (now - bookingsCacheTime) > 300000) {
+                clearAllCaches();
             }
+            
+            // Initialize dashboard - ensure DOM is ready
+            function startInitialization() {
+                // Small delay to ensure all scripts are loaded (especially on mobile)
+                setTimeout(() => {
+                    initializeDashboard();
+                }, 100);
+            }
+            
+            if (document.readyState === 'loading') {
+                // Wait for DOM to be ready
+                document.addEventListener('DOMContentLoaded', startInitialization);
+            } else {
+                // DOM is already ready, but wait a bit for mobile browsers
+                startInitialization();
+            }
+            
+            // Fallback: if initialization hasn't completed after 8 seconds, clear cache and retry
+            setTimeout(() => {
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator && loadingIndicator.style.display === 'block') {
+                    console.warn('Dashboard initialization taking longer than expected, clearing cache and retrying...');
+                    clearAllCaches();
+                    initializeDashboard();
+                }
+            }, 8000);
         }
 
         // Helper function to determine if a user type has firstName and lastName
