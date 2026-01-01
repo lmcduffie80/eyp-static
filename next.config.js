@@ -21,11 +21,6 @@ const nextConfig = {
         source: '/api/:path*',
         destination: '/api/:path*',
       },
-      // Rewrite /admin-dashboard to serve the HTML file from public folder
-      {
-        source: '/admin-dashboard',
-        destination: '/admin-dashboard.html',
-      },
     ];
   },
   

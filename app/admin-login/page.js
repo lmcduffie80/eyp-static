@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export default function AdminLoginPage() {
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showError, setShowError] = useState(false)
+
   useEffect(() => {
     // Initialize default admin users on page load
     function initializeAdminUsers() {
@@ -57,85 +60,82 @@ export default function AdminLoginPage() {
 
     // Initialize admin users on page load
     initializeAdminUsers();
-
-    // Admin login form handling
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-      loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-        const errorMessage = document.getElementById('error-message');
-
-        // Clear previous errors
-        errorMessage.classList.remove('show');
-        errorMessage.textContent = '';
-
-        // Basic validation
-        if (!username || !password) {
-          errorMessage.textContent = 'Please enter both username and password.';
-          errorMessage.classList.add('show');
-          return;
-        }
-
-        // TODO: Replace with actual admin authentication API call
-        // For development: check against localStorage
-        const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
-
-        // Case-insensitive username OR email comparison, exact password match
-        const admin = adminUsers.find(u => {
-          const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
-          const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
-          const credentialMatch = usernameMatch || emailMatch;
-          const passwordMatch = u.password === password; // Passwords are case-sensitive
-          return credentialMatch && passwordMatch;
-        });
-
-        if (admin) {
-          // Store admin authentication token
-          localStorage.setItem('admin_token', 'admin_token_' + Date.now());
-          localStorage.setItem('admin_user', admin.username);
-          window.location.href = '/admin-dashboard?refresh=true';
-        } else {
-          // Check if username/email exists but password is wrong
-          const userExists = adminUsers.find(u => {
-            const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
-            const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
-            return usernameMatch || emailMatch;
-          });
-          if (userExists) {
-            errorMessage.textContent = 'Invalid password. Please check your password and try again.';
-          } else {
-            errorMessage.textContent = 'Invalid username or email. Please check your credentials and try again.';
-          }
-          errorMessage.classList.add('show');
-          
-          // Also try API call if localStorage fails (optional fallback)
-          fetch('/api/admin-login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              localStorage.setItem('admin_token', data.token);
-              localStorage.setItem('admin_user', data.user);
-              window.location.href = '/admin-dashboard?refresh=true';
-            }
-            // If API also fails, the error message above is already shown
-          })
-          .catch(error => {
-            // API call failed, but error message is already shown above
-            console.error('API login error:', error);
-          });
-        }
-      });
-    }
   }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const username = formData.get('username')?.toString().trim() || '';
+    const password = formData.get('password')?.toString() || '';
+
+    // Clear previous errors
+    setShowError(false);
+    setErrorMessage('');
+
+    // Basic validation
+    if (!username || !password) {
+      setErrorMessage('Please enter both username and password.');
+      setShowError(true);
+      return;
+    }
+
+    // TODO: Replace with actual admin authentication API call
+    // For development: check against localStorage
+    const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+
+    // Case-insensitive username OR email comparison, exact password match
+    const admin = adminUsers.find(u => {
+      const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+      const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
+      const credentialMatch = usernameMatch || emailMatch;
+      const passwordMatch = u.password === password; // Passwords are case-sensitive
+      return credentialMatch && passwordMatch;
+    });
+
+    if (admin) {
+      // Store admin authentication token
+      localStorage.setItem('admin_token', 'admin_token_' + Date.now());
+      localStorage.setItem('admin_user', admin.username);
+      window.location.href = '/admin-dashboard?refresh=true';
+    } else {
+      // Check if username/email exists but password is wrong
+      const userExists = adminUsers.find(u => {
+        const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+        const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
+        return usernameMatch || emailMatch;
+      });
+      
+      if (userExists) {
+        setErrorMessage('Invalid password. Please check your password and try again.');
+      } else {
+        setErrorMessage('Invalid username or email. Please check your credentials and try again.');
+      }
+      setShowError(true);
+      
+      // Also try API call if localStorage fails (optional fallback)
+      try {
+        const response = await fetch('/api/admin-login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          localStorage.setItem('admin_token', data.token);
+          localStorage.setItem('admin_user', data.user);
+          window.location.href = '/admin-dashboard?refresh=true';
+        }
+        // If API also fails, the error message above is already shown
+      } catch (error) {
+        // API call failed, but error message is already shown above
+        console.error('API login error:', error);
+      }
+    }
+  };
 
   return (
     <>
@@ -371,9 +371,11 @@ export default function AdminLoginPage() {
           <p>Sign in to access the administrative dashboard</p>
         </div>
 
-        <div id="error-message" className="error-message"></div>
+        <div className={`error-message ${showError ? 'show' : ''}`}>
+          {errorMessage}
+        </div>
 
-        <form id="login-form">
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username or Email</label>
             <input type="text" id="username" name="username" required autoComplete="username" />
