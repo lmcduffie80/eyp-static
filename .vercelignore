@@ -1,0 +1,3 @@
+# Ignore old HTML files that aren't needed for Next.js
+*.html
+!public/*.html
