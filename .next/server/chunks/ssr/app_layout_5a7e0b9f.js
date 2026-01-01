@@ -1,0 +1,3 @@
+module.exports=[62925,a=>{"use strict";var b=a.i(7997);function c({children:a}){return(0,b.jsxs)("html",{lang:"en",children:[(0,b.jsxs)("head",{children:[(0,b.jsx)("link",{rel:"icon",type:"image/png",href:"/EYP Logo_New.png"}),(0,b.jsx)("link",{rel:"dns-prefetch",href:"https://www.honeybook.com"}),(0,b.jsx)("link",{rel:"preconnect",href:"https://widget.honeybook.com",crossOrigin:"anonymous"})]}),(0,b.jsx)("body",{children:a})]})}a.s(["default",()=>c,"metadata",0,{title:"Externally Yours Productions, LLC",description:"Professional video and film production services"}])}];
+
+//# sourceMappingURL=app_layout_5a7e0b9f.js.map
