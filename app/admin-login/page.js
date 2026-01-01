@@ -1,0 +1,397 @@
+'use client'
+
+import { useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+
+export default function AdminLoginPage() {
+  useEffect(() => {
+    // Initialize default admin users on page load
+    function initializeAdminUsers() {
+      try {
+        const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+        let usersUpdated = false;
+        
+        // Initialize super user (admin)
+        const adminExists = adminUsers.find(u => 
+          (u.username && u.username.toLowerCase() === 'admin') || 
+          (u.email && u.email.toLowerCase() === 'admin@externallyyoursproductions.com')
+        );
+        if (!adminExists) {
+          adminUsers.push({
+            username: 'admin',
+            password: 'admin123', // In production, this should be hashed
+            email: 'admin@externallyyoursproductions.com',
+            isSuperUser: true,
+            createdAt: new Date().toISOString()
+          });
+          usersUpdated = true;
+          console.log('Initialized admin user');
+        }
+        
+        // Initialize lee admin user
+        const leeExists = adminUsers.find(u => 
+          (u.username && u.username.toLowerCase() === 'lee') || 
+          (u.email && u.email.toLowerCase() === 'lee@externallyyoursproductions.com')
+        );
+        if (!leeExists) {
+          adminUsers.push({
+            username: 'lee',
+            password: 'admin123', // In production, this should be hashed
+            email: 'lee@externallyyoursproductions.com',
+            isSuperUser: false,
+            createdAt: new Date().toISOString()
+          });
+          usersUpdated = true;
+          console.log('Initialized lee admin user');
+        }
+        
+        if (usersUpdated) {
+          localStorage.setItem('admin_users', JSON.stringify(adminUsers));
+          console.log('Admin users initialized:', adminUsers.length, 'total users');
+        }
+      } catch (error) {
+        console.error('Error initializing admin users:', error);
+      }
+    }
+
+    // Initialize admin users on page load
+    initializeAdminUsers();
+
+    // Admin login form handling
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('error-message');
+
+        // Clear previous errors
+        errorMessage.classList.remove('show');
+        errorMessage.textContent = '';
+
+        // Basic validation
+        if (!username || !password) {
+          errorMessage.textContent = 'Please enter both username and password.';
+          errorMessage.classList.add('show');
+          return;
+        }
+
+        // TODO: Replace with actual admin authentication API call
+        // For development: check against localStorage
+        const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+
+        // Case-insensitive username OR email comparison, exact password match
+        const admin = adminUsers.find(u => {
+          const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+          const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
+          const credentialMatch = usernameMatch || emailMatch;
+          const passwordMatch = u.password === password; // Passwords are case-sensitive
+          return credentialMatch && passwordMatch;
+        });
+
+        if (admin) {
+          // Store admin authentication token
+          localStorage.setItem('admin_token', 'admin_token_' + Date.now());
+          localStorage.setItem('admin_user', admin.username);
+          window.location.href = '/admin-dashboard?refresh=true';
+        } else {
+          // Check if username/email exists but password is wrong
+          const userExists = adminUsers.find(u => {
+            const usernameMatch = u.username && u.username.toLowerCase() === username.toLowerCase();
+            const emailMatch = u.email && u.email.toLowerCase() === username.toLowerCase();
+            return usernameMatch || emailMatch;
+          });
+          if (userExists) {
+            errorMessage.textContent = 'Invalid password. Please check your password and try again.';
+          } else {
+            errorMessage.textContent = 'Invalid username or email. Please check your credentials and try again.';
+          }
+          errorMessage.classList.add('show');
+          
+          // Also try API call if localStorage fails (optional fallback)
+          fetch('/api/admin-login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              localStorage.setItem('admin_token', data.token);
+              localStorage.setItem('admin_user', data.user);
+              window.location.href = '/admin-dashboard?refresh=true';
+            }
+            // If API also fails, the error message above is already shown
+          })
+          .catch(error => {
+            // API call failed, but error message is already shown above
+            console.error('API login error:', error);
+          });
+        }
+      });
+    }
+  }, []);
+
+  return (
+    <>
+      <style jsx global>{`
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        :root {
+          --primary-color: #1a1a1a;
+          --secondary-color: #ffffff;
+          --accent-color: #ff6b35;
+          --text-dark: #333;
+          --text-light: #666;
+          --bg-light: #f8f8f8;
+          --error-color: #dc3545;
+          --success-color: #28a745;
+        }
+
+        html, body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+          min-height: 100vh;
+          margin: 0;
+          padding: 0;
+        }
+        
+        body {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+        }
+
+        .login-container {
+          background: var(--secondary-color);
+          border-radius: 15px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+          padding: 3rem;
+          width: 100%;
+          max-width: 450px;
+        }
+
+        .login-header {
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+
+        .login-header img {
+          height: 135px;
+          width: auto;
+          max-width: 507px;
+          margin-bottom: 1rem;
+        }
+
+        .login-header h1 {
+          color: var(--primary-color);
+          font-size: 2rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+          color: var(--text-light);
+          font-size: 0.9rem;
+        }
+
+        .admin-badge {
+          display: inline-block;
+          background: var(--accent-color);
+          color: var(--secondary-color);
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: bold;
+          margin-top: 0.5rem;
+        }
+
+        .form-group {
+          margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          color: var(--text-dark);
+          font-weight: 500;
+        }
+
+        .form-group input {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: 2px solid #e0e0e0;
+          border-radius: 8px;
+          font-size: 1rem;
+          transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+          outline: none;
+          border-color: var(--accent-color);
+        }
+
+        .login-button {
+          width: 100%;
+          padding: 0.75rem;
+          background: var(--accent-color);
+          color: var(--secondary-color);
+          border: none;
+          border-radius: 8px;
+          font-size: 1.1rem;
+          font-weight: bold;
+          cursor: pointer;
+          transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .login-button:hover {
+          background: #e55a2b;
+          transform: translateY(-2px);
+        }
+
+        .login-button:active {
+          transform: translateY(0);
+        }
+
+        .error-message {
+          background: #fee;
+          color: var(--error-color);
+          padding: 0.75rem;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+          display: none;
+          border: 1px solid var(--error-color);
+        }
+
+        .error-message.show {
+          display: block;
+        }
+
+        .back-link {
+          text-align: center;
+          margin-top: 1.5rem;
+        }
+
+        .back-link a {
+          color: var(--text-light);
+          text-decoration: none;
+          font-size: 0.9rem;
+        }
+
+        .back-link a:hover {
+          color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+          body {
+            padding: 1rem;
+            align-items: flex-start;
+            padding-top: 2rem;
+          }
+
+          .login-container {
+            padding: 1.5rem;
+            border-radius: 10px;
+            max-width: 100%;
+          }
+
+          .login-header {
+            margin-bottom: 1.5rem;
+          }
+
+          .login-header img {
+            height: 101px;
+            margin-bottom: 0.75rem;
+          }
+
+          .login-header h1 {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+          }
+
+          .login-header p {
+            font-size: 0.8rem;
+          }
+
+          .admin-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            margin-top: 0.25rem;
+          }
+
+          .form-group {
+            margin-bottom: 1rem;
+          }
+
+          .form-group label {
+            font-size: 0.875rem;
+            margin-bottom: 0.4rem;
+          }
+
+          .form-group input {
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+          }
+
+          .login-button {
+            padding: 0.65rem;
+            font-size: 0.95rem;
+          }
+
+          .error-message {
+            padding: 0.6rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+          }
+
+          .back-link {
+            margin-top: 1rem;
+          }
+
+          .back-link a {
+            font-size: 0.85rem;
+          }
+        }
+      `}</style>
+      <div className="login-container">
+        <div className="login-header">
+          <img src="/EYP Logo_New.png" alt="Externally Yours Productions, LLC" />
+          <h1>Admin Portal</h1>
+          <span className="admin-badge">Administrator Access</span>
+          <p>Sign in to access the administrative dashboard</p>
+        </div>
+
+        <div id="error-message" className="error-message"></div>
+
+        <form id="login-form">
+          <div className="form-group">
+            <label htmlFor="username">Username or Email</label>
+            <input type="text" id="username" name="username" required autoComplete="username" />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input type="password" id="password" name="password" required autoComplete="current-password" />
+          </div>
+
+          <button type="submit" className="login-button">Sign In</button>
+        </form>
+
+        <div className="back-link">
+          <Link href="/">← Back to Website</Link>
+        </div>
+      </div>
+    </>
+  )
+}
+
