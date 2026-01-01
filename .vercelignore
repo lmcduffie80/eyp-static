@@ -1,3 +1,14 @@
 # Ignore old HTML files that aren't needed for Next.js
+# These files can interfere with Next.js routing
+index.html
+about.html
+photography.html
+videography.html
+dj-entertainment.html
+dj-login.html
+dj-dashboard.html
+dj-request-reset.html
+dj-reset-password.html
+admin-login.html
 *.html
 !public/*.html
